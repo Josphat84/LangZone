@@ -1,0 +1,137 @@
+<!--templates/about.html-->
+
+{% extends "base.html" %}
+{% block content %}
+
+
+<a href="/" style="display:block; margin:24px auto 0 24px; color:#2d3a4b; text-decoration:none; font-weight:600; font-size:1.05rem;">&larr; Home</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us | L&amp;J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7f9;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .about-container {
+            max-width: 800px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            padding: 48px 36px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5em;
+            color: #2d3a4b;
+        }
+        h2 {
+            color: #4e5d6c;
+            margin-top: 2em;
+        }
+        p {
+            line-height: 1.7;
+            margin-bottom: 1.5em;
+        }
+        .team-section {
+            display: flex;
+            gap: 32px;
+            margin-top: 2em;
+            flex-wrap: wrap;
+        }
+        .team-member {
+            flex: 1 1 180px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .team-member img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 12px;
+        }
+        .team-member h3 {
+            margin: 0.5em 0 0.2em 0;
+            font-size: 1.1rem;
+            color: #2d3a4b;
+        }
+        .team-member span {
+            font-size: 0.95rem;
+            color: #6c7a89;
+        }
+        @media (max-width: 600px) {
+            .about-container {
+                padding: 24px 8px;
+            }
+            .team-section {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="about-container">
+        <h1>About L&amp;J Shop</h1>
+        <p>
+            Welcome to L&amp;J Shop, where passion meets craftsmanship. Since our founding, we've been dedicated to curating a unique selection of products that blend quality, style, and value. Our mission is to provide an exceptional shopping experience, rooted in trust and a commitment to our community.
+        </p>
+        <p>
+            At L&amp;J Shop, we believe in the power of thoughtful design and attentive service. Every item in our collection is handpicked by our team, ensuring it meets our high standards for excellence. Whether you're searching for the perfect gift or something special for yourself, we're here to help you find it.
+        </p>
+        <h2>Our Values</h2>
+        <ul>
+            <li><strong>Quality:</strong> We source only the best materials and products.</li>
+            <li><strong>Integrity:</strong> Honesty and transparency guide every decision we make.</li>
+            <li><strong>Community:</strong> We support local artisans and give back to our neighborhood.</li>
+            <li><strong>Innovation:</strong> Always evolving to bring you the latest trends and timeless classics.</li>
+        </ul>
+        <h2>Meet the Team</h2>
+        <div class="team-section">
+            <div class="team-member">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="John Doe">
+                <h3>John Doe</h3>
+                <span>Co-Founder &amp; CEO</span>
+            </div>
+            <div class="team-member">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Linda Smith">
+                <h3>Linda Smith</h3>
+                <span>Co-Founder &amp; Creative Director</span>
+            </div>
+        </div>
+        <div style="margin-top:2.5em; background:#f0f4f8; border-radius:8px; padding:24px 20px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+            <h2 style="margin-top:0; color:#2d3a4b; font-size:1.25rem; letter-spacing:0.5px;">Contact Us</h2>
+            <div style="display:flex; flex-direction:column; gap:10px; align-items:center; font-size:1.05rem;">
+            <div>
+                <span style="font-weight:600; color:#4e5d6c;">Address:</span>
+                <span style="color:#2d3a4b;">{{contact_address}}</span>
+            </div>
+            <div>
+                <span style="font-weight:600; color:#4e5d6c;">Email:</span>
+                <a href="mailto:{{contact_email}}" style="color:#2d7be0; text-decoration:none;">{{contact_email}}</a>
+            </div>
+            <div>
+                <span style="font-weight:600; color:#4e5d6c;">Phone:</span>
+                <a href="tel:{{contact_phone}}" style="color:#2d7be0; text-decoration:none;">{{contact_phone}}</a>
+            </div>
+            </div>
+        </div>
+        <p style="margin-top:2em; color:#6c7a89; font-size:0.95rem;">
+            2025 Laston & Josphat Software Inc. All rights reserved.
+        </p>
+    </div>
+</body>
+</html>
+
+{% endblock content %}

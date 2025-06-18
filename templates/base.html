@@ -1,0 +1,740 @@
+<!--templates/base.html-->
+
+<!-- 
+    Modern minimalist base template for ShopEase.
+    Designed by Josphat Dandira.
+    Improved for elegance, consistency, and layout.
+-->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ShopEase - Your premier online shopping destination">
+    <meta name="keywords" content="shopping, ecommerce, products, deals, fashion, electronics">
+    <title>{% block title %}ShopEase - Shop with Ease{% endblock %}</title>
+    
+    <!-- External Resources -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --warning-color: #f59e42;
+            --info-color: #0ea5e9;
+            --light-color: #f1f5f9;
+            --dark-color: #0f172a;
+            --white: #fff;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --border-radius: 10px;
+            --border-radius-lg: 16px;
+            --box-shadow: 0 2px 16px rgba(16, 42, 112, 0.07);
+            --box-shadow-lg: 0 6px 32px rgba(16, 42, 112, 0.12);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--border-radius);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 15px;
+            background: var(--primary-color);
+            color: var(--white);
+            cursor: pointer;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+        .btn:hover, .btn:focus {
+            background: var(--primary-hover);
+            box-shadow: var(--box-shadow-lg);
+            outline: none;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .top-bar {
+            background: var(--primary-color);
+            color: var(--white);
+            font-size: 14px;
+            padding: 8px 0;
+        }
+        .top-bar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .contact-info span {
+            margin-right: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.9;
+        }
+        .social-icons {
+            display: flex;
+            gap: 10px;
+        }
+        .social-icons a {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.13);
+            border-radius: 50%;
+            color: var(--white);
+            font-size: 15px;
+            transition: var(--transition);
+        }
+        .social-icons a:hover {
+            background: var(--white);
+            color: var(--primary-color);
+        }
+
+        .main-header {
+            padding: 18px 0;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            letter-spacing: -1px;
+        }
+        .search-container {
+            flex: 1;
+            max-width: 420px;
+            position: relative;
+        }
+        .search-input {
+            width: 100%;
+            padding: 13px 48px 13px 18px;
+            border: 2px solid var(--gray-200);
+            border-radius: 32px;
+            font-size: 16px;
+            background: var(--white);
+            transition: var(--transition);
+        }
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.08);
+            outline: none;
+        }
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-color);
+            color: var(--white);
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .search-btn:hover {
+            background: var(--primary-hover);
+        }
+        .header-actions {
+            display: flex;
+            gap: 18px;
+        }
+        .header-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 7px 10px;
+            border-radius: var(--border-radius);
+            color: var(--gray-600);
+            position: relative;
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .header-action:hover, .header-action:focus {
+            background: var(--gray-100);
+            color: var(--primary-color);
+        }
+        .header-action i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        .header-action span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .cart-badge {
+            position: absolute;
+            top: 0;
+            right: 6px;
+            background: var(--danger-color);
+            color: var(--white);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: 2px solid var(--white);
+        }
+
+        /* Navigation */
+        .main-nav {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+        }
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            list-style: none;
+            gap: 2px;
+        }
+        .nav-links li {
+            position: relative;
+        }
+        .nav-links a {
+            display: block;
+            padding: 14px 22px;
+            color: var(--gray-700);
+            font-weight: 600;
+            font-size: 15px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 8px;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            transition: var(--transition);
+            transform: translateX(-50%);
+        }
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color);
+            background: var(--gray-100);
+        }
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 60%;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--gray-700);
+            font-size: 26px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 48px 0 32px;
+            background: transparent;
+            min-height: 400px;
+            animation: fadeIn 0.5s;
+        }
+
+        /* Newsletter Section */
+        .newsletter-section {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            color: var(--white);
+            padding: 48px 0 40px;
+            text-align: center;
+        }
+        .newsletter-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .newsletter-content p {
+            margin-bottom: 22px;
+            opacity: 0.92;
+        }
+        .newsletter-form {
+            display: flex;
+            max-width: 420px;
+            margin: 0 auto;
+            gap: 10px;
+        }
+        .newsletter-input {
+            flex: 1;
+            padding: 13px 18px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 15px;
+        }
+        .newsletter-btn {
+            background: var(--white);
+            color: var(--primary-color);
+            border: none;
+            padding: 13px 22px;
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .newsletter-btn:hover {
+            background: var(--gray-100);
+            color: var(--primary-hover);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-300);
+            padding: 56px 0 18px;
+            margin-top: auto;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 36px;
+            margin-bottom: 36px;
+        }
+        .footer-section h3 {
+            color: var(--white);
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            position: relative;
+            padding-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 36px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+        .footer-links {
+            list-style: none;
+        }
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        .footer-links a {
+            color: var(--gray-400);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 15px;
+        }
+        .footer-links a:hover {
+            color: var(--primary-color);
+            padding-left: 6px;
+        }
+        .footer-social {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .footer-social a {
+            width: 38px;
+            height: 38px;
+            background: var(--gray-800);
+            color: var(--gray-400);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        .footer-social a:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+        .footer-bottom {
+            border-top: 1px solid var(--gray-700);
+            padding-top: 18px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+        .footer-bottom .heart {
+            color: var(--danger-color);
+            margin: 0 3px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0 12px;
+            }
+            .header-content {
+                gap: 18px;
+            }
+            .search-container {
+                max-width: 320px;
+            }
+        }
+        @media (max-width: 768px) {
+            .top-bar {
+                display: none;
+            }
+            .header-content {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .search-container {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+                margin-top: 10px;
+            }
+            .header-actions {
+                gap: 10px;
+            }
+            .nav-links {
+                flex-direction: column;
+                align-items: flex-start;
+                background: var(--white);
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                box-shadow: var(--box-shadow);
+                display: none;
+                z-index: 999;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .nav-links a {
+                padding: 14px 24px;
+                font-size: 15px;
+                border-radius: 0;
+                width: 100%;
+            }
+            .main-content {
+                padding: 24px 0 18px;
+            }
+            .footer-content {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 18px;
+            }
+        }
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.3rem;
+            }
+            .main-header {
+                padding: 12px 0;
+            }
+            .mobile-menu-toggle {
+                display: block;
+            }
+            .header-actions {
+                gap: 6px;
+            }
+            .header-action span {
+                display: none;
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            .newsletter-form {
+                flex-direction: column;
+                gap: 8px;
+                max-width: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    
+    <!-- Header -->
+    <header class="header">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="container">
+                <div class="top-bar-content">
+                    <div class="contact-info">
+                        <span><i class="fas fa-phone"></i> +263778973142</span>
+                        <span><i class="fas fa-envelope"></i> josphatdandira@gmail.com</span>
+                    </div>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main Header -->
+        <div class="main-header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="{% url 'home' %}" class="logo">ShopEase</a>
+                    <form method="get" action="{% url 'search' %}" style="display: flex; gap: 5px;">
+                    <input type="text" name="q" placeholder="Search..." required>
+                        <button type="submit">Search</button>
+                    </form>
+
+                    <div class="header-actions">
+                        <a href="{% url 'login' %}" class="header-action">
+                            <i class="fas fa-user"></i>
+                            <span>Account</span>
+                        </a>
+                        <a href="#" class="header-action">
+                            <i class="fas fa-heart"></i>
+                            <span>Wishlist</span>
+                        </a>
+                        <a href="#" class="header-action">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Cart</span>
+                            <span class="cart-badge">0</span>
+                        </a>
+                    </div>
+                    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <div class="container" style="position:relative;">
+                <ul class="nav-links">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'shop' %}">Shop</a></li>
+                    <li><a href="{% url 'new_arrivals' %}">New Arrivals</a></li>
+                    <li><a href="{% url 'featured' %}">Featured</a></li>
+                    <li><a href="{% url 'deals' %}">Deals</a></li>
+                    <li><a href="{% url 'blog' %}">Blog</a></li>
+                    <li><a href="{% url 'contacts' %}">Contact</a></li>
+                    <li><a href="{% url 'about' %}">About</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <!-- Main Content -->
+    <main class="main-content fade-in">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-content">
+                <h3>Stay Updated</h3>
+                <p>Get the latest offers, new arrivals, and exclusive deals delivered to your inbox</p>
+                <form class="newsletter-form">
+                    <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
+                    <button type="submit" class="newsletter-btn">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Shop</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'shop' %}">All Products</a></li>
+                        <li><a href="{% url 'new_arrivals' %}">New Arrivals</a></li>
+                        <li><a href="{% url 'best_sellers' %}">Best Sellers</a></li>
+                        <li><a href="{% url 'featured' %}">Featured</a></li>
+                        <li><a href="{% url 'items_on_sale' %}">Sale Items</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Information</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'about' %}">About Us</a></li>
+                        <li><a href="{% url 'contacts' %}">Contact Us</a></li>
+                        <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                        <li><a href="{% url 'terms_and_conditions' %}">Terms & Conditions</a></li>
+                        <li><a href="{% url 'shipping_policy' %}">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Customer Service</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'my_account' %}">My Account</a></li>
+                        <li><a href="{% url 'order_tracking' %}">Track Order</a></li>
+                        <li><a href="{% url 'returns_and_exchanges' %}">Returns & Exchanges</a></li>
+                        <li><a href="{% url 'faq' %}">FAQ</a></li>
+                        <li><a href="{% url 'help_center' %}">Help Center</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Shopping St, Commerce City, USA</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> support@shopease.com</li>
+                    </ul>
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/ShopEase" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.instagram.com/ShopEase" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.twitter.com/ShopEase" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.pinterest.com/ShopEase" aria-label="Pinterest">
+                            <i class="fab fa-pinterest-p"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ShopEase. All Rights Reserved. Designed with <span class="heart">♥</span> by Josphat Dandira</p>
+            </div>
+        </div>
+    </footer>
+    {% block extra_js %}{% endblock %}
+    <script>
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            if (mobileToggle && navLinks) {
+                mobileToggle.addEventListener('click', function() {
+                    navLinks.classList.toggle('show');
+                });
+                // Hide menu on link click (mobile)
+                navLinks.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if(window.innerWidth <= 768) navLinks.classList.remove('show');
+                    });
+                });
+            }
+            // Newsletter form handling
+            const newsletterForm = document.querySelector('.newsletter-form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const email = this.querySelector('.newsletter-input').value;
+                    if (email) {
+                        alert('Thank you for subscribing!');
+                        this.querySelector('.newsletter-input').value = '';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

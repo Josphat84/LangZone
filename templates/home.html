@@ -1,0 +1,154 @@
+
+<!--templates/home.html-->
+
+{% extends 'base.html' %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+{% block content %}
+
+
+
+
+
+
+<!-- Font Awesome for icons -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+    <section class="featured-categories">
+        <div class="featured-categories-container">
+            <h2 class="section-title shop-by-category-title">Shop By Category</h2>
+            <div class="featured-categories-list">
+                <a href="#" class="category-card men-category">
+                    <div class="category-icon men-icon">
+                        <i class="fas fa-male"></i>
+                    </div>
+                        <div class="category-title men-title">Men's Fashion</div>
+                        <div class="category-desc">Suits, shoes, accessories & more</div>
+                    </a>
+                    <a href="#" class="category-card women-category">
+                        <div class="category-icon women-icon">
+                            <i class="fas fa-female"></i>
+                        </div>
+                        <div class="category-title women-title">Women's Fashion</div>
+                        <div class="category-desc">Dresses, bags, beauty & more</div>
+                    </a>
+                    <a href="#" class="category-card electronics-category">
+                        <div class="category-icon electronics-icon">
+                            <i class="fas fa-laptop"></i>
+                        </div>
+                        <div class="category-title electronics-title">Electronics</div>
+                        <div class="category-desc">Phones, gadgets, appliances</div>
+                    </a>
+                    <a href="#" class="category-card home-category">
+                        <div class="category-icon home-icon">
+                            <i class="fas fa-couch"></i>
+                        </div>
+                        <div class="category-title home-title">Home & Decor</div>
+                        <div class="category-desc">Furniture, kitchen, decor</div>
+                    </a>
+                </div>
+            </div>
+            </div>
+        </section>
+    
+
+    <!-- Special Offer -->
+    <section class="special-offer">
+        <div class="special-offer-overlay"></div>
+        <div class="special-offer-content">
+            <h2>Special Spring Sale</h2>
+            <p>Hurry up! Limited time offer. Get up to 50% off on premium products.</p>
+            <div class="countdown">
+                <div class="countdown-item">
+                    <div class="countdown-number">02</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number">18</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number">45</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number">30</div>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+            <a href="#" class="cta-button">Shop the Sale</a>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+
+    
+   
+
+
+
+    <section class="testimonials">
+        <h2 class="section-title">What Our Customers Say</h2>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    The quality of products I received exceeded my expectations. Shipping was fast and customer service was excellent. Definitely coming back!
+                </div>
+                <div class="testimonial-author">
+                    
+                    <div class="author-info">
+                        <h4>Sarah Johnson</h4>
+                        <p>Regular Customer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    I've been shopping here for years and have never been disappointed. Great selections, competitive prices, and reliable delivery.
+                </div>
+                <div class="testimonial-author">
+
+                    
+                    
+                    <div class="author-info">
+                        <h4>Michael Williams</h4>
+                        <p>VIP Member</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-text">
+                    Their return policy is the best I've encountered. Had an issue with my order and it was resolved immediately. Five stars!
+                </div>
+                <div class="testimonial-author">
+                   
+                    <div class="author-info">
+                        <h4>Emily Rodriguez</h4>
+                        <p>New Customer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <h2>Subscribe to Our Newsletter</h2>
+        <p>Stay updated with our latest offers, new arrivals, and exclusive deals by subscribing to our newsletter.</p>
+        <form class="newsletter-form">
+            <input type="email" placeholder="Enter your email address">
+            <button type="submit">Subscribe</button>
+        </form>
+    </section>
+
+    
+              <!-- ✅ Load JS at the end of the body -->
+                <script src="{% static 'js/script.js' %}"></script>
+            </body>
+            </html>
+
+{% endblock content %}              <!-- ✅ Load JS at the end of the body -->
+                <script src="{% static 'js/script.js' %}"></script>
+
+{% endblock content %}

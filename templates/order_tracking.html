@@ -1,0 +1,251 @@
+<!-- templates/order_tracking.html -->
+
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+<div style="position:fixed;top:16px;left:16px;z-index:100;">
+    <a href="/" style="text-decoration:none;color:#6366f1;font-weight:700;font-size:1rem;">&larr; Home</a>
+</div>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Tracking | L&J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f7f8fa;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 480px;
+            margin: 48px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            padding: 32px 24px 24px 24px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .logo a {
+            text-decoration: none;
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        h2 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+        .desc {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        label {
+            font-weight: 500;
+            color: #374151;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+        input[type="text"]:focus {
+            border-color: #6366f1;
+            outline: none;
+        }
+        button {
+            background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #60a5fa 0%, #6366f1 100%);
+        }
+        .tracking-result {
+            margin-top: 32px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 24px;
+            color: #374151;
+            display: none;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+        }
+        .status-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .status-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 4px;
+            background: #d1d5db;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        .status-step.active .circle {
+            background: #6366f1;
+            color: #fff;
+        }
+        .circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 8px;
+            z-index: 1;
+            position: relative;
+        }
+        .step-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px 8px;
+            }
+            .status-bar {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .status-step:not(:last-child)::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <a href="/">L&amp;J Shop</a>
+        </div>
+        <h2>Track Your Order</h2>
+        <div class="desc">Enter your order number to view the latest status and details.</div>
+        <form id="tracking-form" autocomplete="off">
+            <label for="order-id">Order Number</label>
+            <input type="text" id="order-id" name="order-id" placeholder="e.g. LJ123456" required>
+            <button type="submit">Track Order</button>
+        </form>
+        <div class="tracking-result" id="tracking-result">
+            <h3>Order Status</h3>
+            <div class="status-bar" id="status-bar">
+                <div class="status-step" id="step-1">
+                    <div class="circle">1</div>
+                    <div class="step-label">Placed</div>
+                </div>
+                <div class="status-step" id="step-2">
+                    <div class="circle">2</div>
+                    <div class="step-label">Processed</div>
+                </div>
+                <div class="status-step" id="step-3">
+                    <div class="circle">3</div>
+                    <div class="step-label">Shipped</div>
+                </div>
+                <div class="status-step" id="step-4">
+                    <div class="circle">4</div>
+                    <div class="step-label">Delivered</div>
+                </div>
+            </div>
+            <div id="order-details" style="margin-top:24px;">
+                <!-- Order details will appear here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        // Demo data for illustration
+        const demoOrders = {
+            'LJ123456': {
+                status: 3,
+                details: {
+                    'Order Number': 'LJ123456',
+                    'Placed On': '2024-06-01',
+                    'Recipient': 'Jane Doe',
+                    'Shipping Address': '123 Main St, City, Country',
+                    'Items': '2x T-shirt, 1x Cap',
+                    'Tracking Number': 'TRACK123456789'
+                }
+            },
+            'LJ654321': {
+                status: 4,
+                details: {
+                    'Order Number': 'LJ654321',
+                    'Placed On': '2024-05-28',
+                    'Recipient': 'John Smith',
+                    'Shipping Address': '456 Oak Ave, Town, Country',
+                    'Items': '1x Hoodie',
+                    'Tracking Number': 'TRACK987654321'
+                }
+            }
+        };
+
+        document.getElementById('tracking-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const orderId = document.getElementById('order-id').value.trim().toUpperCase();
+            const result = document.getElementById('tracking-result');
+            const statusBar = document.getElementById('status-bar');
+            const orderDetails = document.getElementById('order-details');
+            // Reset
+            Array.from(statusBar.children).forEach(step => step.classList.remove('active'));
+            orderDetails.innerHTML = '';
+            if (demoOrders[orderId]) {
+                result.style.display = 'block';
+                // Highlight steps
+                for (let i = 1; i <= demoOrders[orderId].status; i++) {
+                    document.getElementById('step-' + i).classList.add('active');
+                }
+                // Show details
+                let detailsHtml = '<ul style="list-style:none;padding:0;">';
+                for (const [key, value] of Object.entries(demoOrders[orderId].details)) {
+                    detailsHtml += `<li style="margin-bottom:8px;"><strong>${key}:</strong> ${value}</li>`;
+                }
+                detailsHtml += '</ul>';
+                orderDetails.innerHTML = detailsHtml;
+            } else {
+                result.style.display = 'block';
+                orderDetails.innerHTML = `<div style="color:#ef4444;font-weight:500;">Order not found. Please check your order number.</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}
+<!-- This is the end of the order tracking template. -->

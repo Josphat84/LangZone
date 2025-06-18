@@ -1,0 +1,395 @@
+<!-- The main shopping page for our website -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L&J Shop - Shop</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --secondary: #f5f7fa;
+            --accent: #ffb300;
+            --text: #222;
+            --bg: #fff;
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: var(--secondary);
+            color: var(--text);
+        }
+        header {
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 2px;
+        }
+        nav a {
+            margin: 0 1rem;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        nav a:hover {
+            color: var(--primary);
+        }
+        .cart-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .cart-count {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            font-weight: bold;
+        }
+        .hero {
+            background: linear-gradient(90deg, var(--primary) 60%, var(--accent) 100%);
+            color: #fff;
+            padding: 3rem 2rem 2rem 2rem;
+            border-radius: 0 0 var(--radius) var(--radius);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .hero h1 {
+            font-size: 2.8rem;
+            margin: 0 0 1rem 0;
+            font-weight: 700;
+        }
+        .hero p {
+            font-size: 1.3rem;
+            margin: 0 0 1.5rem 0;
+        }
+        .search-bar {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            background: #fff;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .search-bar input {
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            flex: 1;
+            outline: none;
+        }
+        .search-bar button {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0 1.5rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-bar button:hover {
+            background: #155ab6;
+        }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0 1rem 0;
+            flex-wrap: wrap;
+        }
+        .filter {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--radius);
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: border 0.2s, background 0.2s;
+        }
+        .filter.active, .filter:hover {
+            border: 1.5px solid var(--primary);
+            background: #e8f0fe;
+        }
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem 2rem;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 2rem;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(26,115,232,0.10);
+        }
+        .product-img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+        .product-info {
+            padding: 1.2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        .product-desc {
+            font-size: 0.98rem;
+            color: #666;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+        .product-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .product-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .add-cart-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .add-cart-btn:hover {
+            background: #ff9800;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0 0 0;
+        }
+        .pagination button {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, border 0.2s;
+        }
+        .pagination button.active, .pagination button:hover {
+            background: var(--primary);
+            color: #fff;
+            border: 1.5px solid var(--primary);
+        }
+        footer {
+            background: var(--bg);
+            text-align: center;
+            padding: 2rem 1rem 1rem 1rem;
+            color: #888;
+            font-size: 1rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 2rem;
+        }
+        @media (max-width: 700px) {
+            header, .hero, main {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <section class="hero">
+        <h1>Discover Your Next Favorite Product</h1>
+        <p>Shop the latest and greatest from L&J Shop. Fast shipping, secure checkout, and unbeatable deals!</p>
+        <form class="search-bar" id="search-form">
+            <input type="text" placeholder="Search products..." id="search-input" autocomplete="off">
+            <button type="submit"><i class="fas fa-search"></i></button>
+        </form>
+    </section>
+    <div class="filters">
+        <button class="filter active" data-filter="all">All</button>
+        <button class="filter" data-filter="electronics">Electronics</button>
+        <button class="filter" data-filter="fashion">Fashion</button>
+        <button class="filter" data-filter="home">Home</button>
+        <button class="filter" data-filter="beauty">Beauty</button>
+        <button class="filter" data-filter="sports">Sports</button>
+    </div>
+    <main>
+        <div class="products-grid" id="products-grid">
+            <!-- Example Product Card -->
+            <div class="product-card" data-category="electronics">
+                <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=400&q=80" alt="Wireless Headphones" class="product-img">
+                <div class="product-info">
+                    <div class="product-title">Wireless Headphones</div>
+                    <div class="product-desc">Experience high-fidelity sound with noise cancellation and 30-hour battery life.</div>
+                    <div class="product-meta">
+                        <span class="product-price">$89.99</span>
+                        <button class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="fashion">
+                <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80" alt="Classic Denim Jacket" class="product-img">
+                <div class="product-info">
+                    <div class="product-title">Classic Denim Jacket</div>
+                    <div class="product-desc">Timeless style meets comfort. Available in all sizes for men and women.</div>
+                    <div class="product-meta">
+                        <span class="product-price">$59.99</span>
+                        <button class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="home">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="Modern Table Lamp" class="product-img">
+                <div class="product-info">
+                    <div class="product-title">Modern Table Lamp</div>
+                    <div class="product-desc">Illuminate your space with this sleek, energy-efficient table lamp.</div>
+                    <div class="product-meta">
+                        <span class="product-price">$39.99</span>
+                        <button class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="beauty">
+                <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=400&q=80" alt="Organic Face Cream" class="product-img">
+                <div class="product-info">
+                    <div class="product-title">Organic Face Cream</div>
+                    <div class="product-desc">Hydrate and rejuvenate your skin with all-natural ingredients.</div>
+                    <div class="product-meta">
+                        <span class="product-price">$24.99</span>
+                        <button class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="sports">
+                <img src="https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?auto=format&fit=crop&w=400&q=80" alt="Yoga Mat Pro" class="product-img">
+                <div class="product-info">
+                    <div class="product-title">Yoga Mat Pro</div>
+                    <div class="product-desc">Non-slip, eco-friendly yoga mat for all your fitness routines.</div>
+                    <div class="product-meta">
+                        <span class="product-price">$29.99</span>
+                        <button class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more product cards as needed -->
+        </div>
+        <div class="pagination">
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button><i class="fas fa-angle-right"></i></button>
+        </div>
+    </main>
+   
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.getAttribute('data-filter');
+                document.querySelectorAll('.product-card').forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.toLowerCase();
+            document.querySelectorAll('.product-card').forEach(card => {
+                const title = card.querySelector('.product-title').textContent.toLowerCase();
+                const desc = card.querySelector('.product-desc').textContent.toLowerCase();
+                if (title.includes(query) || desc.includes(query)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Add to cart (demo only)
+        let cartCount = 2;
+        document.querySelectorAll('.add-cart-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                cartCount++;
+                document.getElementById('cart-count').textContent = cartCount;
+                btn.textContent = 'Added!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add';
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}
+<!-- This is the end of the shop page template -->

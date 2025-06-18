@@ -1,0 +1,17 @@
+# === Python / Django ===
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+/media/
+.env
+
+# === React ===
+node_modules/
+build/
+dist/
+
+# === Virtual Environment ===
+venv/
+.env/
+*.egg-info/

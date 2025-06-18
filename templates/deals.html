@@ -1,0 +1,140 @@
+<!--templates/deals.html-->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<!DOCTYPE html>
+<a href="/" style="position:absolute;left:1rem;top:1rem;color:#1abc9c;font-weight:bold;text-decoration:none;font-size:1.1rem;">&#8592; Home</a>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exclusive Deals | L&J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 2rem 0 1rem 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(44,62,80,0.08);
+            padding: 2rem;
+        }
+        .deal-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+        .deal-card {
+            background: #f4f8fb;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(44,62,80,0.06);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.2s;
+        }
+        .deal-card:hover {
+            box-shadow: 0 6px 24px rgba(44,62,80,0.12);
+        }
+        .deal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3e50;
+        }
+        .deal-desc {
+            font-size: 1rem;
+            color: #4a5a6a;
+            margin-bottom: 1rem;
+        }
+        .deal-price {
+            font-size: 1.1rem;
+            color: #1abc9c;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .deal-expiry {
+            font-size: 0.95rem;
+            color: #e67e22;
+            margin-bottom: 1rem;
+        }
+        .deal-btn {
+            background: #1abc9c;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .deal-btn:hover {
+            background: #159c85;
+        }
+        .posted-by {
+            text-align: right;
+            color: #888;
+            font-size: 0.95rem;
+            margin-top: 2rem;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            .deal-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+   
+    <div class="container">
+        <div class="deal-list">
+            <div class="deal-card">
+                <div class="deal-title">Wireless Headphones</div>
+                <div class="deal-desc">Experience premium sound quality with noise cancellation. Perfect for music lovers.</div>
+                <div class="deal-price">Now: $59.99 <del style="color:#b0b0b0;">$99.99</del></div>
+                <div class="deal-expiry">Expires: May 31, 2025</div>
+                <a href="#" class="deal-btn">Shop Now</a>
+            </div>
+            <div class="deal-card">
+                <div class="deal-title">Smart Fitness Watch</div>
+                <div class="deal-desc">Track your health and fitness goals with advanced sensors and a sleek design.</div>
+                <div class="deal-price">Now: $89.99 <del style="color:#b0b0b0;">$149.99</del></div>
+                <div class="deal-expiry">Expires: June 2, 2025</div>
+                <a href="#" class="deal-btn">Shop Now</a>
+            </div>
+            <div class="deal-card">
+                <div class="deal-title">Eco-Friendly Water Bottle</div>
+                <div class="deal-desc">Stay hydrated with this BPA-free, reusable bottle. Available in multiple colors.</div>
+                <div class="deal-price">Now: $12.99 <del style="color:#b0b0b0;">$19.99</del></div>
+                <div class="deal-expiry">Expires: June 5, 2025</div>
+                <a href="#" class="deal-btn">Shop Now</a>
+            </div>
+            <!-- Add more deals as needed -->
+        </div>
+        <div class="posted-by">
+            Posted by Josphat Dandira on May 24, 2025
+        </div>
+    </div>
+</body>
+</html>
+
+{% endblock %}

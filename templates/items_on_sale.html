@@ -1,0 +1,157 @@
+<!-- templates/items_on_sale.html -->
+
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f7f8fa;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background: #22223b;
+        color: #fff;
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    header a {
+        color: #f2e9e4;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+    header a:hover {
+        color: #c9ada7;
+    }
+    h1 {
+        margin: 0;
+        font-size: 2rem;
+        letter-spacing: 1px;
+    }
+    .container {
+        max-width: 1100px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 2rem;
+    }
+    .item-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(34,34,59,0.07);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: box-shadow 0.2s;
+    }
+    .item-card:hover {
+        box-shadow: 0 4px 24px rgba(34,34,59,0.13);
+    }
+    .item-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        background: #eee;
+    }
+    .item-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    .item-desc {
+        font-size: 0.97rem;
+        color: #555;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    .item-prices {
+        margin-bottom: 0.5rem;
+    }
+    .old-price {
+        text-decoration: line-through;
+        color: #b5838d;
+        margin-right: 0.5rem;
+    }
+    .sale-price {
+        color: #9d0208;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .buy-btn {
+        background: #22223b;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .buy-btn:hover {
+        background: #4a4e69;
+    }
+    @media (max-width: 600px) {
+        header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 1rem;
+        }
+        .container {
+            padding: 0 0.5rem;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="items-grid">
+        <!-- Example item cards. Replace with dynamic content as needed. -->
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1513708927688-890fe8c3b6c5?auto=format&fit=crop&w=400&q=80" alt="Red Sneakers" class="item-img">
+            <div class="item-title">Red Sneakers</div>
+            <div class="item-desc">Comfortable and stylish sneakers for everyday wear.</div>
+            <div class="item-prices">
+                <span class="old-price">$79.99</span>
+                <span class="sale-price">$49.99</span>
+            </div>
+            <button class="buy-btn">Buy Now</button>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80" alt="Classic Watch" class="item-img">
+            <div class="item-title">Classic Watch</div>
+            <div class="item-desc">Elegant wristwatch with leather strap and gold finish.</div>
+            <div class="item-prices">
+                <span class="old-price">$120.00</span>
+                <span class="sale-price">$85.00</span>
+            </div>
+            <button class="buy-btn">Buy Now</button>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80" alt="Wireless Headphones" class="item-img">
+            <div class="item-title">Wireless Headphones</div>
+            <div class="item-desc">Noise-cancelling headphones with long battery life.</div>
+            <div class="item-prices">
+                <span class="old-price">$99.99</span>
+                <span class="sale-price">$69.99</span>
+            </div>
+            <button class="buy-btn">Buy Now</button>
+        </div>
+        <!-- Add more items as needed -->
+    </div>
+</div>
+
+{% endblock content %}
+<!-- This is the end of the items on sale template. -->

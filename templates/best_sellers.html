@@ -1,0 +1,158 @@
+<!-- templates/best_sellers.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Best Sellers | L&J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:600,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: #f8fafc;
+            color: #222;
+        }
+        header {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 24px 0 16px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            color: #2d3748;
+        }
+        .home-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #3182ce;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .home-link:hover {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 32px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.18s;
+        }
+        .product-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 8px 32px rgba(49,130,206,0.10);
+        }
+        .product-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+        .product-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: #2d3748;
+        }
+        .product-desc {
+            font-size: 0.98rem;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+        .product-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #3182ce;
+        }
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .product-img {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <div class="products-grid">
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1513708927688-890fe8a1df19?auto=format&fit=crop&w=400&q=80" alt="Product 1" class="product-img">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Classic Leather Wallet</div>
+                        <div class="product-desc">Handcrafted, minimalist wallet made from premium leather. Durable and stylish for everyday use.</div>
+                    </div>
+                    <div class="product-price">$39.99</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="Product 2" class="product-img">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Eco-Friendly Water Bottle</div>
+                        <div class="product-desc">Stay hydrated with this BPA-free, reusable water bottle. Keeps drinks cold for 24 hours.</div>
+                    </div>
+                    <div class="product-price">$24.50</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80" alt="Product 3" class="product-img">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Wireless Earbuds</div>
+                        <div class="product-desc">Experience true freedom with high-fidelity wireless earbuds. Long battery life and noise cancellation.</div>
+                    </div>
+                    <div class="product-price">$79.00</div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80" alt="Product 4" class="product-img">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Aromatic Soy Candle</div>
+                        <div class="product-desc">Fill your space with calming scents. 100% soy wax, hand-poured, and eco-friendly.</div>
+                    </div>
+                    <div class="product-price">$18.75</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+
+{% endblock content %}

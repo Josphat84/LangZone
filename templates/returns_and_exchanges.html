@@ -1,0 +1,141 @@
+<!-- templates/returns_and_exchanges.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Returns & Exchanges | L&J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --primary: #2d6cdf;
+            --secondary: #f5f7fa;
+            --accent: #fbb034;
+            --text: #222;
+            --border-radius: 12px;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--secondary);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 24px rgba(45,108,223,0.08);
+            padding: 40px 32px;
+        }
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            color: #555;
+            margin-bottom: 32px;
+            font-size: 1.2rem;
+        }
+        h2 {
+            color: var(--accent);
+            margin-top: 32px;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+        ul, ol {
+            margin-left: 20px;
+        }
+        .cta {
+            display: inline-block;
+            margin-top: 36px;
+            padding: 12px 28px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .cta:hover {
+            background: #174a9c;
+        }
+        .faq {
+            margin-top: 40px;
+        }
+        .faq-item {
+            margin-bottom: 18px;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 8px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Returns & Exchanges</h1>
+        <div class="subtitle">
+            We want you to love your purchase! If you’re not completely satisfied, our returns and exchanges process is simple and hassle-free.
+        </div>
+
+        <h2>Return Policy</h2>
+        <ul>
+            <li>Returns are accepted within <strong>30 days</strong> of delivery.</li>
+            <li>Items must be unused, in original packaging, and with all tags attached.</li>
+            <li>Final sale items cannot be returned or exchanged.</li>
+        </ul>
+
+        <h2>How to Return or Exchange</h2>
+        <ol>
+            <li>
+                <strong>Contact Us:</strong> Email <a href="mailto:support@ljshop.com">support@ljshop.com</a> with your order number and reason for return/exchange.
+            </li>
+            <li>
+                <strong>Prepare Your Package:</strong> Securely pack your item(s) and include your order confirmation.
+            </li>
+            <li>
+                <strong>Ship It:</strong> We’ll provide a prepaid return label. Drop off at your nearest carrier location.
+            </li>
+            <li>
+                <strong>Refunds/Exchanges:</strong> Once received and inspected, we’ll process your refund or send your exchange within 3-5 business days.
+            </li>
+        </ol>
+
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq">
+            <div class="faq-item">
+                <div class="faq-question">How long does it take to process a return?</div>
+                <div>Returns are processed within 3-5 business days after we receive your item.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Are return shipping costs covered?</div>
+                <div>Yes, we provide a prepaid return label for eligible returns and exchanges.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can I exchange for a different item?</div>
+                <div>Yes, exchanges are available for items of equal value and in stock.</div>
+            </div>
+        </div>
+
+        <a href="/" class="cta">← Back to Homepage</a>
+    </div>
+</body>
+</html>
+
+{% endblock content %}
+<!-- This is the end of the returns and exchanges template. -->

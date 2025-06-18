@@ -1,0 +1,21 @@
+<!--Search Results Page-->
+
+<h2>Search results for "{{ query }}"</h2>
+
+<h3>Pages</h3>
+<ul>
+  {% for result in page_results %}
+    <li><strong>{{ result.title }}</strong><br>{{ result.content|truncatechars:150 }}</li>
+  {% empty %}
+    <li>No pages found.</li>
+  {% endfor %}
+</ul>
+
+<h3>Products</h3>
+<ul>
+  {% for result in product_results %}
+    <li><strong>{{ result.name }}</strong><br>{{ result.description|truncatechars:150 }}</li>
+  {% empty %}
+    <li>No products found.</li>
+  {% endfor %}
+</ul>

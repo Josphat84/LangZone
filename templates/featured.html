@@ -1,0 +1,171 @@
+<!-- templates/featured.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<nav style="background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.03); padding:0.7rem 2rem;">
+    <a href="/" style="color:#1a73e8; text-decoration:none; font-weight:600; font-size:1.1rem;">&larr; Home</a>
+</nav>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Featured Products</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f8fa;
+            margin: 0;
+            padding: 0;
+            color: #222;
+        }
+        header {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 2rem 0 1rem 0;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .products-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.18s;
+        }
+        .product-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+        }
+        .product-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        .product-desc {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        .product-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a73e8;
+            margin-bottom: 1rem;
+        }
+        .buy-btn {
+            background: linear-gradient(90deg, #1a73e8 0%, #4f8cff 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .buy-btn:hover {
+            background: linear-gradient(90deg, #1761c7 0%, #3576e0 100%);
+        }
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            .products-container {
+                padding: 0 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <main>
+        <section class="products-container">
+            <div class="product-card">
+                <img class="product-image" src="https://images.unsplash.com/photo-1513708927688-890fe8b7e8b2?auto=format&fit=crop&w=600&q=80" alt="Product 1">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Elegant Leather Bag</div>
+                        <div class="product-desc">Handcrafted from premium leather, perfect for work or travel.</div>
+                    </div>
+                    <div>
+                        <div class="product-price">$129.00</div>
+                        <button class="buy-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img class="product-image" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Product 2">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Minimalist Watch</div>
+                        <div class="product-desc">A timeless design with a modern twist, water-resistant and durable.</div>
+                    </div>
+                    <div>
+                        <div class="product-price">$89.00</div>
+                        <button class="buy-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img class="product-image" src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=600&q=80" alt="Product 3">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Wireless Headphones</div>
+                        <div class="product-desc">Experience high-fidelity sound with noise cancellation technology.</div>
+                    </div>
+                    <div>
+                        <div class="product-price">$159.00</div>
+                        <button class="buy-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <img class="product-image" src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80" alt="Product 4">
+                <div class="product-info">
+                    <div>
+                        <div class="product-title">Smart Table Lamp</div>
+                        <div class="product-desc">Adjustable brightness and color, compatible with smart home devices.</div>
+                    </div>
+                    <div>
+                        <div class="product-price">$49.00</div>
+                        <button class="buy-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+
+{% endblock %}
+

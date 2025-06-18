@@ -1,0 +1,164 @@
+<!--templates/contacts.html-->
+
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<!DOCTYPE html>
+<a href="/" style="position: absolute; left: 24px; top: 24px; text-decoration: none; color: #4e54c8; font-weight: 600; font-size: 1.1em; background: #fff; padding: 8px 18px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); z-index: 10;">&#8592; Home</a>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact Us | L&amp;J Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .contact-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 6px 32px rgba(0,0,0,0.08);
+            display: flex;
+            overflow: hidden;
+        }
+        .contact-info {
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+            color: #fff;
+            padding: 40px 32px;
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .contact-info h2 {
+            margin-top: 0;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+        .contact-info p {
+            margin: 18px 0;
+            font-size: 1.1em;
+        }
+        .contact-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 24px 0 0 0;
+        }
+        .contact-info li {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        .contact-info li svg {
+            margin-right: 12px;
+            fill: #fff;
+        }
+        .contact-form {
+            flex: 1;
+            padding: 40px 32px;
+        }
+        .contact-form h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #4e54c8;
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1em;
+            background: #f9f9fb;
+            transition: border 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #4e54c8;
+            outline: none;
+        }
+        .contact-form button {
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .contact-form button:hover {
+            background: linear-gradient(135deg, #8f94fb 0%, #4e54c8 100%);
+        }
+        @media (max-width: 800px) {
+            .contact-container {
+                flex-direction: column;
+            }
+            .contact-info, .contact-form {
+                width: 100%;
+                padding: 32px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-container">
+        <div class="contact-info">
+            <h2>Contact Us</h2>
+            <p>We'd love to hear from you! Reach out with your questions, feedback, or business inquiries.</p>
+            <ul>
+                <li>
+                    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M21 8V7l-3 2.29V8a7 7 0 1 0-7 7h1.29L7 21h1l2.29-3H8a9 9 0 1 1 9-9v1.29L21 8z"/></svg>
+                    <span>info@ljshop.com</span>
+                </li>
+                <li>
+                    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.11-.21c1.21.49 2.53.76 3.89.76a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.36.27 2.68.76 3.89a1 1 0 0 1-.21 1.11l-2.2 2.2z"/></svg>
+                    <span>+263 778 973 142</span>
+                </li>
+                <li>
+                    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+                    <span>123 Main Street, Harare, Zimbabwe</span>
+                </li>
+            </ul>
+        </div>
+        <div class="contact-form">
+            <h3>Send us a message</h3>
+            <form method="post" action="#">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Your Email</label>
+                    <input type="email" id="email" name="email" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="message">Your Message</label>
+                    <textarea id="message" name="message" rows="6" required></textarea>
+                </div>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+{% endblock %}
+
