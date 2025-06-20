@@ -1,78 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-
-
 const tutors = [
   {
     id: 1,
-    name: "Emily Carter",
-    bio: "Certified English tutor with 8 years of experience. Specializes in conversational English and exam prep.",
+    name: "Rutendo Moyo",
+    bio: "MA in English Literature, University of Zimbabwe. 8 years experience in IELTS, TOEFL, and conversational fluency.",
     avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    languages: ["English", "French"],
-    experience: "8 years",
-    qualifications: ["CELTA", "MA Applied Linguistics"],
-    interests: ["Traveling", "Reading", "Cooking"],
     rating: 4.9,
-    reviews: 120
+    reviews: [
+      "Her lessons are fun and practical. I passed IELTS with Band 8!",
+      "Very patient and knows how to help you improve."
+    ]
   },
   {
     id: 2,
-    name: "James Lee",
-    bio: "Native speaker and TEFL certified. Passionate about helping students achieve fluency.",
+    name: "Tawanda Ncube",
+    bio: "Certified TEFL instructor with a focus on spoken English and business communication. Based in Bulawayo.",
     avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    languages: ["English", "Mandarin"],
-    experience: "5 years",
-    qualifications: ["TEFL", "BA English Literature"],
-    interests: ["Music", "Hiking", "Photography"],
     rating: 4.8,
-    reviews: 98
+    reviews: [
+      "Tawanda helped me gain confidence speaking in interviews.",
+      "Highly recommended for professional English training."
+    ]
   },
   {
     id: 3,
-    name: "Sophia Martinez",
-    bio: "Bilingual English/Spanish tutor. Focus on business English and pronunciation.",
+    name: "Nyasha Chikore",
+    bio: "Trilingual (English, Shona, Spanish). Specialist in beginner and intermediate learners. Uses visual learning methods.",
     avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    languages: ["English", "Spanish"],
-    experience: "6 years",
-    qualifications: ["TESOL", "MBA"],
-    interests: ["Dancing", "Tech", "Volunteering"],
-    rating: 4.95,
-    reviews: 143
+    rating: 5.0,
+    reviews: [
+      "She makes learning so easy. I love her interactive style!",
+      "Helped me a lot with pronunciation and confidence."
+    ]
+  },
+  {
+    id: 4,
+    name: "Tanaka Dube",
+    bio: "TEFL & TESOL certified. Offers tailored lesson plans for young learners and adults. Based in Harare.",
+    avatar: "https://randomuser.me/api/portraits/men/74.jpg",
+    rating: 4.7,
+    reviews: [
+      "My kids enjoy his classes and have improved so much.",
+      "Organized, friendly, and very clear in explanations."
+    ]
   }
 ];
 
 function TutorProfiles({ onConnect }) {
   return (
-    <section className="tutor-profiles" style={{ margin: '3rem 0' }}>
-      <h2 style={{ textAlign: 'center' }}>Meet Our Tutors</h2>
+    <section className="tutor-profiles" style={{ margin: '4rem 0' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Meet Our Zimbabwean Tutors</h2>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
         {tutors.map(tutor => (
           <div key={tutor.id} style={{
             border: '1px solid #eee',
             borderRadius: '1rem',
             padding: '2rem',
-            width: '320px',
+            width: '300px',
             textAlign: 'center',
             background: '#fafbfc',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
           }}>
             <img
               src={tutor.avatar}
               alt={tutor.name}
-              style={{ width: '80px', height: '80px', borderRadius: '50%', marginBottom: '1rem' }}
+              style={{ width: '90px', height: '90px', borderRadius: '50%', marginBottom: '1rem' }}
             />
-            <h3 style={{ margin: '0.5rem 0' }}>{tutor.name}</h3>
-            <p style={{ fontSize: '0.95rem', color: '#555', minHeight: '60px' }}>{tutor.bio}</p>
-            <div style={{ fontSize: '0.92rem', color: '#444', margin: '0.5rem 0' }}>
-              <strong>Languages:</strong> {tutor.languages.join(', ')}<br />
-              <strong>Experience:</strong> {tutor.experience}<br />
-              <strong>Qualifications:</strong> {tutor.qualifications.join(', ')}<br />
-              <strong>Interests:</strong> {tutor.interests.join(', ')}
-            </div>
-            <div style={{ margin: '0.5rem 0', color: '#f5b301', fontWeight: 'bold' }}>
-              ⭐ {tutor.rating} ({tutor.reviews} reviews)
-            </div>
+            <h3 style={{ marginBottom: '0.3rem' }}>{tutor.name}</h3>
+            <p style={{ fontSize: '0.95rem', color: '#555', minHeight: '70px' }}>{tutor.bio}</p>
+            <p style={{ marginTop: '0.5rem', fontWeight: 'bold', color: '#ffaa00' }}>⭐ {tutor.rating.toFixed(1)}</p>
+            <ul style={{ textAlign: 'left', fontSize: '0.85rem', padding: '0 1rem', marginTop: '0.5rem' }}>
+              {tutor.reviews.map((review, idx) => (
+                <li key={idx} style={{ marginBottom: '0.5rem', listStyle: 'disc' }}>{review}</li>
+              ))}
+            </ul>
             <button
               onClick={onConnect}
               className="connect-btn"
@@ -96,23 +99,14 @@ function TutorProfiles({ onConnect }) {
   );
 }
 
-// All your existing homepage logic and icons here...
-
-
-// 💡 I’m skipping icon and testimonial logic for brevity — keep them unchanged in your file.
-
-
-
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [animatedStats, setAnimatedStats] = useState({
     students: 0,
     courses: 0,
     instructors: 0,
     rating: 0
   });
-  const [showCall, setShowCall] = useState(false); // 👈 New state for Jitsi
+  const [showCall, setShowCall] = useState(false);
   const roomName = "LJConnect" + Date.now();
   const jitsiURL = `https://meet.jit.si/${roomName}`;
 
@@ -143,21 +137,15 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTestimonial(prev => (prev + 1) % 3);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
     <div className="app">
-      {/* Your existing LearnForge homepage code: nav, hero, features, courses, testimonials, footer */}
-      {/* Keep all your current JSX here — icons, badges, etc. */}
+      <header style={{ textAlign: 'center', padding: '2rem 0', background: '#f8f8f8' }}>
+        <h1>LangZone Zimbabwe</h1>
+        <p>Empowering language learners through live tutoring</p>
+      </header>
 
-      {/* ✅ Add this section wherever you want the video call to appear */}
-      <section className="video-call-section" style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <h2>Talk to your English Tutor live </h2>
+      <section style={{ textAlign: 'center', margin: '2rem 0' }}>
+        <h2>Live English Video Tutoring</h2>
         {!showCall && (
           <button
             onClick={() => setShowCall(true)}
@@ -178,16 +166,10 @@ function App() {
         )}
       </section>
 
-      {/* 👇 Use TutorProfiles component here */}
       <TutorProfiles onConnect={() => setShowCall(true)} />
 
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-logo">
-            {/* Optional: add your icon */}
-            <span>LangZone</span>
-          </div>
-        </div>
+      <footer className="footer" style={{ textAlign: 'center', padding: '1.5rem 0', background: '#eee' }}>
+        <p>© {new Date().getFullYear()} (c) 2025 LangZone Zimbabwe. All rights reserved.</p>
       </footer>
     </div>
   );
