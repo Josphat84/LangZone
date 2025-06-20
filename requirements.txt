@@ -8,7 +8,6 @@ django-allauth==65.8.1
 huggingface-hub==0.32.2
 jsonpointer==2.1
 language_tool_python==2.9.3
-mkl-service==2.4.0
 protobuf==3.20.3
 psycopg2-binary==2.9.10
 pyasn1-modules==0.2.8
