@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// All your existing homepage logic and icons here...
-
-
-// 💡 I’m skipping icon and testimonial logic for brevity — keep them unchanged in your file.
 
 
 const tutors = [
@@ -12,19 +8,37 @@ const tutors = [
     id: 1,
     name: "Emily Carter",
     bio: "Certified English tutor with 8 years of experience. Specializes in conversational English and exam prep.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg"
+    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    languages: ["English", "French"],
+    experience: "8 years",
+    qualifications: ["CELTA", "MA Applied Linguistics"],
+    interests: ["Traveling", "Reading", "Cooking"],
+    rating: 4.9,
+    reviews: 120
   },
   {
     id: 2,
     name: "James Lee",
     bio: "Native speaker and TEFL certified. Passionate about helping students achieve fluency.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg"
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    languages: ["English", "Mandarin"],
+    experience: "5 years",
+    qualifications: ["TEFL", "BA English Literature"],
+    interests: ["Music", "Hiking", "Photography"],
+    rating: 4.8,
+    reviews: 98
   },
   {
     id: 3,
     name: "Sophia Martinez",
     bio: "Bilingual English/Spanish tutor. Focus on business English and pronunciation.",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg"
+    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
+    languages: ["English", "Spanish"],
+    experience: "6 years",
+    qualifications: ["TESOL", "MBA"],
+    interests: ["Dancing", "Tech", "Volunteering"],
+    rating: 4.95,
+    reviews: 143
   }
 ];
 
@@ -38,7 +52,7 @@ function TutorProfiles({ onConnect }) {
             border: '1px solid #eee',
             borderRadius: '1rem',
             padding: '2rem',
-            width: '280px',
+            width: '320px',
             textAlign: 'center',
             background: '#fafbfc',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
@@ -50,6 +64,15 @@ function TutorProfiles({ onConnect }) {
             />
             <h3 style={{ margin: '0.5rem 0' }}>{tutor.name}</h3>
             <p style={{ fontSize: '0.95rem', color: '#555', minHeight: '60px' }}>{tutor.bio}</p>
+            <div style={{ fontSize: '0.92rem', color: '#444', margin: '0.5rem 0' }}>
+              <strong>Languages:</strong> {tutor.languages.join(', ')}<br />
+              <strong>Experience:</strong> {tutor.experience}<br />
+              <strong>Qualifications:</strong> {tutor.qualifications.join(', ')}<br />
+              <strong>Interests:</strong> {tutor.interests.join(', ')}
+            </div>
+            <div style={{ margin: '0.5rem 0', color: '#f5b301', fontWeight: 'bold' }}>
+              ⭐ {tutor.rating} ({tutor.reviews} reviews)
+            </div>
             <button
               onClick={onConnect}
               className="connect-btn"
@@ -72,6 +95,13 @@ function TutorProfiles({ onConnect }) {
     </section>
   );
 }
+
+// All your existing homepage logic and icons here...
+
+
+// 💡 I’m skipping icon and testimonial logic for brevity — keep them unchanged in your file.
+
+
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
