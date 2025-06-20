@@ -169,7 +169,7 @@ function App() {
       <TutorProfiles onConnect={() => setShowCall(true)} />
 
       <footer className="footer" style={{ textAlign: 'center', padding: '1.5rem 0', background: '#eee' }}>
-        <p>© {new Date().getFullYear()} (c) 2025 LangZone Zimbabwe. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} LangZone Zimbabwe. All rights reserved.</p>
       </footer>
     </div>
   );
