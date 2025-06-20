@@ -1,0 +1,24 @@
+﻿
+django==5.2.3
+asgiref==3.8.1
+sqlparse==0.5.3
+appdirs==1.4.4
+atomicwrites==1.4.0
+django-allauth==65.8.1
+huggingface-hub==0.32.2
+jsonpointer==2.1
+language_tool_python==2.9.3
+protobuf==3.20.3
+psycopg2-binary==2.9.10
+pyasn1-modules==0.2.8
+pycurl==7.45.2
+pyls-spyder==0.4.0
+PyQt5==5.15.10
+PyQtWebEngine==5.15.6
+safetensors==0.5.3
+setuptools==69.5.1
+sympy==1.14.0
+tokenizers==0.21.1
+pywin32==305.1; sys_platform == "win32"
+
+wheel==0.43.0
