@@ -1,0 +1,28 @@
+/*AuthWrapper.css*/
+
+/* src/components/AuthWrapper.css */
+.auth-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.auth-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-loading-spinner {
+  color: white;
+  font-size: 18px;
+  font-weight: 300;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
