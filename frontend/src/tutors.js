@@ -1,0 +1,113 @@
+export const tutors = [
+  {
+    id: 1,
+    name: "Isabelle Laurent",
+    bio: "TEFL certified instructor with 8 years of experience. Passionate about helping you master English with confidence. Focuses on fluency, vocabulary development, and immersive conversations. Has helped 100+ students pass English proficiency exams including IELTS and TOEFL.",
+    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    rating: 4.9,
+    lessons: 7034,
+    students: 46,
+    languages: "English (Native), French",
+    price: 50,
+    online: true,
+    reviews: ["Passed IELTS with Band 8!", "Patient and supportive teacher."]
+  },
+  {
+    id: 2,
+    name: "Luca Romano",
+    bio: "Business English and interview prep expert with 10+ years in corporate communication. Specializes in presentation skills and executive coaching for global professionals. Conducted over 4000 lessons for learners in over 15 countries.",
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    rating: 4.8,
+    lessons: 4500,
+    students: 38,
+    languages: "English (Native), Italian",
+    price: 40,
+    online: false,
+    reviews: ["Boosted my confidence for job interviews!", "Sharp and helpful in business contexts."]
+  },
+  {
+    id: 3,
+    name: "Delilah Moreno",
+    bio: "Trilingual tutor with a master's in education. Uses storytelling, music, and visuals to teach beginner and intermediate learners. Based in Mexico City. Her approach has made learning enjoyable for children and adults alike.",
+    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
+    rating: 5.0,
+    lessons: 3120,
+    students: 20,
+    languages: "English, Spanish, Portuguese",
+    price: 45,
+    online: true,
+    reviews: ["She makes learning so easy!", "Excellent for pronunciation coaching."]
+  },
+  {
+    id: 4,
+    name: "James Okoro",
+    bio: "TESOL certified. Offers engaging, structured lessons for young learners and adult beginners. Special focus on African learners aiming to study abroad. Available evenings and weekends.",
+    avatar: "https://randomuser.me/api/portraits/men/74.jpg",
+    rating: 4.7,
+    lessons: 1890,
+    students: 16,
+    languages: "English, Yoruba",
+    price: 38,
+    online: false,
+    reviews: ["My kids love him!", "Very friendly and organized."]
+  },
+  {
+    id: 5,
+    name: "Amina Rahmani",
+    bio: "Conversational English mentor with a degree in applied linguistics. Has worked with professionals in healthcare, law, and tech to polish their speaking and listening skills. Based in Morocco.",
+    avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+    rating: 4.6,
+    lessons: 2200,
+    students: 30,
+    languages: "English, Arabic, French",
+    price: 35,
+    online: true,
+    reviews: ["Friendly and clear communicator!", "Really helpful feedback."]
+  },
+  {
+    id: 6,
+    name: "Kenji Nakamura",
+    bio: "IELTS & TOEFL trainer based in Osaka, Japan. Known for structured, data-driven methods that help students consistently improve scores. Provides mock tests, speaking drills, and writing feedback.",
+    avatar: "https://randomuser.me/api/portraits/men/65.jpg",
+    rating: 4.8,
+    lessons: 3700,
+    students: 24,
+    languages: "English, Japanese",
+    price: 42,
+    online: true,
+    reviews: ["Improved my IELTS band!", "Very professional."]
+  },
+  {
+    id: 7,
+    name: "Priya Mehta",
+    bio: "Specialist in business English and presentation training. Teaches startup founders, MBA students, and professionals in India and abroad. Also offers written English editing.",
+    avatar: "https://randomuser.me/api/portraits/women/53.jpg",
+    rating: 4.9,
+    lessons: 4100,
+    students: 35,
+    languages: "English, Hindi",
+    price: 55,
+    online: false,
+    reviews: ["Great for business English!", "Clear and articulate."]
+  },
+  {
+    id: 8,
+    name: "Emmanuel Mensah",
+    bio: "Energetic teacher focused on helping African teens and young adults improve fluency. Integrates pop culture, games, and social media into learning.",
+    avatar: "https://randomuser.me/api/portraits/men/21.jpg",
+    rating: 4.5,
+    lessons: 1280,
+    students: 18,
+    languages: "English, Twi",
+    price: 30,
+    online: true,
+    reviews: ["My son loves learning now!", "Fun and effective lessons."]
+  },
+  // ⬇️ Truncated for brevity. Continue adding tutors 9–28 from your original data
+];
+export const tutorFilters = {
+  search: '',
+  language: 'All',
+  onlineOnly: false,
+  maxPrice: 100,
+};
