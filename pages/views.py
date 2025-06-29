@@ -4,6 +4,16 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from .documents import PageDocument, ProductDocument
 from django.db.models import Q
+from rest_framework import generics
+from .models import Tutor
+from .serializers import TutorSerializer
+from rest_framework import viewsets
+
+
+
+
+
+# Importing necessary modules and classes
 
 # Defining a search view for pages and products
 
@@ -117,3 +127,16 @@ class HelpCenterPageView(TemplateView):
 # LoginPageView
 class LoginPageView(TemplateView):
     template_name = "login.html"
+
+
+
+
+class TutorCreateView(generics.CreateAPIView):
+    queryset = Tutor.objects.all()
+    serializer_class = TutorSerializer
+
+
+
+class TutorViewSet(viewsets.ModelViewSet):
+    queryset = Tutor.objects.all()
+    serializer_class = TutorSerializer

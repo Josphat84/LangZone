@@ -37,6 +37,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1').split()            
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",  # Custom app for handling CORS headers
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Middleware for handling CORS headers
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -65,7 +67,14 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Custom middleware for handling user accounts
     "allauth.account.middleware.AccountMiddleware",
+   
 ]
+
+# Allow cookies to be included in CORS requests
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development; change in production
+
+
 
 ROOT_URLCONF = "django_project.urls"
 

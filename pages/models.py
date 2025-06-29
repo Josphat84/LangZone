@@ -18,3 +18,12 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+# Tutor model to represent a tutor
+
+class Tutor(models.Model):
+    name = models.CharField(max_length=100)
+    bio = models.TextField()
+    age = models.IntegerField()
+    languages = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+    online = models.BooleanField(default=False)
