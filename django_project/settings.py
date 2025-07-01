@@ -72,7 +72,11 @@ MIDDLEWARE = [
 
 # Allow cookies to be included in CORS requests
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for development; change in production
+#CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+   "https://langzone.onrender.com",
+   "http://localhost:3000",
+]  # Allow all origins for development; change in production
 
 
 
