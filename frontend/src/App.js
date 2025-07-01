@@ -26,7 +26,7 @@ function App() {
     setLoadingTutors(true);
     setTutorsError('');
     try {
-      const response = await axios.get('http://localhost:8000/api/tutors/');
+    const response = await axios.get('http://localhost:8000/api/tutors/');  
       // Assign default values for properties that might be missing from backend
       // if your backend doesn't explicitly return them (e.g., reviews, lessons, students, avatar, rating).
       // You should ensure your backend provides all necessary fields.
