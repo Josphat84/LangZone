@@ -1,3 +1,10 @@
+// File: frontend/src/App.js
+// This file contains the main application component for the LangZone Tutors app.
+// It includes user authentication, tutor listing, filtering, and commenting functionality.
+// It uses React hooks for state management and the Google OAuth library for authentication.
+// It also fetches tutor data from a backend API and allows users to create new tutors.
+// It is styled with a separate CSS file and includes a form for creating new tutors.
+
 import React, { useState, useEffect, useMemo } from 'react'; // Added useEffect
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import axios from 'axios'; // Import axios for API calls
@@ -26,7 +33,7 @@ function App() {
     setLoadingTutors(true);
     setTutorsError('');
     try {
-    const response = await axios.get('http://localhost:8000/api/tutors/');  
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/tutors/`); // Use the environment variable for API base URL
       // Assign default values for properties that might be missing from backend
       // if your backend doesn't explicitly return them (e.g., reviews, lessons, students, avatar, rating).
       // You should ensure your backend provides all necessary fields.
