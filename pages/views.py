@@ -8,9 +8,11 @@ from rest_framework import generics
 from .models import Tutor
 from .serializers import TutorSerializer
 from rest_framework import viewsets
+from django.http import HttpResponse
 
 
-
+def index(request):
+    return HttpResponse("Backend running. React app is at http://localhost:3000")
 
 
 # Importing necessary modules and classes
@@ -140,3 +142,8 @@ class TutorCreateView(generics.CreateAPIView):
 class TutorViewSet(viewsets.ModelViewSet):
     queryset = Tutor.objects.all()
     serializer_class = TutorSerializer
+
+
+
+def index(request):
+    return HttpResponse("Backend running. React app is at http://localhost:3000")
