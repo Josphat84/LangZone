@@ -6,6 +6,21 @@ import { useState } from 'react';
 import Image from "next/image";
 import axios from 'axios';
 
+
+// Example: For your "Become an Instructor" form
+interface InstructorFormData {
+  name: string;
+  email: string;
+  language: string;
+  expertise: string;
+  price: number;
+  description: string;
+  country: string;
+  isNative: boolean;
+  image: File | null;
+  // Add other fields as they exist in your form
+}
+
 export default function CreateNewProfilePage() {
   const [formData, setFormData] = useState({
     name: '',

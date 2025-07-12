@@ -6,6 +6,23 @@ import Link from "next/link";
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+// In app/page.tsx or a types file
+interface FiltersState {
+  language: string;
+  country: string;
+  minPrice: number;
+  maxPrice: number;
+  expertise: string;
+  isNativeSpeaker: boolean;
+  rating: number;
+  likes: number;
+  numStudents: number;
+  numLessons: number;
+  isOnline: boolean | null;
+  gender: string;
+}
+
+
 export default function Home() {
   const [filters, setFilters] = useState({
     language: '',
