@@ -7,12 +7,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  output: 'export',
-  trailingSlash: true,
-  images: {
-    unoptimized: true
-  },
-  // Remove exportPathMap - not needed for App Router
+  // Remove output: 'export' and other static export settings
 }
 
 export default nextConfig
