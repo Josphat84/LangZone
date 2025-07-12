@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 // In app/page.tsx or a types file
+
 interface FiltersState {
   language: string;
   country: string;
