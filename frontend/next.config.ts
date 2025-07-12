@@ -12,12 +12,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
-  // Add this to ensure index.html is generated
-  exportPathMap: async function () {
-    return {
-      '/': { page: '/' },
-    }
-  }
+  // Remove exportPathMap - not needed for App Router
 }
 
 export default nextConfig
