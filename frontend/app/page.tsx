@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// In app/page.tsx or a types file
-
 interface FiltersState {
   language: string;
   country: string;
@@ -22,7 +20,6 @@ interface FiltersState {
   isOnline: boolean | null;
   gender: string;
 }
-
 
 export default function Home() {
   const [filters, setFilters] = useState({
@@ -46,166 +43,31 @@ export default function Home() {
   const [allInstructors, setAllInstructors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [likedInstructors, setLikedInstructors] = useState({}); // New state for liked instructors
-  const [activeChat, setActiveChat] = useState(null); // New state for active chat
+  const [likedInstructors, setLikedInstructors] = useState({});
+  const [activeChat, setActiveChat] = useState(null);
 
   const instructorsPerPage = 10;
 
-  // --- MOCK INSTRUCTOR DATA (30 profiles) with all image_url removed and gender added ---
+  // Fetch instructors from API (with graceful fallback)
   useEffect(() => {
-    const mockInstructors = [
-      {
-        id: 1, name: "Sofía Gonzalez", language: "Spanish", expertise: "Certified Educator", country: "Argentina", price: 29, rating: 4.8, reviews: 100, likes: 1200, numStudents: 500, numLessons: 2500, is_native: true, is_online: true, gender: 'female',
-        description: "Hola! I'm Sofía, a passionate and certified Spanish educator from Argentina with 10+ years of experience. My lessons are dynamic and immersive, focusing on conversational fluency, grammar mastery, and cultural insights. Whether you're a complete beginner or looking to perfect your accent, I tailor each session to your unique learning style and goals. Let's make learning Spanish fun and effective!",
-        image_url: null,
-      },
-      {
-        id: 2, name: "Kenji Tanaka", language: "Japanese", expertise: "JLPT Prep", country: "Japan", price: 35, rating: 4.9, reviews: 85, likes: 950, numStudents: 400, numLessons: 2000, is_native: true, is_online: true, gender: 'male',
-        description: "Konnichiwa! I'm Kenji, a native Japanese speaker specializing in JLPT preparation (N5-N1) and practical conversational Japanese. With a patient and structured approach, I'll guide you through grammar, vocabulary, and kanji, ensuring you gain confidence in speaking and understanding. My goal is to make complex Japanese concepts easy to grasp and enjoyable to learn.",
-        image_url: null,
-      },
-      {
-        id: 3, name: "Marie Dubois", language: "French", expertise: "French Culture & Travel", country: "France", price: 28, rating: 4.7, reviews: 110, likes: 1100, numStudents: 480, numLessons: 2300, is_native: true, is_online: true, gender: 'female',
-        description: "Bonjour! I'm Marie, a native French tutor living in the heart of Paris. My lessons go beyond grammar, immersing you in French culture, history, and daily life. Perfect for travelers, culture enthusiasts, or anyone wanting to sound more authentic. We'll practice real-life dialogues, explore French media, and build your confidence to speak French naturally.",
-        image_url: null,
-      },
-      {
-        id: 4, name: "Liam O'Connell", language: "English", expertise: "ESL Specialist", country: "Ireland", price: 32, rating: 4.6, reviews: 90, likes: 880, numStudents: 350, numLessons: 1800, is_native: true, is_online: true, gender: 'male',
-        description: "Top o' the morning! I'm Liam, an experienced ESL specialist from Ireland. I focus on improving your English pronunciation, accent reduction, and conversational fluency. Whether you're preparing for IELTS/TOEFL or just want to speak with more confidence, my lessons are engaging, supportive, and tailored to your specific needs. Let's conquer English together!",
-        image_url: null,
-      },
-      {
-        id: 5, name: "Fatima Al-Fassi", language: "Arabic", expertise: "Modern Standard Arabic", country: "Egypt", price: 30, rating: 4.8, reviews: 75, likes: 750, numStudents: 300, numLessons: 1500, is_native: true, is_online: true, gender: 'female',
-        description: "Ahlan wa sahlan! I'm Fatima, a native Arabic speaker from Egypt, specializing in Modern Standard Arabic (MSA). My lessons provide a solid foundation in grammar, vocabulary, and reading, enabling you to understand and communicate effectively across the Arab world. I use a blend of classical texts and modern media to make learning engaging and relevant.",
-        image_url: null,
-      },
-      {
-        id: 6, name: "Luca Rossi", language: "Italian", expertise: "Italian for Beginners", country: "Italy", price: 27, rating: 4.7, reviews: 60, likes: 600, numStudents: 250, numLessons: 1200, is_native: true, is_online: true, gender: 'male',
-        description: "Ciao! I'm Luca, a friendly native Italian tutor ready to introduce you to the beauty of my language. My 'Italian for Beginners' course is designed to get you speaking from day one, focusing on practical phrases, basic grammar, and pronunciation. We'll use real-life scenarios to build your confidence for your next trip to Italy!",
-        image_url: null,
-      },
-      {
-        id: 7, name: "Olga Petrova", language: "Russian", expertise: "Russian for Travel", country: "Russia", price: 33, rating: 4.5, reviews: 55, likes: 550, numStudents: 220, numLessons: 1100, is_native: true, is_online: true, gender: 'female',
-        description: "Здравствуйте! I'm Olga, a native Russian tutor who loves helping travelers prepare for their adventures. My 'Russian for Travel' lessons focus on essential phrases, cultural etiquette, and practical tips for navigating Russia. We'll cover everything from ordering food to asking for directions, ensuring you have a smooth and enjoyable journey.",
-        image_url: null,
-      },
-      {
-        id: 8, name: "Diego Garcia", language: "Spanish", expertise: "Conversational Spanish", country: "Mexico", price: 26, rating: 4.7, reviews: 95, likes: 900, numStudents: 450, numLessons: 2100, is_native: true, is_online: true, gender: 'male',
-        description: "¡Qué onda! I'm Diego, a lively Spanish tutor from Mexico, passionate about helping you achieve conversational fluency. My lessons are relaxed, engaging, and packed with real-world expressions and idioms. We'll discuss current events, movies, music, and more – anything to get you speaking naturally and confidently.",
-        image_url: null,
-      },
-      {
-        id: 9, name: "Chen Li", language: "Mandarin", expertise: "HSK Preparation", country: "China", price: 38, rating: 4.9, reviews: 80, likes: 980, numStudents: 380, numLessons: 1900, is_native: true, is_online: true, gender: 'male',
-        description: "你好! I'm Chen, a dedicated Mandarin instructor with extensive experience in HSK preparation (all levels). I provide clear explanations of grammar, effective strategies for character memorization, and ample speaking practice. My students consistently achieve high scores on the HSK exams and gain practical communication skills.",
-        image_url: null,
-      },
-      {
-        id: 10, name: "Aisha Khan", language: "Hindi", expertise: "Everyday Hindi", country: "India", price: 25, rating: 4.6, reviews: 70, likes: 700, numStudents: 280, numLessons: 1400, is_native: true, is_online: true, gender: 'female',
-        description: "Namaste! I'm Aisha, your guide to 'Everyday Hindi.' My lessons are perfect for those who want to learn practical Hindi for daily conversations, travel, or connecting with Indian culture. We'll focus on common phrases, basic grammar, and pronunciation, making sure you feel comfortable speaking in various situations.",
-        image_url: null,
-      },
-      {
-        id: 11, name: "Bjorn Svensson", language: "Swedish", expertise: "General Swedish", country: "Sweden", price: 30, rating: 4.7, reviews: 50, likes: 500, numStudents: 200, numLessons: 1000, is_native: true, is_online: true, gender: 'male',
-        description: "Hej! I'm Bjorn, a native Swedish speaker offering comprehensive 'General Swedish' lessons. Whether you're planning to move to Sweden, have Swedish relatives, or simply love the language, I can help you build a strong foundation in grammar, vocabulary, and conversational skills. We'll make learning Swedish engaging and rewarding.",
-        image_url: null,
-      },
-      {
-        id: 12, name: "Maria Clara", language: "Portuguese", expertise: "Brazilian Portuguese", country: "Brazil", price: 28, rating: 4.8, reviews: 65, likes: 650, numStudents: 260, numLessons: 1300, is_native: true, is_online: true, gender: 'female',
-        description: "Olá! I'm Maria Clara, your friendly Brazilian Portuguese tutor. My lessons are full of the vibrant energy of Brazil! We'll focus on conversational Portuguese, popular expressions, and cultural nuances. Perfect for travelers, music lovers, or anyone wanting to truly experience Brazil through its language.",
-        image_url: null,
-      },
-      {
-        id: 13, name: "Min-joon Kim", language: "Korean", expertise: "K-Pop & K-Drama Korean", country: "South Korea", price: 34, rating: 4.9, reviews: 70, likes: 800, numStudents: 300, numLessons: 1600, is_native: true, is_online: true, gender: 'male',
-        description: "Annyeonghaseyo! I'm Min-joon, a passionate Korean tutor. My specialty is making learning Korean fun through K-Pop lyrics, K-Drama dialogues, and Korean webtoons. You'll learn authentic conversational Korean, slang, and cultural insights, all while enjoying your favorite media. Let's make your Korean dreams a reality!",
-        image_url: null,
-      },
-      {
-        id: 14, name: "Sarah Johnson", language: "English", expertise: "Business English", country: "USA", price: 40, rating: 4.9, reviews: 150, likes: 1500, numStudents: 600, numLessons: 3000, is_native: true, is_online: true, gender: 'female',
-        description: "Hello! I'm Sarah, a highly experienced Business English coach from the USA. My lessons are designed to elevate your professional communication skills for meetings, presentations, emails, and negotiations. I provide practical strategies, industry-specific vocabulary, and role-playing scenarios to boost your confidence in global business environments.",
-        image_url: null,
-      },
-      {
-        id: 15, name: "Johann Schmidt", language: "German", expertise: "German for Professionals", country: "Germany", price: 36, rating: 4.8, reviews: 90, likes: 1000, numStudents: 420, numLessons: 2100, is_native: true, is_online: true, gender: 'male',
-        description: "Guten Tag! I'm Johann, a native German speaker and tutor specializing in 'German for Professionals.' Whether you need to prepare for job interviews, communicate with German colleagues, or conduct business in Germany, my structured lessons will equip you with the advanced vocabulary, formal grammar, and cultural understanding necessary for success.",
-        image_url: null,
-      },
-      {
-        id: 16, name: "Juan Carlos", language: "Spanish", expertise: "Medical Spanish", country: "Colombia", price: 31, rating: 4.7, reviews: 70, likes: 720, numStudents: 290, numLessons: 1450, is_native: true, is_online: true, gender: 'male',
-        description: "Saludos! I'm Juan Carlos, a tutor dedicated to 'Medical Spanish.' If you're a healthcare professional, my lessons will help you confidently communicate with Spanish-speaking patients. We'll cover medical terminology, patient history taking, empathetic communication, and cultural considerations in a healthcare setting.",
-        image_url: null,
-      },
-      {
-        id: 17, name: "Chloe Dupont", language: "French", expertise: "Conversational French", country: "Canada", price: 29, rating: 4.6, reviews: 80, likes: 850, numStudents: 340, numLessons: 1700, is_native: true, is_online: true, gender: 'female',
-        description: "Bonjour! I'm Chloe, a Canadian French tutor focused on 'Conversational French.' My goal is to get you speaking fluently and naturally. We'll engage in lively discussions, role-play everyday situations, and explore various topics to expand your vocabulary and improve your pronunciation, making every conversation enjoyable.",
-        image_url: null,
-      },
-      {
-        id: 18, name: "Mohammed Hassan", language: "Arabic", expertise: "Levantine Arabic", country: "Jordan", price: 32, rating: 4.7, reviews: 60, likes: 600, numStudents: 240, numLessons: 1200, is_native: true, is_online: true, gender: 'male',
-        description: "Marhaba! I'm Mohammed, a native speaker of 'Levantine Arabic' from Jordan. This dialect is widely spoken across the Levant region. My lessons are highly practical, focusing on daily conversation, common phrases, and cultural context, enabling you to connect deeply with locals in countries like Jordan, Syria, Lebanon, and Palestine.",
-        image_url: null,
-      },
-      {
-        id: 19, name: "Eva Kova", language: "Russian", expertise: "Business Russian", country: "Ukraine", price: 35, rating: 4.6, reviews: 50, likes: 520, numStudents: 210, numLessons: 1050, is_native: true, is_online: true, gender: 'female',
-        description: "Здравствуйте! I'm Eva, an experienced tutor for 'Business Russian.' If you're working with Russian-speaking partners or clients, I can help you master the formal vocabulary, negotiation phrases, and cultural etiquette essential for the Russian business world. My lessons are tailored to your industry and specific professional goals.",
-        image_url: null,
-      },
-      {
-        id: 20, name: "David Miller", language: "English", expertise: "IELTS/TOEFL Prep", country: "United Kingdom", price: 38, rating: 4.9, reviews: 100, likes: 1100, numStudents: 450, numLessons: 2200, is_native: true, is_online: true, gender: 'male',
-        description: "Greetings! I'm David, an expert tutor from the UK specializing in 'IELTS/TOEFL Preparation.' I provide comprehensive guidance on all sections of the exams (Reading, Writing, Listening, Speaking), offer proven strategies for success, and conduct mock tests to ensure you achieve your target score. Let's get you ready for your academic or professional future!",
-        image_url: null,
-      },
-      {
-        id: 21, name: "Linda Wong", language: "Mandarin", expertise: "Business Mandarin", country: "Taiwan", price: 37, rating: 4.8, reviews: 75, likes: 800, numStudents: 320, numLessons: 1600, is_native: true, is_online: true, gender: 'female',
-        description: "你好! I'm Linda, a native Mandarin speaker from Taiwan with a focus on 'Business Mandarin.' My lessons will equip you with the essential vocabulary and phrases for business meetings, presentations, negotiations, and networking in the Chinese-speaking world. We'll also cover important cultural protocols to help you succeed.",
-        image_url: null,
-      },
-      {
-        id: 22, name: "Rajesh Kumar", language: "Hindi", expertise: "Hindi Culture & History", country: "India", price: 26, rating: 4.5, reviews: 55, likes: 550, numStudents: 230, numLessons: 1150, is_native: true, is_online: true, gender: 'male',
-        description: "Namaste! I'm Rajesh, and I invite you to explore the rich tapestry of 'Hindi Culture & History' through language. My lessons intertwine Hindi language learning with fascinating insights into Indian traditions, festivals, mythology, and historical events. It's a holistic approach to truly understand the language in its cultural context.",
-        image_url: null,
-      },
-      {
-        id: 23, name: "Sophia Lee", language: "Korean", expertise: "General Korean", country: "South Korea", price: 30, rating: 4.7, reviews: 60, likes: 620, numStudents: 250, numLessons: 1250, is_native: true, is_online: true, gender: 'female',
-        description: "Annyeonghaseyo! I'm Sophia, a dedicated 'General Korean' tutor. Whether you're starting from scratch or looking to improve, my lessons cover all aspects: reading, writing, listening, and speaking. We'll focus on foundational grammar, practical vocabulary, and pronunciation drills to ensure you build a strong and confident command of the Korean language.",
-        image_url: null,
-      },
-      {
-        id: 24, name: "Carlos Sanchez", language: "Spanish", expertise: "Spanish Literature", country: "Spain", price: 33, rating: 4.8, reviews: 45, likes: 480, numStudents: 180, numLessons: 900, is_native: true, is_online: true, gender: 'male',
-        description: "¡Hola! I'm Carlos, a passionate academic specializing in 'Spanish Literature.' Join me to delve into the masterpieces of Spanish and Latin American authors, from Cervantes to García Márquez. We'll analyze texts, discuss themes, and expand your vocabulary, deepening your appreciation for the Spanish language and its profound literary heritage.",
-        image_url: null,
-      },
-      {
-        id: 25, name: "Eva Rodriguez", language: "Spanish", expertise: "Community Instructor", country: "Argentina", price: 22, rating: 4.5, reviews: 150, likes: 1300, numStudents: 600, numLessons: 2800, is_native: true, is_online: true, gender: 'female',
-        description: "¡Hola a todos! I'm Eva, your friendly 'Community Instructor' for Spanish. My lessons are relaxed and casual, perfect for anyone who wants to practice speaking without pressure. We'll chat about everyday topics, share experiences, and improve your conversational fluency in a supportive and encouraging environment. All levels are welcome!",
-        image_url: null,
-      },
-      {
-        id: 26, name: "Hiroshi Sato", language: "Japanese", expertise: "Conversational Japanese", country: "Japan", price: 30, rating: 4.7, reviews: 90, likes: 900, numStudents: 380, numLessons: 1900, is_native: true, is_online: true, gender: 'male',
-        description: "Konnichiwa! I'm Hiroshi, a patient native Japanese speaker dedicated to 'Conversational Japanese.' My lessons focus on getting you comfortable with speaking naturally. We'll use role-playing, current events, and daily scenarios to expand your practical vocabulary and refine your pronunciation, making every conversation enjoyable and effective.",
-        image_url: null,
-      },
-      {
-        id: 27, name: "Anna Müller", language: "German", expertise: "German for Travel", country: "Germany", price: 29, rating: 4.6, reviews: 70, likes: 700, numStudents: 300, numLessons: 1500, is_native: true, is_online: true, gender: 'female',
-        description: "Guten Tag! I'm Anna, your personal guide to 'German for Travel.' Prepare for your German adventure with practical phrases, useful vocabulary for common situations (ordering food, asking for directions, shopping), and essential cultural tips. My lessons ensure you'll navigate Germany with confidence and enjoy your trip to the fullest.",
-        image_url: null,
-      },
-      {
-        id: 28, name: "David Miller", language: "English", expertise: "Accent Reduction", country: "USA", price: 35, rating: 4.8, reviews: 80, likes: 850, numStudents: 330, numLessons: 1650, is_native: true, is_online: true, gender: 'male',
-        description: "Hi there! I'm David, an expert in 'Accent Reduction' for English. If you want to refine your pronunciation, reduce your accent, and sound more like a native speaker, my tailored lessons will help. We'll focus on specific sounds, intonation patterns, and rhythm, giving you the clarity and confidence to communicate effectively.",
-        image_url: null,
-      },
-      {
-        id: 29, name: "Elena Volkov", language: "Russian", expertise: "Russian for Beginners", country: "Russia", price: 28, rating: 4.5, reviews: 60, likes: 600, numStudents: 240, numLessons: 1200, is_native: true, is_online: true, gender: 'female',
-        description: "Привет! I'm Elena, your friendly 'Russian for Beginners' tutor. Start your journey into the Russian language with simple, clear, and engaging lessons. We'll cover the Cyrillic alphabet, basic greetings, essential vocabulary, and fundamental grammar, building a strong foundation for your future learning. Patience and encouragement are guaranteed!",
-        image_url: null,
-      },
-      {
-        id: 30, name: "Paulo Mendes", language: "Portuguese", expertise: "European Portuguese", country: "Portugal", price: 32, rating: 4.7, reviews: 50, likes: 500, numStudents: 200, numLessons: 1000, is_native: true, is_online: true, gender: 'male',
-        description: "Olá! I'm Paulo, a native tutor specializing in 'European Portuguese.' My lessons focus on the distinct pronunciation, grammar, and vocabulary of Portugal. Whether you're planning to live in Lisbon, visit Porto, or simply appreciate the sounds of European Portuguese, I'll provide structured and engaging lessons tailored to your needs.",
-        image_url: null,
-      },
-    ];
-    setAllInstructors(mockInstructors);
+    const fetchInstructors = async () => {
+      setLoading(true);
+      try {
+        // Commented out for development - will be enabled when API is ready
+        // const response = await axios.get('/api/instructors');
+        // setAllInstructors(response.data);
+        
+        // Fallback empty array for development
+        setAllInstructors([]);
+      } catch (err) {
+        console.log('API not available yet - using demo mode');
+        setAllInstructors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchInstructors();
   }, []);
 
   // --- Array of diverse emojis for unique avatars ---
@@ -215,7 +77,7 @@ export default function Home() {
     '💡', '🚀', '💯', '🌈', '🎓', '🎶', '🗣️', '💬', '📖', '🧑‍🤝‍🧑'
   ];
 
-  // --- Filter and Sort Handlers (unchanged from previous) ---
+  // --- Filter and Sort Handlers ---
   const handleFilterChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setFilters(prev => ({
@@ -244,7 +106,6 @@ export default function Home() {
     setCurrentPage(1);
   }, []);
 
-  // --- NEW: Handle Like Button Click ---
   const handleLikeClick = useCallback((instructorId) => {
     setLikedInstructors(prev => ({
       ...prev,
@@ -252,28 +113,21 @@ export default function Home() {
     }));
   }, []);
 
-  // --- NEW: Handle Chat Button Click ---
   const handleChatClick = useCallback((instructor) => {
     setActiveChat(instructor);
   }, []);
 
-  // --- Handle Chat Send ---
   const handleChatSend = useCallback((message, instructorName) => {
     alert(`Message to ${instructorName}: "${message}" sent! (This is a simulation)`);
-    // In a real app, this would send to a backend chat service
   }, []);
 
-  // --- Handle Translate Message ---
   const handleTranslateMessage = useCallback((message) => {
     alert(`Translating: "${message}"... (Simulation: translated text would appear here)`);
-    // In a real app, this would call a translation API
   }, []);
 
-
-  // --- Filtering and Sorting Logic (unchanged from previous) ---
+  // --- Filtering and Sorting Logic ---
   const filteredAndSortedInstructors = useMemo(() => {
     let filtered = allInstructors.filter(instructor => {
-      // General Search Term
       if (searchTerm) {
         const lowerCaseSearch = searchTerm.toLowerCase();
         const matches =
@@ -282,84 +136,33 @@ export default function Home() {
           instructor.expertise.toLowerCase().includes(lowerCaseSearch) ||
           instructor.country.toLowerCase().includes(lowerCaseSearch) ||
           instructor.description.toLowerCase().includes(lowerCaseSearch);
-        if (!matches) {
-          return false;
-        }
+        if (!matches) return false;
       }
 
-      // Language Filter
-      if (filters.language && instructor.language.toLowerCase() !== filters.language.toLowerCase()) {
-        return false;
-      }
-      // Country Filter
-      if (filters.country && instructor.country.toLowerCase() !== filters.country.toLowerCase()) {
-        return false;
-      }
-      // Price Range Filter
-      if (instructor.price < filters.minPrice || instructor.price > filters.maxPrice) {
-        return false;
-      }
-      // Expertise Filter
-      if (filters.expertise && instructor.expertise.toLowerCase() !== filters.expertise.toLowerCase()) {
-        return false;
-      }
-      // Native Speaker Filter
-      if (filters.isNativeSpeaker && !instructor.is_native) {
-        return false;
-      }
-      // Minimum Rating Filter
-      if (filters.rating > 0 && instructor.rating < filters.rating) {
-        return false;
-      }
-      // Likes Filter (Minimum Likes)
-      if (filters.likes > 0 && instructor.likes < filters.likes) {
-        return false;
-      }
-      // Number of Students Filter (Minimum Students)
-      if (filters.numStudents > 0 && instructor.numStudents < filters.numStudents) {
-        return false;
-      }
-      // Number of Lessons Filter (Minimum Lessons)
-      if (filters.numLessons > 0 && instructor.numLessons < filters.numLessons) {
-        return false;
-      }
-      // Online/Offline Filter
-      if (filters.isOnline !== null) {
-        if (filters.isOnline !== instructor.is_online) {
-          return false;
-        }
-      }
-      // Gender Filter
-      if (filters.gender && instructor.gender.toLowerCase() !== filters.gender.toLowerCase()) {
-        return false;
-      }
+      if (filters.language && instructor.language.toLowerCase() !== filters.language.toLowerCase()) return false;
+      if (filters.country && instructor.country.toLowerCase() !== filters.country.toLowerCase()) return false;
+      if (instructor.price < filters.minPrice || instructor.price > filters.maxPrice) return false;
+      if (filters.expertise && instructor.expertise.toLowerCase() !== filters.expertise.toLowerCase()) return false;
+      if (filters.isNativeSpeaker && !instructor.is_native) return false;
+      if (filters.rating > 0 && instructor.rating < filters.rating) return false;
+      if (filters.likes > 0 && instructor.likes < filters.likes) return false;
+      if (filters.numStudents > 0 && instructor.numStudents < filters.numStudents) return false;
+      if (filters.numLessons > 0 && instructor.numLessons < filters.numLessons) return false;
+      if (filters.isOnline !== null && filters.isOnline !== instructor.is_online) return false;
+      if (filters.gender && instructor.gender.toLowerCase() !== filters.gender.toLowerCase()) return false;
 
       return true;
     });
 
     switch (sortBy) {
-      case 'price-asc':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating-desc':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'likes-desc':
-        filtered.sort((a, b) => b.likes - a.likes);
-        break;
-      case 'students-desc':
-        filtered.sort((a, b) => b.numStudents - a.numStudents);
-        break;
-      case 'lessons-desc':
-        filtered.sort((a, b) => b.numLessons - a.numLessons);
-        break;
+      case 'price-asc': filtered.sort((a, b) => a.price - b.price); break;
+      case 'price-desc': filtered.sort((a, b) => b.price - a.price); break;
+      case 'rating-desc': filtered.sort((a, b) => b.rating - a.rating); break;
+      case 'likes-desc': filtered.sort((a, b) => b.likes - a.likes); break;
+      case 'students-desc': filtered.sort((a, b) => b.numStudents - a.numStudents); break;
+      case 'lessons-desc': filtered.sort((a, b) => b.numLessons - a.numLessons); break;
       case 'popular':
-      default:
-        filtered.sort((a, b) => b.reviews - a.reviews);
-        break;
+      default: filtered.sort((a, b) => b.reviews - a.reviews); break;
     }
 
     return filtered;
@@ -375,9 +178,8 @@ export default function Home() {
   const inputClasses = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400";
   const labelClasses = "block text-sm font-medium text-gray-700 mb-1";
 
-  // --- Data for Select Dropdowns ---
+  // Data for dropdowns
   const languages = ["English", "Spanish", "French", "German", "Japanese", "Korean", "Mandarin", "Arabic", "Russian", "Italian", "Portuguese", "Hindi", "Swedish"];
-  // Deduplicated and sorted countries for unique keys
   const allCountries = [
     "United States", "Canada", "United Kingdom", "Australia", "New Zealand",
     "Argentina", "Brazil", "Mexico", "Colombia", "Spain", "France", "Germany",
@@ -387,35 +189,11 @@ export default function Home() {
     "Vietnam", "Philippines", "Egypt", "South Africa", "Nigeria", "Kenya",
     "Morocco", "Saudi Arabia", "United Arab Emirates", "Turkey", "Israel",
     "Greece", "Czech Republic", "Hungary", "Romania", "Chile", "Peru", "Venezuela",
-    "Ecuador", "Bolivia", "Uruguay", "Cuba", "Dominican Republic",
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
-    "Armenia", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus",
-    "Belize", "Benin", "Bhutan", "Bosnia and Herzegovina", "Botswana", "Brunei", "Bulgaria",
-    "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Central African Republic",
-    "Chad", "Comoros", "Congo (Brazzaville)", "Congo (Kinshasa)", "Costa Rica", "Croatia",
-    "Cyprus", "Djibouti", "Dominica", "East Timor (Timor-Leste)", "El Salvador",
-    "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Gabon",
-    "Gambia", "Georgia", "Ghana", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau",
-    "Guyana", "Haiti", "Honduras", "Iceland", "Iran", "Iraq", "Ivory Coast", "Jamaica",
-    "Jordan", "Kazakhstan", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia",
-    "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
-    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands",
-    "Mauritania", "Mauritius", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro",
-    "Mozambique", "Myanmar (Burma)", "Namibia", "Nauru", "Nepal", "Nicaragua", "Niger",
-    "North Korea", "North Macedonia", "Oman", "Pakistan", "Palau", "Palestine", "Panama",
-    "Papua New Guinea", "Paraguay", "Qatar", "Rwanda", "Saint Kitts and Nevis",
-    "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-    "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
-    "Solomon Islands", "Somalia", "South Sudan", "Sri Lanka", "Sudan", "Suriname", "Syria",
-    "Taiwan", "Tajikistan", "Tanzania", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia",
-    "Turkmenistan", "Tuvalu", "Uganda", "Uzbekistan", "Vanuatu",
-    "Vatican City", "Yemen", "Zambia", "Zimbabwe"
+    "Ecuador", "Bolivia", "Uruguay", "Cuba", "Dominican Republic"
   ].filter((value, index, self) => self.indexOf(value) === index).sort();
 
   const expertiseOptions = ["Community Instructor", "Native Speaker", "Certified Educator", "Language Specialist", "ESL Specialist", "Business English", "Conversational Spanish", "JLPT Prep", "French Culture & Travel", "Italian for Beginners", "Everyday Hindi", "HSK Preparation", "Modern Standard Arabic", "Russian for Travel", "K-Pop & K-Drama Korean", "Accent Reduction", "Business Russian", "German for Professionals", "Brazilian Portuguese", "Medical Spanish", "IELTS/TOEFL Prep", "Levantine Arabic", "Business Mandarin", "General English", "Spanish Literature", "General Korean", "German for Travel", "European Portuguese", "Russian for Beginners", "Hindi Culture & History", "General Swedish", "Conversational Japanese"];
 
-
-  // --- Helper for Star Rating Display ---
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
@@ -433,47 +211,25 @@ export default function Home() {
     return stars;
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800">
-      {/* Top Banner (unchanged) */}
+      {/* Top Banner */}
       <div className="bg-teal-50 text-teal-700 p-3 text-center text-sm">
         <span>Enhance your learning experience! Explore our new interactive exercises.</span>
       </div>
 
-      {/* Header - ENHANCED */}
+      {/* Header */}
       <header className="bg-white shadow-sm py-4 px-6 border-b border-gray-100 sticky top-0 z-50">
         <div className="container mx-auto flex justify-between items-center flex-wrap gap-y-4">
-          {/* LangZone Logo - Elegant SVG Icon */}
           <Link href="/" className="flex items-center space-x-2 text-2xl font-extrabold text-teal-700 flex-shrink-0">
-            <svg
-              className="w-9 h-9 text-teal-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Book Icon Path */}
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.7"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.523 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.523 18.246 18 16.5 18s-3.332.477-4.5 1.253"
-              />
-              {/* Subtle Globe Overlay (simplified) */}
+            <svg className="w-9 h-9 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.523 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.523 18.246 18 16.5 18s-3.332.477-4.5 1.253"/>
               <circle cx="12" cy="12" r="7" strokeWidth="1" opacity="0.6" />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1"
-                d="M12 2v20M2 12h20"
-                opacity="0.6"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M12 2v20M2 12h20" opacity="0.6"/>
             </svg>
             <span>LangZone</span>
           </Link>
 
-          {/* Primary Navigation - Centered & Flexible */}
           <nav className="flex-grow flex justify-center order-last md:order-none w-full md:w-auto">
             <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-base font-medium">
               <li><Link href="/" className="text-gray-700 hover:text-teal-600 transition-colors px-2 py-1 rounded-md">Find Instructors</Link></li>
@@ -487,10 +243,9 @@ export default function Home() {
             </ul>
           </nav>
 
-          {/* Right-aligned User Actions */}
           <div className="flex items-center space-x-4 flex-shrink-0">
             <Link href="/rewards" className="text-gray-600 hover:text-teal-600 transition-colors hidden lg:block text-sm">Rewards</Link>
-            <div className="relative hidden md:block"> {/* Hide on very small screens */}
+            <div className="relative hidden md:block">
               <select className="border border-gray-200 rounded-md py-1.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none bg-white pr-8">
                 <option>English ($USD)</option>
                 <option>Spanish (€EUR)</option>
@@ -511,8 +266,7 @@ export default function Home() {
         </div>
       </header>
 
-
-      {/* Hero Section (unchanged) */}
+      {/* Hero Section */}
       <section className="bg-white py-16 px-6 text-center shadow-sm border-b border-gray-100">
         <div className="container mx-auto max-w-2xl">
           <h1 className="text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
@@ -536,10 +290,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Main Content Area: Filters (Left) and Instructor Listings (Right) (unchanged layout from previous) */}
+      {/* Main Content Area */}
       <div className="container mx-auto px-6 py-10 flex flex-col lg:flex-row gap-8">
-
-        {/* Left Column: Sticky Filters */}
+        {/* Left Column: Filters */}
         <div className="lg:w-1/4 xl:w-1/5 flex-shrink-0">
           <div className="sticky top-28 bg-white p-6 rounded-xl shadow-lg border border-gray-100 space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-5">Filters</h2>
@@ -588,7 +341,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Price Range Filter (Slider) */}
+            {/* Price Range Filter */}
             <div>
               <label className={labelClasses}>Price per lesson ($USD): ${filters.minPrice} - ${filters.maxPrice}</label>
               <div className="flex items-center gap-2">
@@ -768,7 +521,7 @@ export default function Home() {
             <div className="border-t pt-4 mt-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Quick Actions</h3>
                 <Link
-                    href="/create-new-profile" // Corrected link to match the new profile page route
+                    href="/create-new-profile"
                     className="block bg-teal-500 text-white text-center py-2.5 px-4 rounded-lg font-semibold hover:bg-teal-600 transition-colors mb-3"
                 >
                     Become an Instructor
@@ -783,7 +536,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Column: Instructor Listings & Sort By */}
+        {/* Right Column: Instructor Listings */}
         <div className="lg:w-3/4 xl:w-4/5">
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-900">
@@ -832,21 +585,35 @@ export default function Home() {
           )}
 
           {!loading && !error && currentInstructors.length === 0 && (
-            <div className="col-span-full text-center py-10 text-gray-600 text-lg">
-              No instructors found matching your criteria. Try adjusting your filters!
+            <div className="col-span-full text-center py-10">
+              <div className="max-w-md mx-auto">
+                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mt-4">No instructors available yet</h3>
+                <p className="text-gray-500 mt-2">
+                  We're preparing our instructor database. Check back soon!
+                </p>
+                <div className="mt-6">
+                  <button
+                    onClick={() => alert('This would open instructor registration in a real app')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                  >
+                    Become an Instructor
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
           {!loading && !error && currentInstructors.length > 0 && (
-            <div className="flex flex-col gap-6"> {/* Main change: flex-col for stacking cards */}
-              {currentInstructors.map((instructor, index) => (
+            <div className="flex flex-col gap-6">
+              {currentInstructors.map((instructor) => (
                 <div key={instructor.id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-shadow duration-300">
-                  <div className="relative h-48 w-full md:w-56 flex-shrink-0 bg-gray-200 flex items-center justify-center"> {/* Image container */}
-                    {/* Unique Emoji Avatar */}
+                  <div className="relative h-48 w-full md:w-56 flex-shrink-0 bg-gray-200 flex items-center justify-center">
                     <span className="text-6xl text-gray-500 leading-none">
                         {emojiAvatars[instructor.id % emojiAvatars.length]}
                     </span>
-                    {/* Like Button Overlay */}
                     <button
                       onClick={() => handleLikeClick(instructor.id)}
                       className={`absolute top-3 right-3 p-2 rounded-full bg-white bg-opacity-80 transition-colors ${
@@ -870,7 +637,7 @@ export default function Home() {
                       </svg>
                     </button>
                   </div>
-                  <div className="p-5 flex flex-col flex-grow"> {/* Text content container */}
+                  <div className="p-5 flex flex-col flex-grow">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
                       <h3 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0">{instructor.name}</h3>
                       <div className="flex items-center text-yellow-500">
@@ -908,7 +675,6 @@ export default function Home() {
                     <div className="mt-auto flex flex-col sm:flex-row justify-between items-start sm:items-center pt-3 border-t border-gray-100">
                       <span className="text-2xl font-bold text-teal-600 mb-3 sm:mb-0">${instructor.price}<span className="text-base text-gray-500 font-normal">/lesson</span></span>
                       <div className="flex space-x-2">
-                         {/* Calendar Booking Button */}
                         <button
                           onClick={() => alert(`Opening calendar for ${instructor.name}. (Integration with booking system like Calendly would go here.)`)}
                           className="bg-blue-500 text-white p-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors shadow-md text-sm flex items-center justify-center"
@@ -916,21 +682,17 @@ export default function Home() {
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </button>
-                        {/* Video Call Button (Zoom Integration) */}
                         <button
                           onClick={() => {
-                            // In a real application, you'd dynamically get the meeting ID
-                            // and securely initiate the call. This is a placeholder.
-                            const zoomMeetingId = 'YOUR_MEETING_ID_HERE'; // Replace with actual meeting ID
+                            const zoomMeetingId = 'YOUR_MEETING_ID_HERE';
                             window.open(`zoommtg://zoom.us/join?action=join&confno=${zoomMeetingId}`, '_blank');
                             alert(`Attempting to open Zoom for a call with ${instructor.name}. (Requires Zoom app installed.)`);
                           }}
                           className="bg-purple-500 text-white p-2 rounded-lg font-semibold hover:bg-purple-600 transition-colors shadow-md text-sm flex items-center justify-center"
                           title="Start a video call"
                         >
-                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 7a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H4z"></path></svg>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 7a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2H4z"></path></svg>
                         </button>
-                        {/* Chat Feature Button */}
                         <button
                           onClick={() => handleChatClick(instructor)}
                           className="bg-green-500 text-white p-2 rounded-lg font-semibold hover:bg-green-600 transition-colors shadow-md text-sm flex items-center justify-center"
@@ -938,15 +700,13 @@ export default function Home() {
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                         </button>
-                         {/* Payment Button (Conceptual) */}
                         <button
                           onClick={() => alert(`Initiating payment for ${instructor.name}'s lesson. (Integration with a payment gateway like Stripe/PayPal would go here.)`)}
                           className="bg-yellow-500 text-white p-2 rounded-lg font-semibold hover:bg-yellow-600 transition-colors shadow-md text-sm flex items-center justify-center"
                           title="Pay for lesson"
                         >
-                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </button>
-                        {/* Book Trial Button */}
                         <button className="bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-teal-700 transition-colors shadow-md">
                           Book a Trial
                         </button>
@@ -958,7 +718,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Pagination (unchanged) */}
+          {/* Pagination */}
           {!loading && !error && filteredAndSortedInstructors.length > instructorsPerPage && (
             <div className="flex justify-center items-center space-x-2 mt-8">
               <button
@@ -1003,7 +763,6 @@ export default function Home() {
               </button>
             </div>
             <div className="flex-grow p-4 overflow-y-auto space-y-4">
-              {/* Mock Chat Messages */}
               <div className="flex justify-start">
                 <div className="bg-gray-100 text-gray-800 p-3 rounded-lg max-w-[70%]">
                   Hi there! How can I help you with your language learning journey today?
@@ -1014,7 +773,7 @@ export default function Home() {
                   Hello {activeChat.name}! I'm interested in learning {activeChat.language}. What's your teaching methodology?
                 </div>
               </div>
-               <div className="flex justify-start">
+              <div className="flex justify-start">
                 <div className="bg-gray-100 text-gray-800 p-3 rounded-lg max-w-[70%]">
                  My teaching methodology focuses on immersive conversation and practical application. We'll speak as much as possible, even from the first lesson, to build your confidence and fluency quickly. I also incorporate grammar and vocabulary exercises tailored to your needs.
                 </div>
@@ -1042,7 +801,7 @@ export default function Home() {
                     const message = document.getElementById('chatInput').value;
                     if (message) {
                       handleChatSend(message, activeChat.name);
-                      document.getElementById('chatInput').value = ''; // Clear input
+                      document.getElementById('chatInput').value = '';
                     }
                   }}
                   className="bg-teal-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-teal-700 transition-colors text-sm"
@@ -1055,12 +814,10 @@ export default function Home() {
         </div>
       )}
 
-
-      {/* Footer - ENHANCED */}
+      {/* Footer */}
       <footer className="bg-gray-800 text-gray-300 py-10 px-6 mt-12">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 text-left mb-8">
-            {/* Company Section */}
             <div>
               <h6 className="font-bold text-white mb-4 text-lg">LangZone</h6>
               <ul className="space-y-2 text-sm">
@@ -1072,7 +829,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Learn Languages Section */}
             <div>
               <h6 className="font-bold text-white mb-4 text-lg">Learn Languages</h6>
               <ul className="space-y-2 text-sm">
@@ -1085,7 +841,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Resources Section */}
             <div>
               <h6 className="font-bold text-white mb-4 text-lg">Resources</h6>
               <ul className="space-y-2 text-sm">
@@ -1097,7 +852,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Support Section */}
             <div>
               <h6 className="font-bold text-white mb-4 text-lg">Support</h6>
               <ul className="space-y-2 text-sm">
@@ -1109,7 +863,6 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Why Choose Us */}
             <div>
               <h6 className="font-bold text-white mb-4 text-lg">Why Choose Us?</h6>
               <ul className="space-y-2 text-sm">
@@ -1122,7 +875,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Social Media and Copyright */}
           <div className="border-t border-gray-700 pt-8 mt-8 flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
             <p className="text-gray-500 text-sm mb-4 sm:mb-0">
               © {new Date().getFullYear()} LangZone. All rights reserved.
