@@ -1,8 +1,3 @@
-// Instructors Page
-// This page lists all instructors and allows for searching and filtering.
-//app/instructors/page.tsx
-
-// app/instructors/page.tsx
 'use client';
 
 import { supabase } from '@/lib/supabase/client';
@@ -21,6 +16,17 @@ interface Instructor {
   is_native: boolean;
   image_url: string | null;
   createdAt: string;
+}
+
+// New component to render locale date only on client
+function InstructorJoinDate({ createdAt }: { createdAt: string }) {
+  const [joinDate, setJoinDate] = useState('');
+
+  useEffect(() => {
+    setJoinDate(new Date(createdAt).toLocaleDateString());
+  }, [createdAt]);
+
+  return <span className="text-gray-500 text-xs">Joined {joinDate}</span>;
 }
 
 export default function InstructorsPage() {
@@ -59,25 +65,24 @@ export default function InstructorsPage() {
 
   const getImageUrl = (imagePath: string | null) => {
     if (!imagePath) return null;
-    const { data } = supabase.storage
-      .from('instructor-images')
-      .getPublicUrl(imagePath);
+    const { data } = supabase.storage.from('instructor-images').getPublicUrl(imagePath);
     return data.publicUrl;
   };
 
   // Filter instructors based on search term and language
-  const filteredInstructors = instructors.filter(instructor => {
-    const matchesSearch = instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         instructor.expertise.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         instructor.country.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredInstructors = instructors.filter((instructor) => {
+    const matchesSearch =
+      instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      instructor.expertise.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      instructor.country.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesLanguage = !languageFilter || instructor.language === languageFilter;
-    
+
     return matchesSearch && matchesLanguage;
   });
 
   // Get unique languages for filter
-  const availableLanguages = [...new Set(instructors.map(i => i.language))];
+  const availableLanguages = [...new Set(instructors.map((i) => i.language))];
 
   if (loading) {
     return (
@@ -115,7 +120,8 @@ export default function InstructorsPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Language Instructors</h1>
               <p className="mt-1 text-gray-600">
-                Find your perfect language teacher ({filteredInstructors.length} instructor{filteredInstructors.length !== 1 ? 's' : ''})
+                Find your perfect language teacher ({filteredInstructors.length} instructor
+                {filteredInstructors.length !== 1 ? 's' : ''})
               </p>
             </div>
             <Link
@@ -152,8 +158,10 @@ export default function InstructorsPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All Languages</option>
-              {availableLanguages.map(language => (
-                <option key={language} value={language}>{language}</option>
+              {availableLanguages.map((language) => (
+                <option key={language} value={language}>
+                  {language}
+                </option>
               ))}
             </select>
           </div>
@@ -163,7 +171,9 @@ export default function InstructorsPage() {
         {filteredInstructors.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {instructors.length === 0 ? 'No instructors found.' : 'No instructors match your search criteria.'}
+              {instructors.length === 0
+                ? 'No instructors found.'
+                : 'No instructors match your search criteria.'}
             </p>
             {instructors.length === 0 && (
               <Link
@@ -177,7 +187,10 @@ export default function InstructorsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredInstructors.map((instructor) => (
-              <div key={instructor.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div
+                key={instructor.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              >
                 {/* Profile Image */}
                 <div className="h-48 bg-gray-200 relative">
                   {instructor.image_url ? (
@@ -217,15 +230,11 @@ export default function InstructorsPage() {
                   </div>
 
                   <p className="text-gray-600 text-sm mb-3">{instructor.expertise}</p>
-                  
-                  <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                    {instructor.description}
-                  </p>
+
+                  <p className="text-gray-700 text-sm mb-4 line-clamp-3">{instructor.description}</p>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-500 text-xs">
-                      Joined {new Date(instructor.createdAt).toLocaleDateString()}
-                    </span>
+                    <InstructorJoinDate createdAt={instructor.createdAt} />
                     <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                       Contact
                     </button>
