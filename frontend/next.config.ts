@@ -7,7 +7,16 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Remove output: 'export' and other static export settings
+  // Modern settings to prevent deprecated API issues
+  experimental: {
+    // Add supported experimental options here if needed
+  },
+  // Enable modern performance features
+  productionBrowserSourceMaps: false, // Set to true if you need debugging
+  // Optional: Add transpilePackages if using specific libraries
+  transpilePackages: [],
+  // Enable React strict mode
+  reactStrictMode: true
 }
 
 export default nextConfig
