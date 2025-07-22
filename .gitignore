@@ -15,3 +15,5 @@ dist/
 venv/
 .env/
 *.egg-info/
+
+/generated/prisma
