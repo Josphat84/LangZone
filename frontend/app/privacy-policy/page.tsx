@@ -1,6 +1,6 @@
 // frontend/app/privacy-policy/page.t
 import Header from '@/components/Header';
-i//mport Footer from '@/components/Footer';
+import Footer from '@/components/Footer';
 import next from 'next';
 
 export default function PrivacyPolicyPage() {
