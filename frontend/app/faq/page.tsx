@@ -1,15 +1,11 @@
 // frontend/app/faq/page.tsx
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+type FAQItem = {
+  question: string;
+  answer: string;
+};
 
 export default function FAQPage() {
-  const sectionTitleClasses = "text-4xl font-extrabold text-gray-900 mb-6 text-center";
-  const sectionParagraphClasses = "text-lg text-gray-700 mb-8 text-center max-w-3xl mx-auto";
-  const faqItemClasses = "bg-white p-6 rounded-xl shadow-lg border border-gray-100 mb-6";
-  const questionClasses = "text-xl font-semibold text-teal-700 mb-3";
-  const answerClasses = "text-gray-700 leading-relaxed";
-
-  const faqs = [
+  const faqs: FAQItem[] = [
     {
       question: "How do I find an instructor?",
       answer: "You can use our 'Find Instructors' page to browse by language, specialty, availability, and price. You can also view instructor profiles to learn more about their experience and teaching style."
@@ -38,27 +34,32 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800">
-      <Header />
-
-      <main className="container mx-auto px-6 py-12 max-w-4xl">
-        <section className="text-center mb-10">
-          <h1 className={sectionTitleClasses}>Frequently Asked Questions</h1>
-          <p className={sectionParagraphClasses}>
+      <main className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-4xl">
+        <section className="text-center mb-8 md:mb-10">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-base md:text-lg text-gray-700 max-w-3xl mx-auto">
             Find answers to the most common questions about LangZone's services.
           </p>
         </section>
 
-        <section>
+        <section className="space-y-4 md:space-y-6">
           {faqs.map((faq, index) => (
-            <div key={index} className={faqItemClasses}>
-              <h2 className={questionClasses}>{faq.question}</h2>
-              <p className={answerClasses}>{faq.answer}</p>
-            </div>
+            <article 
+              key={index} 
+              className="bg-white p-5 md:p-6 rounded-xl shadow-md border border-gray-100"
+            >
+              <h2 className="text-lg md:text-xl font-semibold text-teal-700 mb-2 md:mb-3">
+                {faq.question}
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                {faq.answer}
+              </p>
+            </article>
           ))}
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

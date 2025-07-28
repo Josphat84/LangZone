@@ -4,6 +4,8 @@ import "./globals.css";
 import Link from "next/link";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Footer from '@/components/Footer'; // Import the new Footer component
+import Header from '@/components/Header'; // Import the Header component
+
 
 const inter = Inter({ subsets: ["latin"] });
 
