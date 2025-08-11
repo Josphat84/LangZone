@@ -1,62 +1,72 @@
-// app/create-new-profile/page.tsx
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
-export default function CreateNewProfilePage() {
+// Helper function to generate a URL-friendly slug
+const createSlug = (name: string): string => {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars except hyphens
+    .replace(/--+/g, '-'); // Replace multiple hyphens with a single one
+};
+
+export default function CreateInstructorProfile() {
   const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone_number: '',
+    country: '',
     language: '',
+    is_native: false,
     expertise: '',
+    qualifications: '',
+    years_experience: '',
     price: '',
     description: '',
-    country: '',
-    is_native: false,
-    image_url: null as File | null
+    video_intro_url: '',
+    social_links: '',
+    slug: '',
+    image_url: null as File | null,
   });
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+  // Effect to automatically generate slug when the name changes
+  useEffect(() => {
+    if (formData.name) {
+      setFormData(prev => ({
+        ...prev,
+        slug: createSlug(prev.name),
+      }));
+    }
+  }, [formData.name]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, image_url: e.target.files![0] }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type, checked, files } = e.target as HTMLInputElement;
+    if (type === 'file') {
+      setFormData(prev => ({ ...prev, image_url: files ? files[0] : null }));
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      // Validate required fields
-      if (!formData.name || !formData.email || !formData.language || 
-          !formData.expertise || !formData.price || !formData.description || 
-          !formData.country) {
-        throw new Error('Please fill in all required fields');
-      }
+      const priceValue = parseFloat(formData.price) || 0;
 
-      // Validate price
-      const priceValue = parseFloat(formData.price);
-      if (isNaN(priceValue) || priceValue <= 0) {
-        throw new Error('Please enter a valid hourly rate');
-      }
-
-      // 1. Upload image if exists
       let imagePath = '';
       if (formData.image_url) {
         const fileExt = formData.image_url.name.split('.').pop();
@@ -67,227 +77,296 @@ export default function CreateNewProfilePage() {
           .from('instructor-images')
           .upload(filePath, formData.image_url);
 
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          throw new Error(`Image upload failed: ${uploadError.message}`);
-        }
+        if (uploadError) throw uploadError;
+
         imagePath = filePath;
       }
-
-      // 2. Insert instructor data
-      const instructorData = {
+      
+      const insertData = {
         name: formData.name.trim(),
         email: formData.email.trim(),
-        language: formData.language,
+        phone_number: formData.phone_number || null,
+        country: formData.country.trim(),
+        language: formData.language || null,
+        is_native: formData.is_native,
         expertise: formData.expertise.trim(),
+        qualifications: formData.qualifications || null,
+        years_experience: formData.years_experience ? parseInt(formData.years_experience, 10) : null,
         price: priceValue,
         description: formData.description.trim(),
-        country: formData.country.trim(),
-        is_native: formData.is_native,
+        video_intro_url: formData.video_intro_url || null,
+        social_links: formData.social_links || null,
+        slug: formData.slug.trim(),
         image_url: imagePath || null,
-        createdAt: new Date().toISOString() // ✅ Fixed: Changed from created_at to createdAt
+        createdAt: new Date().toISOString(),
       };
 
-      const { data, error: insertError } = await supabase
-        .from('Instructor')  // ✅ Fixed: Changed to 'Instructor' (singular, capitalized)
-        .insert(instructorData)
-        .select();
+      const { error } = await supabase.from('Instructor').insert([insertData]);
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        console.error('Error details:', JSON.stringify(insertError, null, 2));
-        throw new Error(`Database error: ${insertError.message || 'Unknown database error'}`);
-      }
+      if (error) throw error;
 
-      console.log('Profile created successfully:', data);
-      router.push('/profile-success');
+      router.push(`/tutors/${formData.slug.trim()}`);
     } catch (err: any) {
-      console.error('Form submission error:', err);
-      setError(err.message || 'Failed to create profile');
+      console.error('Error creating profile:', err);
+      alert('Failed to create profile. Please check your inputs.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-center">Create Instructor Profile</h1>
-      
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Personal Information */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Full Name*
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email*
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Professional Details */}
-          <div>
-            <label htmlFor="language" className="block text-sm font-medium text-gray-700">
-              Language*
-            </label>
-            <select
-              id="language"
-              name="language"
-              value={formData.language}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a language</option>
-              <option value="English">English</option>
-              <option value="Spanish">Spanish</option>
-              <option value="French">French</option>
-            </select>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="is_native"
-              name="is_native"
-              checked={formData.is_native}
-              onChange={handleChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="is_native" className="ml-2 block text-sm text-gray-900">
-              Native Speaker
-            </label>
-          </div>
-
-          <div>
-            <label htmlFor="expertise" className="block text-sm font-medium text-gray-700">
-              Expertise*
-            </label>
-            <input
-              type="text"
-              id="expertise"
-              name="expertise"
-              value={formData.expertise}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-              Country*
-            </label>
-            <input
-              type="text"
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-              Hourly Rate ($)*
-            </label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              min="0"
-              step="0.01"
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Description */}
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description*
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            value={formData.description}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Tell students about your teaching experience, methodology, and what makes you unique..."
-          />
-        </div>
-
-        {/* Image Upload */}
-        <div>
-          <label htmlFor="image_url" className="block text-sm font-medium text-gray-700">
-            Profile Image
-          </label>
-          <input
-            type="file"
-            id="image_url"
-            name="image_url"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            Upload a professional photo (JPG, PNG, max 5MB)
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Create Your Teaching Profile</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Join our community of educators and start connecting with students worldwide
           </p>
         </div>
 
-        {/* Submit Button */}
-        <div>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Creating Profile...
-              </>
-            ) : 'Create Profile'}
-          </button>
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Personal Information Section */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Personal Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <input
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input
+                    name="phone_number"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                  <input
+                    name="country"
+                    placeholder="United States"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Profile URL */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Profile URL
+              </h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profile Slug *</label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-4 py-3 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-lg">
+                    /tutors/
+                  </span>
+                  <input
+                    name="slug"
+                    placeholder="jane-smith"
+                    value={formData.slug}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-gray-500">This will be your unique profile URL</p>
+              </div>
+            </div>
+
+            {/* Professional Information */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Professional Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                  <input
+                    name="language"
+                    placeholder="English, Spanish, French..."
+                    value={formData.language}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div className="flex items-center pt-8">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="is_native"
+                      checked={formData.is_native}
+                      onChange={handleChange}
+                      className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Native Speaker</span>
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Level of Expertise</label>
+                  <input
+                    name="expertise"
+                    placeholder="Mathematics, Programming, Language Arts..."
+                    value={formData.expertise}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
+                  <input
+                    name="years_experience"
+                    type="number"
+                    placeholder="5"
+                    min="0"
+                    value={formData.years_experience}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Qualifications & Certifications</label>
+                  <input
+                    name="qualifications"
+                    placeholder="PhD in Mathematics, TESOL Certified, etc."
+                    value={formData.qualifications}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Pricing */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Pricing
+              </h2>
+              <div className="max-w-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <input
+                    name="price"
+                    type="number"
+                    placeholder="25.00"
+                    step="0.01"
+                    min="0"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Content */}
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                Profile Content
+              </h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">About You</label>
+                  <textarea
+                    name="description"
+                    placeholder="Tell students about your teaching style, experience, and what makes you unique..."
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={6}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Profile Photo</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <input
+                      name="image_url"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <p className="mt-2 text-sm text-gray-500">Upload a professional photo (JPG, PNG, GIF)</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Video Introduction URL</label>
+                  <input
+                    name="video_intro_url"
+                    placeholder="https://youtube.com/watch?v=..."
+                    value={formData.video_intro_url}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                  <p className="mt-2 text-sm text-gray-500">Optional: Add a video introduction to showcase your teaching style</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Social Media Link</label>
+                  <input
+                    name="social_links"
+                    placeholder="https://linkedin.com/in/yourname"
+                    value={formData.social_links}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-300 shadow-lg"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Profile...
+                  </span>
+                ) : (
+                  'Create Your Profile'
+                )}
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

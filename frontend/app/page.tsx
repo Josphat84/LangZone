@@ -144,25 +144,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Languages Offered Section */}
-        <section className="bg-white p-8 rounded-xl shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Languages We Offer</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['Spanish', 'French', 'German', 'Japanese', 'Mandarin', 'Italian', 'Russian', 'Arabic'].map((language, index) => (
-              <div key={index} className="bg-gray-50 hover:bg-teal-50 p-4 rounded-lg text-center transition-colors">
-                <span className="font-medium text-gray-900">{language}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link href="/languages" className="inline-flex items-center text-teal-600 font-medium">
-              View all 25+ languages
-              <svg className="ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
-          </div>
-        </section>
+        
       </div>
 
       {/* CTA Section */}
