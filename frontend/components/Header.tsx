@@ -1,49 +1,193 @@
-// frontend/components/Header.tsx
-import Image from 'next/image';
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+interface Instructor {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export default function Header() {
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      const { data, error } = await supabase
+        .from('Instructor')
+        .select('id, name, slug')
+        .order('name', { ascending: true });
+
+      if (!error && data) setInstructors(data);
+    };
+    fetchInstructors();
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const linkClasses =
+    "relative hover:text-teal-200 hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200 before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full";
+
+  const desktopDropdownBase =
+    "absolute mt-3 w-60 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto " +
+    "opacity-0 scale-95 translate-y-1 transition-all duration-200 ease-out";
+
+  const dropdownItemClasses =
+    "block px-4 py-2 text-gray-700 rounded-md transition-all duration-200 hover:bg-teal-50 hover:text-teal-700 hover:shadow-[0_0_12px_rgba(0,0,0,0.15)] hover:scale-[1.02]";
+
   return (
-    <header className="bg-white shadow-sm py-4 px-6 border-b border-gray-100 sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-6">
-          <Link href="/" className="flex items-center space-x-2 text-xl font-bold text-teal-700">
-            <Image src="/icons/logo-icon.svg" alt="App Logo" width={28} height={28} />
-            <span>LangZone</span>
-          </Link>
-          <nav className="hidden md:flex space-x-5">
-            <Link href="/" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Find Instructors</Link>
-            <Link href="/enterprise" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Enterprise Solutions</Link>
-            <Link href="/courses" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Courses</Link>
-            <Link href="/create-new-profile" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Become an Instructor</Link>
-            <Link href="/about-us" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">About Us</Link>
-            <Link href="/contact" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Contact Us</Link>
-            <Link href="/help-center" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Help Center</Link>
-            <Link href="/blog" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Blog</Link>
-            <Link href="/learning-guides" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Learning Guides</Link> {/* New Link */}
-          </nav>
-        </div>
-        <div className="flex items-center space-x-5">
-          <Link href="/rewards" className="text-gray-600 hover:text-teal-600 transition-colors hidden sm:block">Rewards</Link>
-          <div className="relative">
-            <select
-              className="border border-gray-200 rounded-md py-1.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none bg-white pr-8"
-              aria-label="Language and Currency"
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-teal-600/80 to-teal-500/80 backdrop-blur-lg border-b border-white/10 shadow-lg">
+      <div className="container mx-auto flex justify-between items-center py-4 px-6">
+        {/* Site Name with Glow Animation */}
+        <Link
+          href="/"
+          className="text-2xl font-bold text-white hover:text-teal-200 transition-all duration-300 hover:shadow-[0_0_12px_rgba(255,255,255,0.7)] hover:animate-pulse-slow"
+        >
+          LangZone
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-6">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={`${linkClasses} font-medium flex items-center`}
             >
-              <option>English ($USD)</option>
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.5 4.5z"/></svg>
-            </div>
+              Find Instructors
+              <svg
+                className={`ml-1 h-4 w-4 transform transition-transform duration-300 ${
+                  isDropdownOpen ? 'rotate-180 scale-110 hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'rotate-0 scale-100 hover:shadow-[0_0_8px_rgba(255,255,255,0.3)]'
+                }`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {isDropdownOpen && (
+              <div className={`${desktopDropdownBase} opacity-100 scale-105 translate-y-0 animate-bounce-in`}>
+                {instructors.length > 0 ? (
+                  instructors.map((instructor) => (
+                    <Link
+                      key={instructor.id}
+                      href={`/tutors/${instructor.slug}`}
+                      className={dropdownItemClasses}
+                    >
+                      {instructor.name}
+                    </Link>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-500">Loading...</div>
+                )}
+              </div>
+            )}
           </div>
-          <Link href="/saved-instructors" className="text-gray-600 hover:text-red-500 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 22l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+
+          <Link href="/create-new-profile" className={linkClasses + " font-medium"}>
+            Become an Instructor
           </Link>
-          <Link href="/alerts" className="text-gray-600 hover:text-teal-600 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          <Link href="/help-center" className={linkClasses + " font-medium"}>
+            Help Center
           </Link>
-          <button className="bg-teal-600 text-white py-2 px-5 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-md">Sign In</button>
-        </div>
+          <Link href="/blog" className={linkClasses + " font-medium"}>
+            Blog
+          </Link>
+        </nav>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden hover:text-teal-200 focus:outline-none"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Navigation with Slide Down Animation */}
+      <div
+        className={`md:hidden bg-teal-600/90 backdrop-blur-lg border-t border-white/10 shadow-sm overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${
+          isMenuOpen ? 'max-h-screen opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
+        }`}
+      >
+        <nav className="flex flex-col p-4 space-y-3">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-white hover:text-teal-200 font-medium text-left relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+          >
+            Find Instructors
+            <svg
+              className={`ml-1 inline h-4 w-4 transform transition-transform duration-300 ${
+                isDropdownOpen ? 'rotate-180 scale-110 hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'rotate-0 scale-100 hover:shadow-[0_0_8px_rgba(255,255,255,0.3)]'
+              }`}
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div
+            className={`overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${
+              isDropdownOpen ? 'max-h-72 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
+            }`}
+          >
+            {instructors.length > 0 ? (
+              instructors.map((instructor) => (
+                <Link
+                  key={instructor.id}
+                  href={`/tutors/${instructor.slug}`}
+                  className="block px-3 py-2 text-gray-700 rounded-md transition-all duration-200 hover:bg-teal-100 hover:shadow-[0_0_12px_rgba(0,0,0,0.15)] hover:text-teal-700 hover:scale-[1.02]"
+                >
+                  {instructor.name}
+                </Link>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-gray-500">Loading...</div>
+            )}
+          </div>
+          <Link
+            href="/create-new-profile"
+            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+          >
+            Become an Instructor
+          </Link>
+          <Link
+            href="/help-center"
+            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+          >
+            Help Center
+          </Link>
+          <Link
+            href="/blog"
+            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+          >
+            Blog
+          </Link>
+        </nav>
       </div>
     </header>
   );
