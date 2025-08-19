@@ -4,6 +4,10 @@
 /* frontend/app/globals.css */
 
 /* Add these if you don't have them */
+
+/* If you need to include react-big-calendar styles, import them in your JS/TS entry file or use @import in CSS if supported */
+
+
 @keyframes fadeIn {
   from {
     opacity: 0;
