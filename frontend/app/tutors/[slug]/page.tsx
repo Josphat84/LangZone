@@ -130,7 +130,7 @@ export default function TutorPage() {
               <div className="flex items-center gap-1 text-yellow-400">
                 {[1,2,3,4,5].map((i) => (
                   <FaStar
-                    key={i}
+                    key={i} // ✅ key directly on element
                     className={`cursor-pointer ${i <= rating ? 'text-yellow-400' : 'text-gray-400'}`}
                     onClick={() => handleRating(i)}
                   />
@@ -171,7 +171,11 @@ export default function TutorPage() {
             </button>
             <h2 className="text-xl font-bold mb-4">Schedule a Lesson</h2>
             {showCalendar && (
-              <InteractiveBookingCalendar tutorId={instructor.id} isTutor={false} />
+              <InteractiveBookingCalendar
+                tutorId={instructor.id}
+                isTutor={false}
+                key={instructor.id} // ✅ Added key for calendar component
+              />
             )}
           </div>
 

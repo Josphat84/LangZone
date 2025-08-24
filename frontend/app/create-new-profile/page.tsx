@@ -37,7 +37,6 @@ export default function CreateInstructorProfile() {
 
   const [loading, setLoading] = useState(false);
 
-  // Effect to automatically generate slug when the name changes
   useEffect(() => {
     if (formData.name) {
       setFormData(prev => ({
@@ -114,10 +113,12 @@ export default function CreateInstructorProfile() {
     }
   };
 
+  const inputClasses =
+    'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Create Your Teaching Profile</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -125,10 +126,9 @@ export default function CreateInstructorProfile() {
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {/* Personal Information Section */}
+            {/* Personal Information */}
             <div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                 Personal Information
@@ -142,7 +142,7 @@ export default function CreateInstructorProfile() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
@@ -154,7 +154,7 @@ export default function CreateInstructorProfile() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
@@ -164,7 +164,7 @@ export default function CreateInstructorProfile() {
                     placeholder="+1 (555) 123-4567"
                     value={formData.phone_number}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
@@ -174,7 +174,7 @@ export default function CreateInstructorProfile() {
                     placeholder="United States"
                     value={formData.country}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function CreateInstructorProfile() {
                     value={formData.slug}
                     onChange={handleChange}
                     required
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={`${inputClasses} rounded-r-lg border-l-0`}
                   />
                 </div>
                 <p className="mt-2 text-sm text-gray-500">This will be your unique profile URL</p>
@@ -217,7 +217,7 @@ export default function CreateInstructorProfile() {
                     placeholder="English, Spanish, French..."
                     value={formData.language}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div className="flex items-center pt-8">
@@ -239,7 +239,7 @@ export default function CreateInstructorProfile() {
                     placeholder="Mathematics, Programming, Language Arts..."
                     value={formData.expertise}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
@@ -251,7 +251,7 @@ export default function CreateInstructorProfile() {
                     min="0"
                     value={formData.years_experience}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -261,7 +261,7 @@ export default function CreateInstructorProfile() {
                     placeholder="PhD in Mathematics, TESOL Certified, etc."
                     value={formData.qualifications}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
               </div>
@@ -284,7 +284,7 @@ export default function CreateInstructorProfile() {
                     min="0"
                     value={formData.price}
                     onChange={handleChange}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={`${inputClasses} pl-8`}
                   />
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default function CreateInstructorProfile() {
                     value={formData.description}
                     onChange={handleChange}
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                    className={`${inputClasses} resize-none`}
                   />
                 </div>
                 <div>
@@ -327,7 +327,7 @@ export default function CreateInstructorProfile() {
                     placeholder="https://youtube.com/watch?v=..."
                     value={formData.video_intro_url}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                   <p className="mt-2 text-sm text-gray-500">Optional: Add a video introduction to showcase your teaching style</p>
                 </div>
@@ -338,7 +338,7 @@ export default function CreateInstructorProfile() {
                     placeholder="https://linkedin.com/in/yourname"
                     value={formData.social_links}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className={inputClasses}
                   />
                 </div>
               </div>
