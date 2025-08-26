@@ -100,6 +100,52 @@ export default function Home() {
       ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
       : '/default-avatar.png';
 
+  // Detect touch device for mobile swipe
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+  const draggableSlide = (
+    children: React.ReactNode,
+    index: number,
+    setIndex: (idx: number) => void,
+    length: number
+  ) => (
+    <motion.div
+      key={index}
+      variants={slideVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 1, ease: 'easeInOut' }}
+      className="w-full flex items-center justify-center relative"
+      drag={isTouchDevice ? 'x' : false}  // mobile swipe
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.2}
+      onDragEnd={(e, { offset, velocity }) => {
+        if (!isTouchDevice) return;
+        if (offset.x < -50 || velocity.x < -500) setIndex((prev) => (prev + 1) % length);
+        else if (offset.x > 50 || velocity.x > 500) setIndex((prev) => (prev - 1 + length) % length);
+      }}
+    >
+      {children}
+      {/* Arrow Left */}
+      <motion.div
+        className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
+        whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
+        onClick={() => setIndex((prev) => (prev - 1 + length) % length)}
+      >
+        ‹
+      </motion.div>
+      {/* Arrow Right */}
+      <motion.div
+        className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
+        whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
+        onClick={() => setIndex((prev) => (prev + 1) % length)}
+      >
+        ›
+      </motion.div>
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 relative overflow-hidden">
 
@@ -116,7 +162,7 @@ export default function Home() {
 
       {/* Tabs */}
       <section className="max-w-5xl mx-auto px-6 py-16 relative z-10">
-        <div className="flex justify-center gap-8 mb-10">
+        <div className="flex justify-center gap-8 mb-10 flex-wrap">
           <button
             onMouseEnter={() => setActiveTab('info')}
             className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
@@ -138,7 +184,6 @@ export default function Home() {
         </div>
 
         <div className="relative">
-          {/* Info Slider */}
           {activeTab === 'info' && (
             <div
               className="relative max-w-4xl mx-auto"
@@ -146,49 +191,30 @@ export default function Home() {
               onMouseLeave={() => setIsInfoPaused(false)}
             >
               <AnimatePresence mode="wait">
-                {(() => {
-                  const info = infoSlides[infoIndex];
-                  const Icon = info.icon;
-                  return (
-                    <motion.div
-                      key={infoIndex}
-                      variants={slideVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      transition={{ duration: 1 }}
-                      className={`p-10 rounded-3xl flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.15)] text-white bg-gradient-to-r ${info.bgGradient}`}
-                    >
-                      <div className="flex-shrink-0">
-                        <Icon className="w-24 h-24 mx-auto md:mx-0" />
+                {draggableSlide(
+                  (() => {
+                    const info = infoSlides[infoIndex];
+                    const Icon = info.icon;
+                    return (
+                      <div className={`p-10 rounded-3xl flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.15)] text-white bg-gradient-to-r ${info.bgGradient}`}>
+                        <div className="flex-shrink-0">
+                          <Icon className="w-24 h-24 mx-auto md:mx-0" />
+                        </div>
+                        <div className="text-center md:text-left flex-1">
+                          <h3 className="text-3xl md:text-4xl font-bold mb-2">{info.title}</h3>
+                          <p className="text-lg">{info.description}</p>
+                        </div>
                       </div>
-                      <div className="text-center md:text-left flex-1">
-                        <h3 className="text-3xl md:text-4xl font-bold mb-2">{info.title}</h3>
-                        <p className="text-lg">{info.description}</p>
-                      </div>
-                    </motion.div>
-                  );
-                })()}
+                    );
+                  })(),
+                  infoIndex,
+                  setInfoIndex,
+                  infoSlides.length
+                )}
               </AnimatePresence>
-              {/* Arrows */}
-              <motion.div
-                className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setInfoIndex((prev) => (prev - 1 + infoSlides.length) % infoSlides.length)}
-              >
-                ‹
-              </motion.div>
-              <motion.div
-                className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setInfoIndex((prev) => (prev + 1) % infoSlides.length)}
-              >
-                ›
-              </motion.div>
             </div>
           )}
 
-          {/* Tutors Slider */}
           {activeTab === 'tutors' && tutors.length > 0 && (
             <div
               className="relative max-w-5xl mx-auto"
@@ -196,54 +222,40 @@ export default function Home() {
               onMouseLeave={() => setIsTutorPaused(false)}
             >
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={tutorIndex}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 1.2, ease: 'easeInOut' }}
-                  className="relative bg-white rounded-3xl p-10 flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.25)]"
-                >
-                  <Link href={`/tutors/${tutors[tutorIndex].slug}`}>
-                    <img
-                      src={tutorAvatarUrl(tutors[tutorIndex])}
-                      alt={tutors[tutorIndex].name}
-                      className="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-teal-600 shadow-lg"
-                    />
-                  </Link>
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-3xl font-bold text-gray-900">{tutors[tutorIndex].name}</h3>
-                    {tutors[tutorIndex].expertise && <p className="text-gray-700 mt-2">{tutors[tutorIndex].expertise}</p>}
-                    {tutors[tutorIndex].qualifications && <p className="text-gray-500 text-sm mt-1">{tutors[tutorIndex].qualifications}</p>}
-                    <p className="text-gray-500 mt-2">
-                      {tutors[tutorIndex].years_experience ? `${tutors[tutorIndex].years_experience} years experience` : 'Experience N/A'} | 
-                      {tutors[tutorIndex].language ? ` Language: ${tutors[tutorIndex].language}` : ''} {tutors[tutorIndex].is_native ? '(Native)' : ''}
-                    </p>
-                    {tutors[tutorIndex].price && <p className="text-teal-600 font-semibold mt-2">${tutors[tutorIndex].price}/hr</p>}
-                    {tutors[tutorIndex].country && <p className="text-gray-400 text-sm mt-1">{tutors[tutorIndex].country}</p>}
-                  </div>
-                </motion.div>
+                {draggableSlide(
+                  (() => {
+                    const tutor = tutors[tutorIndex];
+                    return (
+                      <div className="relative bg-white rounded-3xl p-10 flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.25)]">
+                        <Link href={`/tutors/${tutor.slug}`}>
+                          <img
+                            src={tutorAvatarUrl(tutor)}
+                            alt={tutor.name}
+                            className="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-teal-600 shadow-lg"
+                          />
+                        </Link>
+                        <div className="flex-1 text-center md:text-left">
+                          <h3 className="text-3xl font-bold text-gray-900">{tutor.name}</h3>
+                          {tutor.expertise && <p className="text-gray-700 mt-2">{tutor.expertise}</p>}
+                          {tutor.qualifications && <p className="text-gray-500 text-sm mt-1">{tutor.qualifications}</p>}
+                          <p className="text-gray-500 mt-2">
+                            {tutor.years_experience ? `${tutor.years_experience} years experience` : 'Experience N/A'} | 
+                            {tutor.language ? ` Language: ${tutor.language}` : ''} {tutor.is_native ? '(Native)' : ''}
+                          </p>
+                          {tutor.price && <p className="text-teal-600 font-semibold mt-2">${tutor.price}/hr</p>}
+                          {tutor.country && <p className="text-gray-400 text-sm mt-1">{tutor.country}</p>}
+                        </div>
+                      </div>
+                    );
+                  })(),
+                  tutorIndex,
+                  setTutorIndex,
+                  tutors.length
+                )}
               </AnimatePresence>
-              {/* Arrows */}
-              <motion.div
-                className="absolute -left-8 top-1/2 -translate-y-1/2 w-12 h-28 bg-white/20 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setTutorIndex((prev) => (prev - 1 + tutors.length) % tutors.length)}
-              >
-                ‹
-              </motion.div>
-              <motion.div
-                className="absolute -right-8 top-1/2 -translate-y-1/2 w-12 h-28 bg-white/20 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setTutorIndex((prev) => (prev + 1) % tutors.length)}
-              >
-                ›
-              </motion.div>
             </div>
           )}
 
-          {/* How It Works Slider */}
           {activeTab === 'steps' && (
             <div
               className="relative max-w-5xl mx-auto"
@@ -251,39 +263,26 @@ export default function Home() {
               onMouseLeave={() => setIsStepPaused(false)}
             >
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={stepIndex}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 1, ease: 'easeInOut' }}
-                  className="p-10 rounded-3xl flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.25)] bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 text-black"
-                >
-                  <div className="flex-shrink-0 text-center md:text-left">
-                    <div className="text-4xl md:text-5xl font-bold mb-2">{stepsSlides[stepIndex].step}</div>
-                  </div>
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-3xl md:text-4xl font-bold mb-2">{stepsSlides[stepIndex].title}</h3>
-                    <p className="text-lg">{stepsSlides[stepIndex].description}</p>
-                  </div>
-                </motion.div>
+                {draggableSlide(
+                  (() => {
+                    const step = stepsSlides[stepIndex];
+                    return (
+                      <div className="p-10 rounded-3xl flex flex-col md:flex-row items-center gap-8 shadow-[15px_15px_30px_rgba(0,0,0,0.25)] bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 text-black">
+                        <div className="flex-shrink-0 text-center md:text-left">
+                          <div className="text-4xl md:text-5xl font-bold mb-2">{step.step}</div>
+                        </div>
+                        <div className="flex-1 text-center md:text-left">
+                          <h3 className="text-3xl md:text-4xl font-bold mb-2">{step.title}</h3>
+                          <p className="text-lg">{step.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })(),
+                  stepIndex,
+                  setStepIndex,
+                  stepsSlides.length
+                )}
               </AnimatePresence>
-              {/* Arrows */}
-              <motion.div
-                className="absolute -left-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setStepIndex((prev) => (prev - 1 + stepsSlides.length) % stepsSlides.length)}
-              >
-                ‹
-              </motion.div>
-              <motion.div
-                className="absolute -right-6 top-1/2 -translate-y-1/2 w-10 h-24 bg-white/30 backdrop-blur-md rounded-3xl shadow-lg cursor-pointer flex items-center justify-center z-20"
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.5)' }}
-                onMouseEnter={() => setStepIndex((prev) => (prev + 1) % stepsSlides.length)}
-              >
-                ›
-              </motion.div>
             </div>
           )}
         </div>
