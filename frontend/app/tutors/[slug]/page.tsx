@@ -1,21 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { useSwipeable } from 'react-swipeable';
 import InteractiveBookingCalendar from './InteractiveBookingCalendar';
 import {
-  FaEnvelope,
-  FaPhone,
   FaStar,
   FaVideo,
   FaHeart,
-  FaComment,
   FaPaypal,
   FaMoneyBillWave,
-  FaInfoCircle
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaLanguage,
+  FaGraduationCap,
+  FaBriefcase,
+  FaCalendarAlt,
+  FaArrowRight,
+  FaArrowLeft,
+  FaSearch,
+  FaSun,
+  FaMoon,
 } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -38,224 +48,460 @@ interface Instructor {
   social_links?: string;
   slug?: string;
   image_url?: string;
-  zoom_meeting_id?: string; 
+  zoom_meeting_id?: string;
   createdAt?: string;
 }
 
+type Cached = { instructor: Instructor; avatarUrl: string; cachedAt: number };
+
 export default function TutorPage() {
-  const { slug } = useParams();
+  const { slug } = useParams() as { slug: string };
+  const router = useRouter();
+
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
-
   const [likes, setLikes] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
-  const [newComment, setNewComment] = useState('');
   const [rating, setRating] = useState(0);
+  const [darkMode, setDarkMode] = useState(true);
+  const [allSlugs, setAllSlugs] = useState<string[]>([]);
+  const [direction, setDirection] = useState<1 | -1>(1);
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => handleNextTutor(),
+    onSwipedRight: () => handlePrevTutor(),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  });
+
+  const CACHE_TTL = 1000 * 60 * 3; // 3 minutes
+  const cacheKey = (s: string) => `instructor:${s}`;
+
+  const readCache = (s: string): Cached | null => {
+    try {
+      const raw = localStorage.getItem(cacheKey(s));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Cached;
+      if (Date.now() - parsed.cachedAt > CACHE_TTL) {
+        localStorage.removeItem(cacheKey(s));
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
+  };
+
+  const writeCache = (s: string, data: Cached) => {
+    try {
+      localStorage.setItem(cacheKey(s), JSON.stringify(data));
+    } catch {}
+  };
+
+  const preloadImage = (url: string) => {
+    if (!url) return;
+    const img = new Image();
+    img.src = url;
+  };
+
+  const currentIndex = useMemo(
+    () => allSlugs.findIndex((s) => s === slug),
+    [allSlugs, slug]
+  );
+
+  const nextSlug = useMemo(() => {
+    if (!allSlugs.length || currentIndex === -1) return null;
+    return allSlugs[(currentIndex + 1) % allSlugs.length];
+  }, [allSlugs, currentIndex]);
+
+  const prevSlug = useMemo(() => {
+    if (!allSlugs.length || currentIndex === -1) return null;
+    return allSlugs[(currentIndex - 1 + allSlugs.length) % allSlugs.length];
+  }, [allSlugs, currentIndex]);
+
+  async function fetchAndCacheBySlug(s: string) {
+    const { data, error: fetchError } = await supabase
+      .from('Instructor')
+      .select('*')
+      .eq('slug', s)
+      .single();
+    if (fetchError || !data) return null;
+
+    let avatar = '';
+    if (data.image_url) {
+      const { data: publicUrlData } = supabase.storage
+        .from('instructor-images')
+        .getPublicUrl(data.image_url);
+      avatar = publicUrlData.publicUrl || '';
+    }
+
+    const packed: Cached = { instructor: data, avatarUrl: avatar, cachedAt: Date.now() };
+    writeCache(s, packed);
+    preloadImage(avatar);
+    return packed;
+  }
 
   useEffect(() => {
-    const fetchInstructor = async () => {
-      try {
-        setLoading(true);
-        const { data, error: fetchError } = await supabase
-          .from('Instructor')
-          .select('*')
-          .eq('slug', slug)
-          .single();
+    let mounted = true;
+    (async () => {
+      setError(null);
+      setLoading(true);
 
-        if (fetchError) {
-          setError(`Failed to load instructor profile: ${fetchError.message}`);
-          return;
-        }
-
-        if (data) {
-          setInstructor(data);
-          if (data.image_url) {
-            const { data: publicUrlData } = supabase.storage
-              .from('instructor-images')
-              .getPublicUrl(data.image_url);
-            setAvatarUrl(publicUrlData.publicUrl);
-          }
-        } else {
-          setError('No instructor found with this slug');
-        }
-      } catch {
-        setError('An unexpected error occurred');
-      } finally {
+      const cached = typeof window !== 'undefined' ? readCache(slug) : null;
+      if (cached && mounted) {
+        setInstructor(cached.instructor);
+        setAvatarUrl(cached.avatarUrl);
         setLoading(false);
       }
-    };
 
-    if (slug) fetchInstructor();
+      const packed = await fetchAndCacheBySlug(slug);
+      if (!mounted) return;
+      if (packed) {
+        setInstructor(packed.instructor);
+        setAvatarUrl(packed.avatarUrl);
+        setError(null);
+      } else if (!cached) {
+        setError('Failed to load instructor profile.');
+      }
+      setLoading(false);
+      setNavigating(false);
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, [slug]);
 
+  useEffect(() => {
+    (async () => {
+      const { data: slugsData } = await supabase.from('Instructor').select('slug');
+      if (slugsData) setAllSlugs(slugsData.map((i: any) => i.slug));
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (nextSlug && !readCache(nextSlug)) await fetchAndCacheBySlug(nextSlug);
+      if (prevSlug && !readCache(prevSlug)) await fetchAndCacheBySlug(prevSlug);
+    })();
+  }, [nextSlug, prevSlug]);
+
   const handleLike = () => {
-    setLikes(prev => userLiked ? prev - 1 : prev + 1);
-    setUserLiked(prev => !prev);
+    setLikes((prev) => (userLiked ? prev - 1 : prev + 1));
+    setUserLiked((prev) => !prev);
   };
 
-  const handleRating = (value: number) => {
-    setRating(value);
+  const handleRating = (value: number) => setRating(value);
+
+  const handleNextTutor = async () => {
+    if (!allSlugs.length || currentIndex === -1) return;
+    setDirection(1);
+    setNavigating(true);
+    router.push(`/tutors/${nextSlug}`);
   };
 
-  const zoomUrl = instructor?.zoom_meeting_id
-    ? `zoommtg://zoom.us/join?confno=${instructor.zoom_meeting_id}`
-    : 'https://zoom.us/';
+  const handlePrevTutor = async () => {
+    if (!allSlugs.length || currentIndex === -1) return;
+    setDirection(-1);
+    setNavigating(true);
+    router.push(`/tutors/${prevSlug}`);
+  };
 
-  if (loading) return <div className="text-center mt-20 text-gray-400 animate-pulse text-lg">Loading profile...</div>;
-  if (error) return <div className="text-center mt-20 text-red-500 text-lg">{error}</div>;
-  if (!instructor) return <div className="text-center mt-20 text-gray-400 text-lg">Instructor not found</div>;
+  const openZoomApp = () => {
+    if (instructor?.zoom_meeting_id) {
+      window.location.href = `zoommtg://zoom.us/join?confno=${instructor.zoom_meeting_id}`;
+    }
+  };
 
-  return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 px-4 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Left Sidebar */}
-        <div className="md:col-span-3 space-y-6">
-          <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 p-6 rounded-xl shadow-lg text-center">
-            <img
-              src={avatarUrl || '/default-avatar.png'}
-              alt={instructor.name}
-              className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl mx-auto mb-4"
-            />
-            <h1 className="text-2xl font-bold text-white">{instructor.name}</h1>
-            <div className="flex items-center justify-center gap-3 mt-2">
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-1 text-lg ${userLiked ? 'text-red-400' : 'text-gray-200'} hover:text-red-500 transition`}
-              >
-                <FaHeart /> {likes}
-              </button>
-              <div className="flex items-center gap-1 text-yellow-400">
-                {[1,2,3,4,5].map((i) => (
-                  <FaStar
-                    key={i} // ✅ key directly on element
-                    className={`cursor-pointer ${i <= rating ? 'text-yellow-400' : 'text-gray-400'}`}
-                    onClick={() => handleRating(i)}
-                  />
-                ))}
-              </div>
-            </div>
-            {instructor.price && <p className="text-white text-lg mt-2">${instructor.price}/hr</p>}
-          </div>
+  const bgClass = darkMode ? 'bg-gray-950 text-gray-200' : 'bg-gray-100 text-gray-900';
+  const cardClass = darkMode ? 'bg-white/10 backdrop-blur-md text-gray-200' : 'bg-white/50 backdrop-blur-md text-gray-900';
+  const btnPurple = darkMode ? 'bg-purple-600 hover:bg-purple-500' : 'bg-purple-500 hover:bg-purple-400';
 
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md space-y-2">
-            <h2 className="text-xl font-bold">About</h2>
-            <p className="text-gray-300">{instructor.description || 'No bio available yet.'}</p>
-          </div>
+  const slideVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
+  };
 
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md space-y-2">
-            <h2 className="text-xl font-bold">Professional Info</h2>
-            {instructor.expertise && <p><span className="font-semibold">Expertise:</span> {instructor.expertise}</p>}
-            {instructor.years_experience && <p><span className="font-semibold">Experience:</span> {instructor.years_experience} years</p>}
-            {instructor.qualifications && <p><span className="font-semibold">Qualifications:</span> {instructor.qualifications}</p>}
-          </div>
-
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md space-y-2">
-            <h2 className="text-xl font-bold">Languages & Location</h2>
-            {instructor.language && <p><span className="font-semibold">Language:</span> {instructor.language} {instructor.is_native && <span className="ml-2 px-2 py-1 text-xs bg-green-600 text-white rounded-full">Native</span>}</p>}
-            {instructor.country && <p><span className="font-semibold">Country:</span> {instructor.country}</p>}
-          </div>
+  const LoadingSkeleton = () => (
+    <div className="animate-pulse space-y-6">
+      <div className={`${cardClass} p-6 rounded-xl shadow-lg text-center`}>
+        <div className="w-32 h-32 mx-auto rounded-full bg-gray-700/50" />
+        <div className="h-6 w-40 bg-gray-700/50 rounded mx-auto mt-4" />
+        <div className="flex justify-center gap-3 mt-4 flex-wrap">
+          <div className="h-5 w-16 bg-gray-700/50 rounded" />
+          <div className="h-5 w-24 bg-gray-700/50 rounded" />
         </div>
-
-        {/* Center Content */}
-        <div className="md:col-span-5 space-y-6">
-          {/* Calendar */}
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md relative">
-            <button
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="absolute top-2 right-2 text-gray-300 hover:text-white font-bold text-xl"
-            >
-              &times;
-            </button>
-            <h2 className="text-xl font-bold mb-4">Schedule a Lesson</h2>
-            {showCalendar && (
-              <InteractiveBookingCalendar
-                tutorId={instructor.id}
-                isTutor={false}
-                key={instructor.id} // ✅ Added key for calendar component
-              />
-            )}
-          </div>
-
-          {/* Reviews & Comments */}
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md space-y-4">
-            <h2 className="text-xl font-bold mb-3">Reviews & Comments</h2>
-            <div className="flex gap-2 mt-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="flex-1 p-2 rounded-lg bg-gray-900 text-white outline-none"
-              />
-              <button
-                onClick={() => {}}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-500 transition"
-              >
-                <FaComment />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="md:col-span-4 space-y-6">
-          {/* Demo Video with Tooltip */}
-          <div className="bg-gray-800 p-6 rounded-xl shadow-md relative">
-            <h2 className="text-xl font-bold text-center mb-2 flex items-center justify-center gap-2">
-              Demo Video <FaInfoCircle data-tooltip-id="demo-tooltip" className="cursor-pointer text-gray-400 hover:text-white" />
-            </h2>
-            <Tooltip id="demo-tooltip" place="top" effect="solid">
-              {`Likes: ${likes} | Rating: ${rating}/5 | Expertise: ${instructor.expertise || 'N/A'} | Experience: ${instructor.years_experience || 'N/A'} yrs`}
-            </Tooltip>
-            {instructor.video_intro_url ? (
-              <video
-                src={instructor.video_intro_url}
-                controls
-                className="w-full h-[400px] rounded-xl object-cover"
-              />
-            ) : (
-              <p className="text-gray-400 text-center">No demo video uploaded yet.</p>
-            )}
-          </div>
-
-          {/* Payment & Zoom Links */}
-          <div className="flex flex-col gap-4">
-            <a
-              href="https://www.paypal.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-blue-500 transition flex items-center justify-center gap-2"
-            >
-              <FaPaypal /> PayPal
-            </a>
-            <a
-              href="https://wise.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-green-500 transition flex items-center justify-center gap-2"
-            >
-              <FaMoneyBillWave /> Wise
-            </a>
-            <a
-              href={zoomUrl}
-              className="bg-purple-600 text-white font-semibold px-6 py-3 rounded-full shadow hover:bg-purple-500 transition flex items-center justify-center gap-2"
-            >
-              <FaVideo /> Zoom
-            </a>
-          </div>
-
-          {/* Book Lesson */}
-          <button
-            onClick={() => setShowCalendar(true)}
-            className="bg-white text-purple-700 font-semibold px-6 py-3 rounded-full shadow hover:bg-gray-100 transition w-full mt-4"
-          >
-            Book a Lesson
-          </button>
-        </div>
+      </div>
+      <div className={`${cardClass} p-6 rounded-xl shadow-md`}>
+        <div className="h-5 w-28 bg-gray-700/50 rounded mb-3" />
+        <div className="h-4 w-full bg-gray-700/40 rounded" />
+        <div className="h-4 w-5/6 bg-gray-700/40 rounded mt-2" />
       </div>
     </div>
   );
+
+  if (error) return <div className="text-center mt-20 text-lg text-red-500">{error}</div>;
+
+  return (
+    <div {...handlers} className={`${bgClass} min-h-screen px-4 py-8 transition-colors duration-500 relative`}>
+      {/* Top bar */}
+      <div className="max-w-7xl mx-auto flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold tracking-wide">Instructor Profile</h1>
+        <button
+          onClick={() => router.push('/instructors')}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full shadow hover:bg-blue-500 transition transform hover:scale-105"
+          data-tooltip-id="find-tip"
+          data-tooltip-content="Browse all instructors"
+        >
+          <FaSearch /> Find Instructors
+        </button>
+        <Tooltip id="find-tip" />
+      </div>
+
+      {/* Dark/Light Toggle */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <button
+          onClick={() => setDarkMode((prev) => !prev)}
+          className="px-4 py-3 rounded-full shadow-2xl bg-gray-900 text-white hover:bg-gray-800 transition flex items-center gap-2 border border-white/10 transform hover:scale-105"
+          data-tooltip-id="theme-tip"
+          data-tooltip-content={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {darkMode ? <FaSun /> : <FaMoon />}
+        </button>
+        <Tooltip id="theme-tip" place="left" />
+      </div>
+
+      {navigating && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-[9000]">
+          <div className="text-white text-xl font-semibold animate-pulse">Loading tutor…</div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* LEFT COLUMN */}
+        <div className="space-y-6">
+          <AnimatePresence custom={direction} initial={false} mode="wait">
+            <motion.div
+              key={loading ? 'loading-left' : instructor?.slug || 'no-slug-left'}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.45 }}
+            >
+              {loading || !instructor ? <LoadingSkeleton /> : <InstructorLeftCard />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="space-y-6">
+          <AnimatePresence custom={direction} initial={false} mode="wait">
+            <motion.div
+              key={loading ? 'loading-right' : (instructor?.slug || 'no-slug-right') + '-right'}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.45 }}
+            >
+              {loading || !instructor ? <LoadingSkeleton /> : <InstructorRightCard />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Previous / Next Buttons */}
+      <motion.div className="fixed top-1/2 left-4 transform -translate-y-1/2 z-50">
+        <motion.button
+          onClick={handlePrevTutor}
+          whileHover={{ scale: 1.2 }}
+          className="w-12 h-12 rounded-full bg-yellow-500/80 text-gray-900 flex items-center justify-center shadow-lg border border-yellow-400/50"
+        >
+          <FaArrowLeft />
+        </motion.button>
+      </motion.div>
+      <motion.div className="fixed top-1/2 right-4 transform -translate-y-1/2 z-50">
+        <motion.button
+          onClick={handleNextTutor}
+          whileHover={{ scale: 1.2 }}
+          className="w-12 h-12 rounded-full bg-yellow-500/80 text-gray-900 flex items-center justify-center shadow-lg border border-yellow-400/50"
+        >
+          <FaArrowRight />
+        </motion.button>
+      </motion.div>
+
+      {/* Helper components */}
+      {InstructorLeftCard && InstructorRightCard && null}
+    </div>
+  );
+
+  function InstructorLeftCard() {
+    return (
+      <>
+        <motion.div
+          whileHover={{ scale: 1.02, boxShadow: '0 20px 30px rgba(0,0,0,0.4)' }}
+          className={`p-6 rounded-xl shadow-lg text-center relative overflow-hidden ${cardClass}`}
+        >
+          {/* Purple pulse blur */}
+          <motion.div
+            className="absolute -inset-10 rounded-full bg-purple-600 opacity-30 blur-3xl"
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          <img
+            src={avatarUrl || '/default-avatar.png'}
+            alt={instructor?.name}
+            className="w-32 h-32 rounded-full object-cover border-4 border-white/80 shadow-xl mx-auto mb-4 relative z-10"
+          />
+          <h2 className="text-3xl font-bold relative z-10">{instructor?.name}</h2>
+          <div className="flex items-center justify-center gap-4 mt-3 flex-wrap relative z-10">
+            <motion.button
+              whileTap={{ scale: 1.3 }}
+              onClick={handleLike}
+              className={`flex items-center gap-1 text-xl ${userLiked ? 'text-red-400' : 'text-gray-400'} hover:text-red-500 transition`}
+              data-tooltip-id="like-tip"
+              data-tooltip-content={userLiked ? 'Unlike' : 'Like'}
+            >
+              <FaHeart /> {likes}
+            </motion.button>
+            <Tooltip id="like-tip" />
+            <div className="flex items-center gap-1 text-yellow-400">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <motion.span whileHover={{ scale: 1.3 }} key={i}>
+                  <FaStar
+                    className={`cursor-pointer ${i <= rating ? 'text-yellow-400' : 'text-gray-400'}`}
+                    onClick={() => handleRating(i)}
+                    data-tooltip-id={`rate-${i}`}
+                    data-tooltip-content={`Rate ${i} star${i > 1 ? 's' : ''}`}
+                  />
+                  <Tooltip id={`rate-${i}`} />
+                </motion.span>
+              ))}
+            </div>
+          </div>
+          {instructor?.price && <p className="text-lg mt-2 font-semibold relative z-10">${instructor.price}/hr</p>}
+        </motion.div>
+
+        {/* About & Info Sections */}
+        <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md space-y-3 mt-4 ${cardClass}`}>
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <FaInfoCircle /> About
+          </h3>
+          <p>{instructor?.description || 'No bio available yet.'}</p>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md space-y-2 ${cardClass}`}>
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <FaBriefcase /> Professional Info
+          </h3>
+          {instructor?.expertise && (
+            <p>
+              <FaGraduationCap className="inline mr-1 text-green-500" />
+              <span className="font-semibold">Expertise:</span> {instructor.expertise}
+            </p>
+          )}
+          {instructor?.years_experience && (
+            <p>
+              <FaBriefcase className="inline mr-1 text-green-500" />
+              <span className="font-semibold">Experience:</span> {instructor.years_experience} yrs
+            </p>
+          )}
+          {instructor?.qualifications && (
+            <p>
+              <FaGraduationCap className="inline mr-1 text-green-500" />
+              <span className="font-semibold">Qualifications:</span> {instructor.qualifications}
+            </p>
+          )}
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md space-y-2 ${cardClass}`}>
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <FaLanguage /> Languages & Location
+          </h3>
+          {instructor?.language && (
+            <p>
+              <FaLanguage className="inline mr-1 text-green-500" />
+              <span className="font-semibold">Language:</span> {instructor.language}{' '}
+              {instructor.is_native ? '(Native)' : ''}
+            </p>
+          )}
+          {instructor?.country && (
+            <p>
+              <FaMapMarkerAlt className="inline mr-1 text-green-500" />
+              <span className="font-semibold">Country:</span> {instructor.country}
+            </p>
+          )}
+        </motion.div>
+      </>
+    );
+  }
+
+  function InstructorRightCard() {
+    return (
+      <>
+        {instructor?.video_intro_url && (
+          <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md ${cardClass}`}>
+            <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+              <FaVideo /> Video Intro
+            </h3>
+            <video
+              src={instructor.video_intro_url}
+              controls
+              className="w-full rounded-lg shadow-lg"
+              poster={avatarUrl || '/default-avatar.png'}
+            />
+          </motion.div>
+        )}
+
+        {/* Booking Calendar */}
+        <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md ${cardClass}`}>
+          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+            <FaCalendarAlt /> Booking
+          </h3>
+          <div className="flex justify-between items-center mb-2">
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="text-sm text-white/80 hover:text-white transition"
+            >
+              {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+            </button>
+            <span className="text-gray-400 text-sm">{instructor?.price ? `$${instructor.price}/hr` : ''}</span>
+          </div>
+
+          {showCalendar && instructor?.id && <InteractiveBookingCalendar instructorId={instructor.id} />}
+        </motion.div>
+
+        {/* Payment */}
+        <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md ${cardClass}`}>
+          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+            <FaPaypal /> Payment
+          </h3>
+          <p className="mb-2">Secure your session via PayPal or direct payment.</p>
+          <button className={`${btnPurple} px-4 py-2 rounded-lg shadow transform hover:scale-105 transition`}>
+            Pay Now
+          </button>
+        </motion.div>
+
+        {/* Zoom Link */}
+        {instructor?.zoom_meeting_id && (
+          <motion.div whileHover={{ scale: 1.01 }} className={`p-6 rounded-xl shadow-md ${cardClass}`}>
+            <button
+              onClick={openZoomApp}
+              className={`${btnPurple} w-full px-4 py-3 rounded-lg shadow transform hover:scale-105 transition`}
+            >
+              Join Zoom Session
+            </button>
+          </motion.div>
+        )}
+      </>
+    );
+  }
 }

@@ -1,3 +1,6 @@
+//app/page.tsx
+//Website homepage
+
 'use client';
 
 import { useEffect, useState } from 'react';
