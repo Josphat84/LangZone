@@ -1,6 +1,5 @@
 // app/components/PaymentsZoomButtons.tsx
 'use client';
-
 import { motion } from 'framer-motion';
 import { FaPaypal } from 'react-icons/fa';
 import { SiWise, SiZoom } from 'react-icons/si';
@@ -16,16 +15,58 @@ export default function PaymentZoomButtons({
 }: PaymentZoomButtonsProps) {
   const handleZoomClick = (e: React.MouseEvent) => {
     e.preventDefault();
-
+    
+    // Clean the meeting ID (remove any spaces, dashes, etc.)
+    const cleanMeetingId = zoomMeetingId.replace(/\s|-/g, '');
     const encodedPwd = encodeURIComponent(zoomPassword);
-    const zoomAppLink = `zoommtg://zoom.us/join?confno=${zoomMeetingId}&pwd=${encodedPwd}`;
-    const zoomWebFallback = `https://zoom.us/j/${zoomMeetingId}?pwd=${encodedPwd}`;
+    
+    // Detect if user is on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // For mobile devices, use the mobile-specific deep link
+      const zoomMobileLink = `zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPwd}`;
+      
+      // Try to open the Zoom app
+      window.location.href = zoomMobileLink;
+      
+      // Fallback to app store if Zoom app isn't installed
+      setTimeout(() => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const appStoreUrl = isIOS 
+          ? 'https://apps.apple.com/app/zoom-cloud-meetings/id546505307'
+          : 'https://play.google.com/store/apps/details?id=us.zoom.videomeetings';
+        
+        // If the app didn't open, redirect to app store
+        const confirmInstall = confirm('Zoom app not found. Would you like to install it?');
+        if (confirmInstall) {
+          window.open(appStoreUrl, '_blank');
+        }
+      }, 2000);
+      
+    } else {
+      // For desktop, use the standard web link
+      const zoomWebLink = `https://zoom.us/j/${cleanMeetingId}?pwd=${encodedPwd}`;
+      window.open(zoomWebLink, '_blank');
+    }
+  };
 
-    // Try opening Zoom app
-    window.location.href = zoomAppLink;
-
-    // Fallback to browser if app fails
-    setTimeout(() => window.open(zoomWebFallback, '_blank'), 500);
+  // Alternative method: Direct app store links
+  const handleZoomAlternative = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    
+    if (isIOS) {
+      window.open('https://apps.apple.com/app/zoom-cloud-meetings/id546505307', '_blank');
+    } else if (isAndroid) {
+      window.open('https://play.google.com/store/apps/details?id=us.zoom.videomeetings', '_blank');
+    } else {
+      // Desktop - direct to web client
+      const cleanMeetingId = zoomMeetingId.replace(/\s|-/g, '');
+      const encodedPwd = encodeURIComponent(zoomPassword);
+      const zoomWebLink = `https://zoom.us/j/${cleanMeetingId}?pwd=${encodedPwd}`;
+      window.open(zoomWebLink, '_blank');
+    }
   };
 
   return (
@@ -63,7 +104,7 @@ export default function PaymentZoomButtons({
         Pay with Wise
       </motion.a>
 
-      {/* Zoom */}
+      {/* Zoom - Primary Button */}
       <motion.button
         whileHover={{ scale: 1.08 }}
         onClick={handleZoomClick}
@@ -73,6 +114,18 @@ export default function PaymentZoomButtons({
       >
         <SiZoom size={28} className="text-purple-500" />
         Start Zoom Lesson
+      </motion.button>
+
+      {/* Zoom - Alternative Button (if primary fails) */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        onClick={handleZoomAlternative}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg
+                   bg-gray-600/50 backdrop-blur border border-gray-400/30
+                   text-gray-200 text-sm font-medium transition opacity-75 hover:opacity-100"
+      >
+        <SiZoom size={20} className="text-blue-400" />
+        Open in Zoom App
       </motion.button>
     </motion.div>
   );
