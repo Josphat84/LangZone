@@ -1,6 +1,4 @@
-//app/components/PaymentsZoomButtons.tsx
-// This component renders zoom buttons for payment options
-
+// app/components/PaymentsZoomButtons.tsx
 'use client';
 
 import { motion } from 'framer-motion';
@@ -16,7 +14,16 @@ export default function PaymentZoomButtons({
   zoomMeetingId,
   zoomPassword,
 }: PaymentZoomButtonsProps) {
-  const zoomLink = `zoommtg://zoom.us/join?action=join&confno=${zoomMeetingId}&pwd=${zoomPassword}`;
+  const zoomAppLink = `zoommtg://zoom.us/join?action=join&confno=${zoomMeetingId}&pwd=${zoomPassword}`;
+  const zoomWebFallback = `https://zoom.us/j/${zoomMeetingId}?pwd=${zoomPassword}`;
+
+  const handleZoomClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Try to open Zoom app
+    window.location.href = zoomAppLink;
+    // Fallback: open Zoom in browser if app fails after short delay
+    setTimeout(() => window.open(zoomWebFallback, '_blank'), 500);
+  };
 
   return (
     <motion.div
@@ -30,6 +37,7 @@ export default function PaymentZoomButtons({
         whileHover={{ scale: 1.08 }}
         href="https://www.paypal.com/"
         target="_blank"
+        rel="noopener noreferrer"
         className="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-lg 
                    bg-white/10 backdrop-blur-xl border border-white/20
                    text-white text-lg font-semibold neon-glow transition"
@@ -43,6 +51,7 @@ export default function PaymentZoomButtons({
         whileHover={{ scale: 1.08 }}
         href="https://wise.com/"
         target="_blank"
+        rel="noopener noreferrer"
         className="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-lg 
                    bg-white/10 backdrop-blur-xl border border-white/20
                    text-white text-lg font-semibold neon-glow-green transition"
@@ -51,17 +60,17 @@ export default function PaymentZoomButtons({
         Pay with Wise
       </motion.a>
 
-      {/* Zoom (opens app) */}
-      <motion.a
+      {/* Zoom */}
+      <motion.button
         whileHover={{ scale: 1.08 }}
-        href={zoomLink}
+        onClick={handleZoomClick}
         className="flex items-center gap-3 px-6 py-4 rounded-2xl shadow-lg 
                    bg-white/10 backdrop-blur-xl border border-white/20
                    text-white text-lg font-semibold neon-glow-purple transition"
       >
         <SiZoom size={28} className="text-purple-500" />
         Join Zoom Meeting
-      </motion.a>
+      </motion.button>
     </motion.div>
   );
 }
