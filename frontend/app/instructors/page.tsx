@@ -185,44 +185,47 @@ export default function TutorsList() {
         />
       </div>
 
-      {/* Tutors Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Tutors List */}
+      <div className="flex flex-col gap-8">
         {sorted.map(tutor => {
           const avatarUrl = tutor.image_url
             ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
             : '/default-avatar.png';
 
           return (
-            <motion.div
-              key={tutor.id}
-              whileHover={{ scale: 1.05 }}
-              className="bg-white/70 backdrop-blur-md rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-xl transition"
-            >
-              <img
-                src={avatarUrl}
-                alt={tutor.name}
-                loading="lazy"
-                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-teal-600 shadow-lg flex-shrink-0"
-              />
-              <div className="flex-1 text-center md:text-left space-y-2">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{tutor.name}</h3>
-                {tutor.expertise && <p className="text-gray-700 mt-1 sm:mt-2">
-                  {tutor.expertise.split(',').map((tag, idx) => (
-                    <span key={idx} className="inline-block bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs mr-2">{tag.trim()}</span>
-                  ))}
-                </p>}
-                {tutor.qualifications && <p className="text-gray-500 text-sm">{tutor.qualifications}</p>}
-                <p className="text-gray-500">{tutor.years_experience ? `${tutor.years_experience} years experience` : 'Experience N/A'}</p>
-                {tutor.language && (
-                  <p className="text-gray-500">
-                    Language: {tutor.language} {tutor.is_native && <span className="px-2 py-1 bg-green-600 text-white rounded-full text-xs">Native</span>}
-                  </p>
-                )}
-                {tutor.price && <p className="text-teal-600 font-semibold text-lg">${tutor.price}/hr</p>}
-                {tutor.country && <p className="text-gray-400 text-sm">{tutor.country}</p>}
-                <Link href={`/tutors/${tutor.slug}`} className="inline-block mt-3 px-6 py-2 bg-teal-600 text-white rounded-xl shadow hover:bg-teal-500 transition">View Profile</Link>
-              </div>
-            </motion.div>
+            <Link key={tutor.id} href={`/tutors/${tutor.slug}`} className="w-full">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white/80 backdrop-blur-md rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-lg w-full cursor-pointer transition"
+              >
+                <img
+                  src={avatarUrl}
+                  alt={tutor.name}
+                  loading="lazy"
+                  className="w-36 h-36 sm:w-44 sm:h-44 rounded-full object-cover border-4 border-teal-600 shadow flex-shrink-0"
+                />
+                <div className="flex-1 text-center sm:text-left space-y-2">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">{tutor.name}</h3>
+                  {tutor.expertise && (
+                    <p className="text-gray-700 mt-1 sm:mt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                      {tutor.expertise.split(',').map((tag, idx) => (
+                        <span key={idx} className="inline-block bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs">{tag.trim()}</span>
+                      ))}
+                    </p>
+                  )}
+                  {tutor.qualifications && <p className="text-gray-500 text-sm">{tutor.qualifications}</p>}
+                  <p className="text-gray-500">{tutor.years_experience ? `${tutor.years_experience} years experience` : 'Experience N/A'}</p>
+                  {tutor.language && (
+                    <p className="text-gray-500">
+                      Language: {tutor.language} {tutor.is_native && <span className="px-2 py-1 bg-green-600 text-white rounded-full text-xs">Native</span>}
+                    </p>
+                  )}
+                  {tutor.price && <p className="text-teal-600 font-semibold text-lg">${tutor.price}/hr</p>}
+                  {tutor.country && <p className="text-gray-400 text-sm">{tutor.country}</p>}
+                  <span className="inline-block mt-3 px-6 py-2 bg-teal-600 text-white rounded-xl shadow hover:bg-teal-500 transition">View Profile</span>
+                </div>
+              </motion.div>
+            </Link>
           );
         })}
       </div>
