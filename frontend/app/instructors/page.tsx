@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { Range, getTrackBackground } from 'react-range';
+import { motion } from 'framer-motion';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -22,7 +23,6 @@ interface Instructor {
   country?: string;
   qualifications?: string;
   description?: string;
-  zoom_meeting_id?: string;
 }
 
 export default function TutorsList() {
@@ -30,6 +30,7 @@ export default function TutorsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [languageFilter, setLanguageFilter] = useState('');
   const [countryFilter, setCountryFilter] = useState('');
@@ -39,16 +40,14 @@ export default function TutorsList() {
   const STEP = 1;
 
   useEffect(() => {
-    const fetchInstructors = async () => {
+    const fetchTutors = async () => {
       try {
         setLoading(true);
         const { data, error } = await supabase.from('Instructor').select('*');
-
         if (error) {
-          setError(`Error fetching tutors: ${error.message}`);
+          setError(error.message);
           return;
         }
-
         if (data) {
           setInstructors(data);
           const prices = data.map(d => d.price || 0);
@@ -62,10 +61,10 @@ export default function TutorsList() {
         setLoading(false);
       }
     };
-
-    fetchInstructors();
+    fetchTutors();
   }, []);
 
+  // Filter and sort tutors
   const filtered = instructors
     .filter(inst => !languageFilter || (inst.language || '').toLowerCase() === languageFilter.toLowerCase())
     .filter(inst => !countryFilter || (inst.country || '').toLowerCase() === countryFilter.toLowerCase())
@@ -88,15 +87,37 @@ export default function TutorsList() {
   const uniqueLanguages = Array.from(new Set(instructors.map(i => i.language).filter(Boolean)));
   const uniqueCountries = Array.from(new Set(instructors.map(i => i.country).filter(Boolean)));
 
-  if (loading) return <div className="text-center mt-10 text-gray-400 animate-pulse">Loading tutors...</div>;
+  // Skeleton Loader
+  const SkeletonCard = () => (
+    <div className="bg-white/50 backdrop-blur-md rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 animate-pulse h-60">
+      <div className="w-40 h-40 rounded-full bg-gray-300" />
+      <div className="flex-1 space-y-2">
+        <div className="h-6 bg-gray-300 rounded w-1/2" />
+        <div className="h-4 bg-gray-300 rounded w-1/3" />
+        <div className="h-4 bg-gray-300 rounded w-1/4" />
+        <div className="h-4 bg-gray-300 rounded w-1/6" />
+      </div>
+    </div>
+  );
+
+  if (loading)
+    return (
+      <div className="min-h-screen py-10 px-4 sm:px-6 md:px-10 grid gap-6">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+
   if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
+  if (!sorted.length) return <div className="text-center mt-10 text-gray-400">No tutors found.</div>;
 
   return (
-    <div className="max-w-5xl mx-auto py-10 space-y-6">
-      <h1 className="text-3xl font-bold text-center mb-6">Our Tutors</h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-4 sm:px-6 md:px-10">
+      <h1 className="text-4xl md:text-5xl font-bold text-center text-teal-600 mb-10">Our Tutors</h1>
 
-      {/* Search + Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-center mb-6 flex-wrap">
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center mb-10 flex-wrap">
         <input
           type="text"
           placeholder="Search by name or language..."
@@ -104,7 +125,6 @@ export default function TutorsList() {
           onChange={e => setSearchTerm(e.target.value)}
           className="p-3 border border-gray-300 rounded-xl shadow-sm w-full md:w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 placeholder-gray-400 transition"
         />
-
         <select
           value={languageFilter}
           onChange={e => setLanguageFilter(e.target.value)}
@@ -113,7 +133,6 @@ export default function TutorsList() {
           <option value="">All Languages</option>
           {uniqueLanguages.map(lang => <option key={lang} value={lang}>{lang}</option>)}
         </select>
-
         <select
           value={countryFilter}
           onChange={e => setCountryFilter(e.target.value)}
@@ -122,7 +141,6 @@ export default function TutorsList() {
           <option value="">All Countries</option>
           {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-
         <select
           value={sortOption}
           onChange={e => setSortOption(e.target.value)}
@@ -135,8 +153,8 @@ export default function TutorsList() {
         </select>
       </div>
 
-      {/* Dual Price Range Slider */}
-      <div className="flex flex-col items-center gap-2 mb-6">
+      {/* Price Slider */}
+      <div className="flex flex-col items-center gap-2 mb-10">
         <span className="text-gray-700 font-medium">Price Range: ${priceRange[0]} - ${priceRange[1]}</span>
         <Range
           step={STEP}
@@ -144,12 +162,12 @@ export default function TutorsList() {
           max={Math.max(...instructors.map(i => i.price || 0))}
           values={priceRange}
           onChange={values => setPriceRange(values as [number, number])}
-          renderTrack={({ props: trackProps, children }) => (
+          renderTrack={({ props, children }) => (
             <div
-              {...trackProps}
+              {...props}
               className="w-64 h-2 bg-gray-300 rounded-full relative"
               style={{
-                ...trackProps.style,
+                ...props.style,
                 background: getTrackBackground({
                   values: priceRange,
                   colors: ['#22d3ee', '#3b82f6', '#22d3ee'],
@@ -161,59 +179,53 @@ export default function TutorsList() {
               {children}
             </div>
           )}
-          renderThumb={({ props: thumbProps }) => (
-            <div
-              {...thumbProps}
-              className="h-5 w-5 bg-teal-600 rounded-full shadow-md"
-            />
+          renderThumb={({ props }) => (
+            <div {...props} className="h-5 w-5 bg-teal-600 rounded-full shadow-md" />
           )}
         />
       </div>
 
-      {sorted.length === 0 ? (
-        <div className="text-center mt-10 text-gray-400">No tutors found.</div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {sorted.map(inst => {
-            const avatarUrl = inst.image_url
-              ? supabase.storage.from('instructor-images').getPublicUrl(inst.image_url).data.publicUrl
-              : '/default-avatar.png';
+      {/* Tutors Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {sorted.map(tutor => {
+          const avatarUrl = tutor.image_url
+            ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
+            : '/default-avatar.png';
 
-            return (
-              <Link
-                key={inst.id}
-                href={`/tutors/${inst.slug}`}
-                className="flex p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition shadow-md gap-4"
-              >
-                <img
-                  src={avatarUrl}
-                  alt={inst.name}
-                  className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
-                />
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">{inst.name}</h2>
-                    {inst.expertise && <p className="text-gray-300 text-sm">{inst.expertise}</p>}
-                    {inst.qualifications && <p className="text-gray-400 text-xs">{inst.qualifications}</p>}
-                    <p className="text-gray-400 text-sm">
-                      {inst.years_experience ? `${inst.years_experience} yrs experience` : 'Experience N/A'}
-                    </p>
-                    {inst.language && (
-                      <p className="text-gray-400 text-sm">
-                        Language: {inst.language} {inst.is_native && <span className="px-1 bg-green-600 text-white rounded-full text-xs">Native</span>}
-                      </p>
-                    )}
-                  </div>
-                  <div className="mt-2 flex gap-4 items-center">
-                    {inst.price && <p className="text-gray-200 font-semibold text-sm">${inst.price}/hr</p>}
-                    {inst.country && <p className="text-gray-400 text-xs">{inst.country}</p>}
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+          return (
+            <motion.div
+              key={tutor.id}
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/70 backdrop-blur-md rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-xl transition"
+            >
+              <img
+                src={avatarUrl}
+                alt={tutor.name}
+                loading="lazy"
+                className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-teal-600 shadow-lg flex-shrink-0"
+              />
+              <div className="flex-1 text-center md:text-left space-y-2">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{tutor.name}</h3>
+                {tutor.expertise && <p className="text-gray-700 mt-1 sm:mt-2">
+                  {tutor.expertise.split(',').map((tag, idx) => (
+                    <span key={idx} className="inline-block bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs mr-2">{tag.trim()}</span>
+                  ))}
+                </p>}
+                {tutor.qualifications && <p className="text-gray-500 text-sm">{tutor.qualifications}</p>}
+                <p className="text-gray-500">{tutor.years_experience ? `${tutor.years_experience} years experience` : 'Experience N/A'}</p>
+                {tutor.language && (
+                  <p className="text-gray-500">
+                    Language: {tutor.language} {tutor.is_native && <span className="px-2 py-1 bg-green-600 text-white rounded-full text-xs">Native</span>}
+                  </p>
+                )}
+                {tutor.price && <p className="text-teal-600 font-semibold text-lg">${tutor.price}/hr</p>}
+                {tutor.country && <p className="text-gray-400 text-sm">{tutor.country}</p>}
+                <Link href={`/tutors/${tutor.slug}`} className="inline-block mt-3 px-6 py-2 bg-teal-600 text-white rounded-xl shadow hover:bg-teal-500 transition">View Profile</Link>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }
