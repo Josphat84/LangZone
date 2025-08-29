@@ -14,14 +14,17 @@ export default function PaymentZoomButtons({
   zoomMeetingId,
   zoomPassword,
 }: PaymentZoomButtonsProps) {
-  const zoomAppLink = `zoommtg://zoom.us/join?action=join&confno=${zoomMeetingId}&pwd=${zoomPassword}`;
-  const zoomWebFallback = `https://zoom.us/j/${zoomMeetingId}?pwd=${zoomPassword}`;
-
   const handleZoomClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Try to open Zoom app
+
+    const encodedPwd = encodeURIComponent(zoomPassword);
+    const zoomAppLink = `zoommtg://zoom.us/join?confno=${zoomMeetingId}&pwd=${encodedPwd}`;
+    const zoomWebFallback = `https://zoom.us/j/${zoomMeetingId}?pwd=${encodedPwd}`;
+
+    // Try opening Zoom app
     window.location.href = zoomAppLink;
-    // Fallback: open Zoom in browser if app fails after short delay
+
+    // Fallback to browser if app fails
     setTimeout(() => window.open(zoomWebFallback, '_blank'), 500);
   };
 
@@ -69,7 +72,7 @@ export default function PaymentZoomButtons({
                    text-white text-lg font-semibold neon-glow-purple transition"
       >
         <SiZoom size={28} className="text-purple-500" />
-        Join Zoom Meeting
+        Start Zoom Lesson
       </motion.button>
     </motion.div>
   );
