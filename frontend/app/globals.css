@@ -50,3 +50,28 @@ body {
 .rbc-toolbar button:hover {
   background-color: #006666;
 }
+
+
+/* ADDITIONS TO GLOBAL STYLES - GLASSMORPHISM STYLES */
+
+.neon-glow {
+  box-shadow: 0 0 15px rgba(0, 123, 255, 0.7), 0 0 30px rgba(0, 123, 255, 0.5);
+}
+
+.neon-glow-green {
+  box-shadow: 0 0 15px rgba(0, 255, 123, 0.7), 0 0 30px rgba(0, 255, 123, 0.5);
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 15px rgba(155, 0, 255, 0.7), 0 0 30px rgba(155, 0, 255, 0.5);
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

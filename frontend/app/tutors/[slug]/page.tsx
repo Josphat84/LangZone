@@ -7,11 +7,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { useSwipeable } from 'react-swipeable';
 import InteractiveBookingCalendar from './InteractiveBookingCalendar';
+import PaymentsZoomButtons from '../../../components/PaymentsZoomButtons';
+
+
 import {
   FaStar,
   FaVideo,
   FaHeart,
-  FaPaypal,
   FaInfoCircle,
   FaMapMarkerAlt,
   FaLanguage,
@@ -68,7 +70,7 @@ export default function TutorPage() {
   const [likes, setLikes] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
   const [rating, setRating] = useState(0);
-  const [darkMode, setDarkMode] = useState(false); // default to light to match homepage vibe
+  const [darkMode, setDarkMode] = useState(false);
   const [allSlugs, setAllSlugs] = useState<string[]>([]);
   const [direction, setDirection] = useState<1 | -1>(1);
 
@@ -79,7 +81,7 @@ export default function TutorPage() {
     trackMouse: true,
   });
 
-  const CACHE_TTL = 1000 * 60 * 3; // 3 minutes
+  const CACHE_TTL = 1000 * 60 * 3;
   const cacheKey = (s: string) => `instructor:${s}`;
 
   const readCache = (s: string): Cached | null => {
@@ -218,7 +220,6 @@ export default function TutorPage() {
     }
   };
 
-  // --- THEME aligned with homepage ---
   const bgClass = darkMode
     ? 'from-gray-900 via-gray-950 to-black'
     : 'from-gray-50 to-gray-100';
@@ -270,10 +271,8 @@ export default function TutorPage() {
       {...handlers}
       className={`min-h-screen relative overflow-hidden transition-colors duration-500`}
     >
-      {/* Background gradient like homepage */}
       <div className={`absolute inset-0 bg-gradient-to-b ${bgClass}`} />
 
-      {/* Soft animated blobs (homepage vibe) */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full blur-3xl"
@@ -289,7 +288,6 @@ export default function TutorPage() {
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Top bar / Hero header (matches homepage typography + CTA) */}
       <section className="relative z-10 px-4 sm:px-6 md:px-10 pt-10">
         <div className="max-w-7xl mx-auto flex flex-col gap-6">
           <div className="flex items-center justify-between">
@@ -345,10 +343,8 @@ export default function TutorPage() {
         </div>
       )}
 
-      {/* Main grid (keeps your original two-column structure) */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-10 pb-24 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* LEFT COLUMN */}
           <div className="space-y-6">
             <AnimatePresence custom={direction} initial={false} mode="wait">
               <motion.div
@@ -373,7 +369,6 @@ export default function TutorPage() {
             </AnimatePresence>
           </div>
 
-          {/* RIGHT COLUMN */}
           <div className="space-y-6">
             <AnimatePresence custom={direction} initial={false} mode="wait">
               <motion.div
@@ -393,7 +388,7 @@ export default function TutorPage() {
                     btnPurple={btnPurple}
                     showCalendar={showCalendar}
                     setShowCalendar={setShowCalendar}
-                    openZoomApp={openZoomApp}
+                    instructor={instructor}
                     avatarUrl={avatarUrl}
                   />
                 )}
@@ -403,7 +398,6 @@ export default function TutorPage() {
         </div>
       </section>
 
-      {/* Glassmorphism side arrows (homepage feel; also work with swipe) */}
       <motion.div className="fixed top-1/2 -translate-y-1/2 left-3 sm:left-4 z-50">
         <motion.button
           onClick={handlePrevTutor}
@@ -427,12 +421,9 @@ export default function TutorPage() {
         </motion.button>
       </motion.div>
 
-      {/* helper render refs */}
       {InstructorLeftCard && InstructorRightCard && null}
     </div>
   );
-
-  // ---- COMPONENTS (use your original content, just re-styled to match homepage) ----
 
   function InstructorLeftCard({
     cardClass,
@@ -445,12 +436,7 @@ export default function TutorPage() {
   }) {
     return (
       <>
-        {/* Profile Card */}
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          className={`${cardClass} p-6 text-center`}
-        >
-          {/* Subtle animated halo */}
+        <motion.div whileHover={{ scale: 1.01 }} className={`${cardClass} p-6 text-center`}>
           <motion.div
             aria-hidden="true"
             className="absolute -inset-10 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 opacity-20 blur-3xl"
@@ -464,7 +450,6 @@ export default function TutorPage() {
           />
           <h2 className={`relative z-10 text-3xl font-bold ${textClass}`}>{instructor?.name}</h2>
 
-          {/* Likes + Rating */}
           <div className="relative z-10 flex items-center justify-center gap-5 mt-3 flex-wrap">
             <motion.button
               whileTap={{ scale: 1.15 }}
@@ -499,7 +484,6 @@ export default function TutorPage() {
           )}
         </motion.div>
 
-        {/* About */}
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-3`}>
           <h3 className="text-xl font-bold flex items-center gap-2">
             <FaInfoCircle className="text-teal-500" /> About
@@ -507,7 +491,6 @@ export default function TutorPage() {
           <p className={subtextClass}>{instructor?.description || 'No bio available yet.'}</p>
         </motion.div>
 
-        {/* Professional Info */}
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-2`}>
           <h3 className="text-xl font-bold flex items-center gap-2">
             <FaBriefcase className="text-teal-500" /> Professional Info
@@ -535,7 +518,6 @@ export default function TutorPage() {
           )}
         </motion.div>
 
-        {/* Languages & Location */}
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-2`}>
           <h3 className="text-xl font-bold flex items-center gap-2">
             <FaLanguage className="text-teal-500" /> Languages & Location
@@ -564,19 +546,18 @@ export default function TutorPage() {
     btnPurple,
     showCalendar,
     setShowCalendar,
-    openZoomApp,
+    instructor,
     avatarUrl,
   }: {
     cardClass: string;
     btnPurple: string;
     showCalendar: boolean;
     setShowCalendar: (v: boolean) => void;
-    openZoomApp: () => void;
+    instructor: Instructor;
     avatarUrl: string;
   }) {
     return (
       <>
-        {/* Video Intro */}
         {instructor?.video_intro_url && (
           <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
             <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
@@ -591,7 +572,6 @@ export default function TutorPage() {
           </motion.div>
         )}
 
-        {/* Booking */}
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
           <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
             <FaCalendarAlt className="text-teal-500" /> Booking
@@ -615,30 +595,12 @@ export default function TutorPage() {
           )}
         </motion.div>
 
-        {/* Payment */}
-        <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
-          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-            <FaPaypal className="text-teal-500" /> Payment
-          </h3>
-          <p className="mb-3 text-gray-600 dark:text-gray-300">
-            Secure your session via PayPal or direct payment.
-          </p>
-          <button className={`${btnPurple} px-4 py-2 rounded-full shadow hover:shadow-lg transform hover:scale-[1.02] transition`}>
-            Pay Now
-          </button>
-        </motion.div>
-
-        {/* Zoom */}
-        {instructor?.zoom_meeting_id && (
-          <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
-            <button
-              onClick={openZoomApp}
-              className={`${btnPurple} w-full px-4 py-3 rounded-full shadow hover:shadow-lg transform hover:scale-[1.02] transition`}
-            >
-              Join Zoom Session
-            </button>
-          </motion.div>
-        )}
+        {/* Elegant Payment + Zoom Buttons via imported component */}
+        <PaymentsZoomButtons
+          instructor={instructor}
+          btnClass={btnPurple}
+          avatarUrl={avatarUrl}
+        />
       </>
     );
   }
