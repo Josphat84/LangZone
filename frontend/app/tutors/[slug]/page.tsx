@@ -70,7 +70,8 @@ export default function TutorPage() {
   const [likes, setLikes] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
   const [rating, setRating] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
+  // Set dark mode as default
+  const [darkMode, setDarkMode] = useState(true);
   const [allSlugs, setAllSlugs] = useState<string[]>([]);
   const [direction, setDirection] = useState<1 | -1>(1);
 
@@ -224,13 +225,13 @@ export default function TutorPage() {
     ? 'from-gray-900 via-gray-950 to-black'
     : 'from-gray-50 to-gray-100';
   const textClass = darkMode ? 'text-gray-100' : 'text-gray-900';
-  const subtextClass = darkMode ? 'text-gray-300' : 'text-gray-600';
+  const subtextClass = darkMode ? 'text-gray-300' : 'text-gray-700';
 
   const cardBase =
     'rounded-3xl shadow-xl transition-transform duration-300 relative overflow-hidden';
   const cardClass = darkMode
     ? `${cardBase} bg-white/10 backdrop-blur-md border border-white/10`
-    : `${cardBase} bg-white/80 backdrop-blur-md border border-black/5`;
+    : `${cardBase} bg-white/90 backdrop-blur-md border border-black/10`;
 
   const btnPrimary = darkMode
     ? 'bg-teal-600 hover:bg-teal-500 text-white'
@@ -249,17 +250,17 @@ export default function TutorPage() {
   const LoadingSkeleton = () => (
     <div className="animate-pulse space-y-6">
       <div className={`${cardClass} p-6 text-center`}>
-        <div className="w-32 h-32 mx-auto rounded-full bg-gray-300/30" />
-        <div className="h-6 w-40 bg-gray-300/30 rounded mx-auto mt-4" />
+        <div className={`w-32 h-32 mx-auto rounded-full ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'}`} />
+        <div className={`h-6 w-40 ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded mx-auto mt-4`} />
         <div className="flex justify-center gap-3 mt-4 flex-wrap">
-          <div className="h-5 w-16 bg-gray-300/30 rounded" />
-          <div className="h-5 w-24 bg-gray-300/30 rounded" />
+          <div className={`h-5 w-16 ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded`} />
+          <div className={`h-5 w-24 ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded`} />
         </div>
       </div>
       <div className={`${cardClass} p-6`}>
-        <div className="h-5 w-28 bg-gray-300/30 rounded mb-3" />
-        <div className="h-4 w-full bg-gray-300/30 rounded" />
-        <div className="h-4 w-5/6 bg-gray-300/30 rounded mt-2" />
+        <div className={`h-5 w-28 ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded mb-3`} />
+        <div className={`h-4 w-full ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded`} />
+        <div className={`h-4 w-5/6 ${darkMode ? 'bg-gray-300/20' : 'bg-gray-300/40'} rounded mt-2`} />
       </div>
     </div>
   );
@@ -485,54 +486,54 @@ export default function TutorPage() {
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-3`}>
-          <h3 className="text-xl font-bold flex items-center gap-2">
+          <h3 className={`text-xl font-bold flex items-center gap-2 ${textClass}`}>
             <FaInfoCircle className="text-teal-500" /> About
           </h3>
           <p className={subtextClass}>{instructor?.description || 'No bio available yet.'}</p>
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-2`}>
-          <h3 className="text-xl font-bold flex items-center gap-2">
+          <h3 className={`text-xl font-bold flex items-center gap-2 ${textClass}`}>
             <FaBriefcase className="text-teal-500" /> Professional Info
           </h3>
           {instructor?.expertise && (
             <p className={subtextClass}>
               <FaGraduationCap className="inline mr-2 text-green-500" />
-              <span className="font-semibold text-gray-800 dark:text-gray-100">Expertise:</span>{' '}
+              <span className={`font-semibold ${textClass}`}>Expertise:</span>{' '}
               {instructor.expertise}
             </p>
           )}
           {instructor?.years_experience && (
             <p className={subtextClass}>
               <FaBriefcase className="inline mr-2 text-green-500" />
-              <span className="font-semibold text-gray-800 dark:text-gray-100">Experience:</span>{' '}
+              <span className={`font-semibold ${textClass}`}>Experience:</span>{' '}
               {instructor.years_experience} yrs
             </p>
           )}
           {instructor?.qualifications && (
             <p className={subtextClass}>
               <FaGraduationCap className="inline mr-2 text-green-500" />
-              <span className="font-semibold text-gray-800 dark:text-gray-100">Qualifications:</span>{' '}
+              <span className={`font-semibold ${textClass}`}>Qualifications:</span>{' '}
               {instructor.qualifications}
             </p>
           )}
         </motion.div>
 
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6 space-y-2`}>
-          <h3 className="text-xl font-bold flex items-center gap-2">
+          <h3 className={`text-xl font-bold flex items-center gap-2 ${textClass}`}>
             <FaLanguage className="text-teal-500" /> Languages & Location
           </h3>
           {instructor?.language && (
             <p className={subtextClass}>
               <FaLanguage className="inline mr-2 text-green-500" />
-              <span className="font-semibold text-gray-800 dark:text-gray-100">Language:</span>{' '}
+              <span className={`font-semibold ${textClass}`}>Language:</span>{' '}
               {instructor.language} {instructor.is_native ? '(Native)' : ''}
             </p>
           )}
           {instructor?.country && (
             <p className={subtextClass}>
               <FaMapMarkerAlt className="inline mr-2 text-green-500" />
-              <span className="font-semibold text-gray-800 dark:text-gray-100">Country:</span>{' '}
+              <span className={`font-semibold ${textClass}`}>Country:</span>{' '}
               {instructor.country}
             </p>
           )}
@@ -560,7 +561,7 @@ export default function TutorPage() {
       <>
         {instructor?.video_intro_url && (
           <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
-            <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
+            <h3 className={`text-xl font-bold mb-3 flex items-center gap-2 ${textClass}`}>
               <FaVideo className="text-teal-500" /> Video Intro
             </h3>
             <video
@@ -573,7 +574,7 @@ export default function TutorPage() {
         )}
 
         <motion.div whileHover={{ scale: 1.005 }} className={`${cardClass} p-6`}>
-          <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+          <h3 className={`text-xl font-bold mb-2 flex items-center gap-2 ${textClass}`}>
             <FaCalendarAlt className="text-teal-500" /> Booking
           </h3>
           <div className="flex justify-between items-center mb-3">
@@ -583,7 +584,7 @@ export default function TutorPage() {
             >
               {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
             </button>
-            <span className="text-gray-500 dark:text-gray-300 text-sm">
+            <span className={`text-sm ${subtextClass}`}>
               {instructor?.price ? `$${instructor.price}/hr` : ''}
             </span>
           </div>
