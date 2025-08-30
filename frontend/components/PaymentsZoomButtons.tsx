@@ -27,38 +27,25 @@ export default function PaymentZoomButtons({
 
   // Multiple Zoom opening strategies - prioritizing app opening
   const zoomStrategies = {
-    // Strategy 1: Force Zoom app open (most direct)
+    // Strategy 1: Force Zoom app open with better protocol handling
     forceApp: () => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       if (isMobile) {
-        // Try multiple mobile app protocols
         if (hasValidMeeting) {
-          // Try to join specific meeting
-          const protocols = [
-            `zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`,
-            `zoommtg://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`,
-            `zoom://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`
-          ];
-          
-          protocols.forEach((protocol, index) => {
-            setTimeout(() => {
-              window.location.href = protocol;
-            }, index * 100);
-          });
+          // Use window.open instead of location.href for better mobile compatibility
+          try {
+            window.open(`zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`, '_self');
+          } catch (e) {
+            // Fallback to location.href
+            window.location.href = `zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`;
+          }
         } else {
-          // Just open the app
-          const protocols = [
-            `zoomus://zoom.us/`,
-            `zoommtg://zoom.us/`,
-            `zoom://`
-          ];
-          
-          protocols.forEach((protocol, index) => {
-            setTimeout(() => {
-              window.location.href = protocol;
-            }, index * 100);
-          });
+          try {
+            window.open(`zoomus://zoom.us/`, '_self');
+          } catch (e) {
+            window.location.href = `zoomus://zoom.us/`;
+          }
         }
       } else {
         // Desktop - try desktop app protocol
@@ -70,19 +57,60 @@ export default function PaymentZoomButtons({
       }
     },
 
-    // Strategy 2: Create invisible iframe trick (works on some browsers)
+    // Strategy 2: Create invisible iframe trick (refined for better compatibility)
     iframeApp: () => {
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      iframe.style.position = 'absolute';
+      iframe.style.top = '-1000px';
       
       if (hasValidMeeting) {
-        iframe.src = `zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`;
+        // Try multiple URL formats for better compatibility
+        const urls = [
+          `zoomus://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`,
+          `zoommtg://zoom.us/join?confno=${cleanMeetingId}&pwd=${encodedPassword}`,
+          `https://zoom.us/j/${cleanMeetingId}?pwd=${encodedPassword}`
+        ];
+        
+        urls.forEach((url, index) => {
+          setTimeout(() => {
+            const newIframe = iframe.cloneNode();
+            newIframe.src = url;
+            document.body.appendChild(newIframe);
+            
+            // Keep iframe longer to allow browser prompt
+            setTimeout(() => {
+              if (document.body.contains(newIframe)) {
+                document.body.removeChild(newIframe);
+              }
+            }, 5000);
+          }, index * 1000);
+        });
       } else {
-        iframe.src = `zoomus://zoom.us/`;
+        // Just open the app without meeting details
+        const urls = [
+          `zoomus://zoom.us/`,
+          `zoommtg://zoom.us/`,
+          `https://zoom.us/`
+        ];
+        
+        urls.forEach((url, index) => {
+          setTimeout(() => {
+            const newIframe = iframe.cloneNode();
+            newIframe.src = url;
+            document.body.appendChild(newIframe);
+            
+            // Keep iframe longer to allow browser prompt
+            setTimeout(() => {
+              if (document.body.contains(newIframe)) {
+                document.body.removeChild(newIframe);
+              }
+            }, 5000);
+          }, index * 1000);
+        });
       }
-      
-      document.body.appendChild(iframe);
-      setTimeout(() => document.body.removeChild(iframe), 1000);
     },
 
     // Strategy 3: Intent-based opening for Android
@@ -129,42 +157,39 @@ export default function PaymentZoomButtons({
     }
   };
 
-  // Main Zoom click handler - prioritize app opening
+  // Main Zoom click handler - prioritize iframe method since it's working
   const handleZoomClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
     
     try {
       if (isMobile) {
-        // Mobile: Try multiple strategies aggressively
-        zoomStrategies.forceApp();
+        // Mobile: Start with iframe method since it's showing the browser prompt
+        zoomStrategies.iframeApp();
         
-        // Also try iframe method as backup
+        // Also try direct method as backup
         setTimeout(() => {
-          zoomStrategies.iframeApp();
-        }, 500);
-        
-        // Try Android intent if on Android
-        if (isAndroid) {
-          setTimeout(() => {
-            zoomStrategies.androidIntent();
-          }, 1000);
-        }
+          zoomStrategies.forceApp();
+        }, 1000);
         
         // Show options if nothing worked
         setTimeout(() => {
           setShowZoomOptions(true);
-        }, 2500);
+        }, 3000);
       } else {
         // Desktop: Try desktop app protocol first
         zoomStrategies.forceApp();
         
-        // Show options quickly for desktop
+        // Try iframe method for desktop too
+        setTimeout(() => {
+          zoomStrategies.iframeApp();
+        }, 500);
+        
+        // Show options for desktop
         setTimeout(() => {
           setShowZoomOptions(true);
-        }, 1500);
+        }, 2000);
       }
     } catch (error) {
       console.log('All app opening strategies failed:', error);
