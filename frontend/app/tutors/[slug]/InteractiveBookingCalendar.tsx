@@ -26,7 +26,7 @@ const InteractiveBookingCalendar: React.FC<InteractiveBookingCalendarProps> = ({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>({});
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Changed to true for dark mode default
 
   // Theme helper function
   const getThemeClasses = () => ({

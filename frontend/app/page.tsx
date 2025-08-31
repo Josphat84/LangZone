@@ -1,6 +1,4 @@
-//app/page.tsx
-//Website homepage
-
+// app/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserGroupIcon, LightBulbIcon } from '@heroicons/react/24/outline';
+import AuthModal from '@/components/AuthModal';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -61,6 +60,10 @@ export default function Home() {
   const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
   const [blogIndex, setBlogIndex] = useState(0);
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
+
   const [blogs, setBlogs] = useState<BlogPost[]>([
     { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.' },
     { title: 'How to Practice Speaking Every Day', slug: 'practice-speaking', summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.' },
@@ -108,6 +111,7 @@ export default function Home() {
     exit: { x: -400, opacity: 0, scale: 0.85 },
   };
 
+  // Auto-slide effects
   useEffect(() => {
     if (!tutors.length) return;
     const interval = setInterval(() => {
@@ -137,11 +141,6 @@ export default function Home() {
     }, 6000);
     return () => clearInterval(interval);
   }, []);
-
-  const tutorAvatarUrl = (tutor: Instructor) =>
-    tutor.image_url
-      ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
-      : '/default-avatar.png';
 
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
@@ -196,7 +195,28 @@ export default function Home() {
             <motion.p key={heroTipIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.8 }} className="text-teal-600 font-semibold text-lg sm:text-xl">{heroTips[heroTipIndex]}</motion.p>
           </AnimatePresence>
         </div>
-        <Link href="/instructors" className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition">Find Instructors</Link>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Link
+            href="/instructors"
+            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition"
+          >
+            Find Instructors
+          </Link>
+
+          <button
+            onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
+            className="inline-block bg-white text-teal-600 border border-teal-600 py-3 px-8 rounded-full font-semibold hover:bg-teal-50 transition"
+          >
+            Sign Up
+          </button>
+
+          <button
+            onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
+            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition"
+          >
+            Sign In
+          </button>
+        </div>
       </section>
 
       {/* Tabs Section */}
@@ -263,6 +283,14 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        mode={authMode}
+        setMode={setAuthMode}
+      />
     </div>
   );
 }
