@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, Session, User } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserGroupIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import AuthModal from '@/components/AuthModal';
@@ -52,6 +52,7 @@ interface BlogPost {
 }
 
 export default function Home() {
+  // --- State ---
   const [tutors, setTutors] = useState<Instructor[]>([]);
   const [tutorIndex, setTutorIndex] = useState(0);
   const [infoIndex, setInfoIndex] = useState(0);
@@ -63,6 +64,8 @@ export default function Home() {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const [blogs, setBlogs] = useState<BlogPost[]>([
     { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.' },
@@ -97,6 +100,7 @@ export default function Home() {
     { question: 'Can I book weekly lessons in advance?', answer: 'Yes! You can select multiple time slots for recurring weekly lessons.', bgGradient: 'from-orange-400 to-orange-500' },
   ];
 
+  // --- Fetch Tutors ---
   useEffect(() => {
     const fetchTutors = async () => {
       const { data } = await supabase.from('Instructor').select('*').limit(10);
@@ -105,13 +109,29 @@ export default function Home() {
     fetchTutors();
   }, []);
 
-  const slideVariants = {
-    enter: { x: 400, opacity: 0, scale: 0.9 },
-    center: { x: 0, opacity: 1, scale: 1 },
-    exit: { x: -400, opacity: 0, scale: 0.85 },
+  // --- Session / Auth ---
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setUser(data.session?.user || null);
+    };
+    getSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user || null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
   };
 
-  // Auto-slide effects
+  // --- Auto-slide Effects ---
   useEffect(() => {
     if (!tutors.length) return;
     const interval = setInterval(() => {
@@ -143,6 +163,12 @@ export default function Home() {
   }, []);
 
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+  const slideVariants = {
+    enter: { x: 400, opacity: 0, scale: 0.9 },
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: { x: -400, opacity: 0, scale: 0.85 },
+  };
 
   const draggableSlide = (children: React.ReactNode, index: number, setIndex: (idx: number) => void, length: number) => (
     <motion.div
@@ -203,19 +229,35 @@ export default function Home() {
             Find Instructors
           </Link>
 
-          <button
-            onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
-            className="inline-block bg-white text-teal-600 border border-teal-600 py-3 px-8 rounded-full font-semibold hover:bg-teal-50 transition"
-          >
-            Sign Up
-          </button>
+          {!user && (
+            <>
+              <button
+                onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
+                className="inline-block bg-white text-teal-600 border border-teal-600 py-3 px-8 rounded-full font-semibold hover:bg-teal-50 transition"
+              >
+                Sign Up
+              </button>
 
-          <button
-            onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
-            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition"
-          >
-            Sign In
-          </button>
+              <button
+                onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
+                className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition"
+              >
+                Sign In
+              </button>
+            </>
+          )}
+
+          {user && (
+            <>
+              <span className="inline-block py-3 px-8 rounded-full font-semibold text-teal-800 bg-white shadow">Hi, {user.email}</span>
+              <button
+                onClick={handleSignOut}
+                className="inline-block bg-red-500 text-white py-3 px-8 rounded-full font-semibold hover:bg-red-600 transition"
+              >
+                Sign Out
+              </button>
+            </>
+          )}
         </div>
       </section>
 

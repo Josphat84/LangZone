@@ -294,11 +294,26 @@ export default function TutorPage() {
                 <FaSearch className="text-sm" />
                 <span className="hidden sm:inline">Find Instructors</span>
               </motion.button>
+
+              {/* ✅ Dashboard Link (added) */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push('/dashboard/tutor')}
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-full shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium transition-all duration-300"
+                data-tooltip-id="dashboard-tip"
+                data-tooltip-content="Go to your dashboard"
+              >
+                <FaGraduationCap className="text-sm" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </motion.button>
             </div>
           </div>
         </div>
         <Tooltip id="find-tip" />
         <Tooltip id="theme-tip" place="left" />
+        {/* ✅ Tooltip for dashboard */}
+        <Tooltip id="dashboard-tip" place="left" />
       </header>
 
       {/* Navigation Loading Overlay */}
