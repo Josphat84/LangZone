@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -52,12 +51,11 @@ interface BlogPost {
 }
 
 export default function Home() {
-  // --- State ---
   const [tutors, setTutors] = useState<Instructor[]>([]);
   const [tutorIndex, setTutorIndex] = useState(0);
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<'info' | 'tutors' | 'steps'>('info');
+  const [activeTab, setActiveTab] = useState<'tutors' | 'info' | 'steps'>('tutors');
   const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
   const [blogIndex, setBlogIndex] = useState(0);
@@ -100,7 +98,6 @@ export default function Home() {
     { question: 'Can I book weekly lessons in advance?', answer: 'Yes! You can select multiple time slots for recurring weekly lessons.', bgGradient: 'from-orange-400 to-orange-500' },
   ];
 
-  // --- Fetch Tutors ---
   useEffect(() => {
     const fetchTutors = async () => {
       const { data } = await supabase.from('Instructor').select('*').limit(10);
@@ -109,7 +106,6 @@ export default function Home() {
     fetchTutors();
   }, []);
 
-  // --- Session / Auth ---
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -130,37 +126,6 @@ export default function Home() {
     setSession(null);
     setUser(null);
   };
-
-  // --- Auto-slide Effects ---
-  useEffect(() => {
-    if (!tutors.length) return;
-    const interval = setInterval(() => {
-      if (activeTab === 'tutors') setTutorIndex((prev) => (prev + 1) % tutors.length);
-    }, 12000);
-    return () => clearInterval(interval);
-  }, [tutors, activeTab]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (activeTab === 'info') setInfoIndex((prev) => (prev + 1) % infoSlides.length);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [infoSlides, activeTab]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (activeTab === 'steps') setStepIndex((prev) => (prev + 1) % stepsSlides.length);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [stepsSlides, activeTab]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeroTipIndex((prev) => (prev + 1) % heroTips.length);
-      setBlogIndex((prev) => (prev + 1) % blogs.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, []);
 
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
@@ -222,10 +187,7 @@ export default function Home() {
           </AnimatePresence>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link
-            href="/instructors"
-            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition"
-          >
+          <Link href="/instructors" className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition">
             Find Instructors
           </Link>
 
@@ -264,15 +226,47 @@ export default function Home() {
       {/* Tabs Section */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
         <div className="flex justify-center gap-4 md:gap-8 mb-10 flex-wrap">
-          <button onMouseEnter={() => setActiveTab('info')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>About Us</button>
           <button onMouseEnter={() => setActiveTab('tutors')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'tutors' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Featured Tutors</button>
+          <button onMouseEnter={() => setActiveTab('info')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>About Us</button>
           <button onMouseEnter={() => setActiveTab('steps')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'steps' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>How It Works</button>
         </div>
 
         <div className="relative">
-          {activeTab === 'info' && <div className="relative max-w-4xl mx-auto">{draggableSlide(<InfoSlideComponent slide={infoSlides[infoIndex]} />, infoIndex, setInfoIndex, infoSlides.length)}</div>}
-          {activeTab === 'tutors' && tutors.length > 0 && <div className="relative max-w-5xl mx-auto">{draggableSlide(<TutorSlideComponent tutor={tutors[tutorIndex]} />, tutorIndex, setTutorIndex, tutors.length)}</div>}
-          {activeTab === 'steps' && <div className="relative max-w-5xl mx-auto">{draggableSlide(<StepSlideComponent step={stepsSlides[stepIndex]} />, stepIndex, setStepIndex, stepsSlides.length)}</div>}
+          {activeTab === 'tutors' && (
+            <div className="flex flex-col gap-6">
+              {tutors.map((tutor) => (
+                <TutorSlideComponent key={tutor.id} tutor={tutor} />
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'info' && (
+            <div className="relative max-w-4xl mx-auto">
+              {draggableSlide(
+                (() => {
+                  const Icon = infoSlides[infoIndex].icon;
+                  return (
+                    <div className={`p-6 sm:p-10 rounded-3xl flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-lg text-white bg-gradient-to-r ${infoSlides[infoIndex].bgGradient}`}>
+                      <div className="flex-shrink-0"><Icon className="w-16 h-16 sm:w-24 sm:h-24 mx-auto md:mx-0" /></div>
+                      <div className="text-center md:text-left flex-1">
+                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{infoSlides[infoIndex].title}</h3>
+                        <p className="text-base sm:text-lg">{infoSlides[infoIndex].description}</p>
+                      </div>
+                    </div>
+                  );
+                })(),
+                infoIndex,
+                setInfoIndex,
+                infoSlides.length
+              )}
+            </div>
+          )}
+
+          {activeTab === 'steps' && (
+            <div className="relative max-w-5xl mx-auto">
+              {draggableSlide(<StepSlideComponent step={stepsSlides[stepIndex]} />, stepIndex, setStepIndex, stepsSlides.length)}
+            </div>
+          )}
         </div>
       </section>
 
@@ -326,52 +320,36 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        mode={authMode}
-        setMode={setAuthMode}
-      />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} mode={authMode} setMode={setAuthMode} />
     </div>
   );
 }
 
 // Slide Components
-const InfoSlideComponent = ({ slide }: { slide: InfoSlide }) => {
-  const Icon = slide.icon;
-  return (
-    <div className={`p-6 sm:p-10 rounded-3xl flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-lg text-white bg-gradient-to-r ${slide.bgGradient}`}>
-      <div className="flex-shrink-0"><Icon className="w-16 h-16 sm:w-24 sm:h-24 mx-auto md:mx-0" /></div>
-      <div className="text-center md:text-left flex-1">
-        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{slide.title}</h3>
-        <p className="text-base sm:text-lg">{slide.description}</p>
-      </div>
-    </div>
-  );
-};
-
 const TutorSlideComponent = ({ tutor }: { tutor: Instructor }) => {
   const tutorAvatarUrl = tutor.image_url ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl : '/default-avatar.png';
   return (
-    <div className="relative bg-white rounded-3xl p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-lg">
-      <Link href={`/tutors/${tutor.slug}`}><img src={tutorAvatarUrl} alt={tutor.name} className="w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 rounded-full object-cover border-4 border-teal-600 shadow-lg" /></Link>
-      <div className="flex-1 text-center md:text-left">
-        <h3 className="text-2xl sm:text-3xl md:text-3xl font-bold text-gray-900">{tutor.name}</h3>
-        {tutor.expertise && <p className="text-gray-700 mt-1 sm:mt-2">{tutor.expertise}</p>}
-        {tutor.qualifications && <p className="text-gray-500 text-sm mt-1">{tutor.qualifications}</p>}
-        <p className="text-gray-500 mt-1 sm:mt-2">{tutor.years_experience ? `${tutor.years_experience} years experience` : 'Experience N/A'} | {tutor.language ? ` Language: ${tutor.language}` : ''} {tutor.is_native ? '(Native)' : ''}</p>
-        {tutor.price && <p className="text-teal-600 font-semibold mt-1 sm:mt-2">${tutor.price}/hr</p>}
-        {tutor.country && <p className="text-gray-400 text-sm mt-1">{tutor.country}</p>}
+    <div className="p-6 sm:p-8 bg-white shadow-lg rounded-3xl flex flex-col sm:flex-row items-center gap-6 hover:scale-105 transition-transform duration-500">
+      <img src={tutorAvatarUrl} alt={tutor.name} className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover" />
+      <div className="flex-1 text-center sm:text-left">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{tutor.name}</h3>
+        <p className="text-gray-600">{tutor.expertise} • {tutor.language}</p>
+        <p className="text-gray-500 text-sm">Experience: {tutor.years_experience || 0} yrs</p>
+        <p className="text-gray-700 mt-2 font-semibold">${tutor.price || 0}/hr</p>
       </div>
+      <Link href={`/instructors/${tutor.slug}`} className="inline-block bg-teal-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-teal-700 transition">
+        View Profile
+      </Link>
     </div>
   );
 };
 
 const StepSlideComponent = ({ step }: { step: StepSlide }) => (
-  <div className="p-6 sm:p-10 rounded-3xl flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-lg bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 text-black">
-    <div className="flex-shrink-0 text-center md:text-left"><div className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">{step.step}</div></div>
-    <div className="flex-1 text-center md:text-left">
+  <div className="p-6 sm:p-10 rounded-3xl flex flex-col md:flex-row items-center gap-6 md:gap-8 shadow-lg bg-gradient-to-r from-green-400 to-teal-500 text-white">
+    <div className="flex-shrink-0">
+      <div className="w-16 h-16 sm:w-24 sm:h-24 flex items-center justify-center rounded-full bg-white/30 text-white font-bold text-2xl sm:text-3xl">{step.step}</div>
+    </div>
+    <div className="text-center md:text-left flex-1">
       <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{step.title}</h3>
       <p className="text-base sm:text-lg">{step.description}</p>
     </div>
