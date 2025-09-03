@@ -1,373 +1,276 @@
-// app/dashboard/tutor/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { toast, Toaster } from 'react-hot-toast';
-import { Line } from 'react-chartjs-2';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Users, BookOpen, DollarSign } from 'lucide-react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
-import clsx from 'clsx';
-import CountUp from 'react-countup';
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, BarChart, Bar
+} from 'recharts';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
-interface Lesson {
+// ---------------------- Types ----------------------
+interface Instructor {
+  id: number;
   name: string;
-  students: number;
-  status: string;
-  date: string;
+  email: string;
+  language: string;
+  expertise: string;
+  price: number;
+  description: string;
+  country: string;
 }
 
-interface Student {
-  name: string;
-  completed: number;
-  total: number;
+interface Booking {
+  id: number;
+  instructor_id: number;
+  student_name?: string;
+  student_email?: string;
+  lesson_date?: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  amount?: number;
+  created_at: string;
 }
 
-interface Activity {
-  text: string;
-  time: string;
-}
+// ---------------------- Mock Data ----------------------
+const generateMockInstructors = (): Instructor[] => [
+  { id: 48, name: 'James Brown', email: 'james@yahoo.com', language: 'English', expertise: 'Pro', price: 20, description: 'Hello everybody, I\'m James', country: 'USA' },
+  { id: 61, name: 'Josphat Dandira', email: 'jj@yahoo.com', language: 'Shona', expertise: 'Native', price: 20, description: 'Makadii kwese', country: 'Zimbabwe' },
+  { id: 67, name: 'Nomatter Chikwamba', email: 'nochik49work@gmail.com', language: 'English', expertise: 'Tutoring', price: 0, description: 'EMPTY', country: 'Zimbabwe' },
+  { id: 68, name: 'Tinoe Genius', email: 'tinoetiger@gmail.com', language: 'English/French', expertise: 'EMPTY', price: 80, description: 'EMPTY', country: 'Zimbabwe' },
+  { id: 69, name: 'Benson', email: 'benson@gmail.com', language: 'English', expertise: 'Pro', price: 25, description: 'Tutor Benson', country: 'Zimbabwe' },
+  { id: 70, name: 'Lorenzo', email: 'lorenzo@gmail.com', language: 'Italian/English', expertise: 'Expert', price: 50, description: 'Tutor Lorenzo', country: 'Italy' },
+  { id: 71, name: 'Nancy', email: 'nancy@gmail.com', language: 'English/Spanish', expertise: 'Advanced', price: 30, description: 'Tutor Nancy', country: 'Spain' },
+];
 
-export default function TutorDashboard() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'lessons' | 'students' | 'settings'>('dashboard');
+const generateMockBookings = (instructors: Instructor[]): Booking[] =>
+  Array.from({ length: 50 }, (_, i) => ({
+    id: i + 1,
+    instructor_id: instructors[Math.floor(Math.random() * instructors.length)].id,
+    student_name: ['Alice','Bob','Carol','David','Emma'][Math.floor(Math.random()*5)],
+    student_email: `student${i}@example.com`,
+    lesson_date: new Date(Date.now() - Math.random() * 60*24*60*60*1000).toISOString(),
+    status: ['pending','confirmed','completed','cancelled'][Math.floor(Math.random()*4)] as any,
+    amount: Math.floor(Math.random()*50)+15,
+    created_at: new Date(Date.now() - Math.random()*60*24*60*60*1000).toISOString()
+  }));
 
-  const [stats, setStats] = useState({
-    lessons: 12,
-    revenue: 450,
-    activeStudents: 8
-  });
+// ---------------------- Hooks ----------------------
+const useDashboardData = () => {
+  const [instructors,setInstructors] = useState<Instructor[]>([]);
+  const [bookings,setBookings] = useState<Booking[]>([]);
+  const [loading,setLoading] = useState(true);
 
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const generateMockData = useCallback(()=>{
+    const mockInstructors = generateMockInstructors();
+    const mockBookings = generateMockBookings(mockInstructors);
+    setInstructors(mockInstructors);
+    setBookings(mockBookings);
+  },[]);
 
-  const generateData = () => {
-    const dummyLessons: Lesson[] = Array.from({ length: 5 }, (_, i) => ({
-      name: `Lesson ${i + 1}`,
-      students: Math.floor(Math.random() * 10) + 1,
-      status: Math.random() > 0.3 ? 'Active' : 'Completed',
-      date: `${Math.floor(Math.random() * 28) + 1}/09/2025`
-    }));
-    setLessons(dummyLessons);
+  useEffect(()=>{ generateMockData(); setLoading(false); },[generateMockData]);
+  return { instructors, bookings, loading };
+};
 
-    const dummyStudents: Student[] = Array.from({ length: 8 }, (_, i) => ({
-      name: `Student ${i + 1}`,
-      completed: Math.floor(Math.random() * 5) + 1,
-      total: 5
-    }));
-    setStudents(dummyStudents);
+// ---------------------- CountUp Component ----------------------
+const CountUpNumber = ({ end, duration=1500 }: { end:number; duration?:number })=>{
+  const [count,setCount] = useState(0);
+  useEffect(()=>{
+    let start:number;
+    const animate=(timestamp:number)=>{
+      if(!start) start=timestamp;
+      const progress = Math.min((timestamp-start)/duration,1);
+      setCount(Math.floor(progress*end));
+      if(progress<1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  },[end,duration]);
+  return <span>{count.toLocaleString()}</span>;
+};
 
-    const dummyActivities: Activity[] = Array.from({ length: 5 }, (_, i) => ({
-      text: `Student ${Math.floor(Math.random() * 10) + 1} completed a lesson`,
-      time: `${Math.floor(Math.random() * 59) + 1} mins ago`
-    }));
-    setActivities(dummyActivities);
+// ---------------------- Main Dashboard ----------------------
+export default function DashboardPage(){
+  const { instructors, bookings, loading } = useDashboardData();
+  const [activeTab,setActiveTab] = useState<'dashboard'|'tutors'|'calendar'|'settings'>('dashboard');
+  const [trendTutorId,setTrendTutorId] = useState<number|'all'>('all');
 
-    setStats({
-      lessons: dummyLessons.length,
-      revenue: Math.floor(Math.random() * 1000),
-      activeStudents: dummyStudents.length
+  const filteredBookings = useMemo(()=>{
+    if(trendTutorId==='all') return bookings;
+    return bookings.filter(b=>b.instructor_id===trendTutorId);
+  },[trendTutorId,bookings]);
+
+  const revenueByDay = useMemo(()=>{
+    const dayMap: Record<string, Record<number, number>> = {};
+    filteredBookings.forEach(b=>{
+      if(!b.lesson_date||!b.amount) return;
+      const day = new Date(b.lesson_date).toISOString().slice(0,10);
+      if(!dayMap[day]) dayMap[day] = {};
+      dayMap[day][b.instructor_id] = (dayMap[day][b.instructor_id] || 0) + b.amount;
     });
-  };
+    return Object.keys(dayMap).sort().map(d => ({ date: d, ...dayMap[d] }));
+  }, [filteredBookings]);
 
-  useEffect(() => {
-    generateData();
-    const interval = setInterval(() => generateData(), 5000);
-    return () => clearInterval(interval);
-  }, []);
+  if(loading) return <div className="p-4 text-white">Loading...</div>;
 
-  const gradient = (ctx: any, chartArea: any) => {
-    if (!chartArea) return 'rgba(0,0,0,0)';
-    const width = chartArea.right - chartArea.left;
-    const grad = ctx.createLinearGradient(0, 0, width, 0);
-    grad.addColorStop(0, 'rgba(20,184,166,0.5)');
-    grad.addColorStop(0.5, 'rgba(249,115,22,0.5)');
-    grad.addColorStop(1, 'rgba(239,68,68,0.5)');
-    return grad;
-  };
-
-  const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Revenue ($)',
-        data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 500 + 50)),
-        borderColor: 'rgba(20,184,166,1)',
-        backgroundColor: (context: any) => gradient(context.chart.ctx, context.chart.chartArea),
-        tension: 0.4,
-        fill: true,
-        pointHoverRadius: 8,
-        pointHoverBackgroundColor: 'rgba(20,184,166,1)',
-        pointRadius: 5
-      },
-      {
-        label: 'Lessons',
-        data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 15 + 5)),
-        borderColor: 'rgba(249,115,22,1)',
-        backgroundColor: (context: any) => gradient(context.chart.ctx, context.chart.chartArea),
-        tension: 0.4,
-        fill: true,
-        pointHoverRadius: 8,
-        pointHoverBackgroundColor: 'rgba(249,115,22,1)',
-        pointRadius: 5
-      }
-    ]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 1500, easing: 'easeOutQuart' },
-    plugins: {
-      legend: { position: 'top' as const, labels: { color: '#333', font: { size: 14, weight: 'bold' } } },
-      title: { display: true, text: 'Revenue & Lessons Trend', color: '#111', font: { size: 16 } },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    interaction: { mode: 'nearest' as const, intersect: false },
-    scales: {
-      y: { ticks: { color: '#111' }, grid: { color: '#e5e7eb' } },
-      x: { ticks: { color: '#111' }, grid: { color: '#e5e7eb' } }
-    }
-  };
-
-  const statsConfig = [
-    { value: stats.lessons, label: 'Lessons', color: '#14b8a6', max: 20 },
-    { value: stats.revenue, label: 'Revenue $', color: '#f97316', max: 1000 },
-    { value: stats.activeStudents, label: 'Students', color: '#e11d48', max: 20 }
-  ];
+  const totalRevenue = filteredBookings.reduce((sum,b)=>sum+(b.amount||0),0);
+  const totalStudents = new Set(filteredBookings.map(b=>b.student_email)).size;
+  const tutorCardColor = '#1f2937';
+  const lineColors = ['#06d6a0','#118ab2','#ef476f','#ffd166','#8338ec','#ff7f50','#ffb347'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6">
-      <Toaster position="top-right" />
+    <div className="p-4 text-white space-y-6 font-sans">
 
       {/* Tabs */}
-      <div className="flex gap-2 md:gap-4 mb-6 flex-wrap justify-center">
-        {['dashboard', 'lessons', 'students', 'settings'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={clsx(
-              'py-2 px-4 rounded-full font-semibold transition text-sm md:text-base',
-              activeTab === tab
-                ? 'bg-teal-600 text-white shadow-lg scale-105'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-105 transform'
-            )}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+      <div className="flex flex-wrap space-x-2 mb-4 sticky top-0 bg-gray-900 z-10 p-2 rounded">
+        {['dashboard','tutors','calendar','settings'].map(tab=>(
+          <button key={tab} 
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${activeTab===tab?'bg-cyan-500 text-white':'bg-gray-700/50 text-gray-300 hover:bg-cyan-400 hover:text-white'}`}
+            onClick={()=>setActiveTab(tab)}>
+            {tab.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* Dashboard */}
-      {activeTab === 'dashboard' && (
-        <div className="space-y-6 md:space-y-8">
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-            {statsConfig.map((s, idx) => (
-              <div
-                key={idx}
-                className="bg-white p-4 md:p-6 rounded-3xl shadow-lg flex flex-col items-center transition transform hover:scale-105 hover:shadow-2xl"
-              >
-                <div className="w-20 h-20 md:w-24 md:h-24">
-                  <CircularProgressbar
-                    value={s.value}
-                    maxValue={s.max}
-                    text={<CountUp start={0} end={s.value} duration={1.5} separator="," />}
-                    styles={buildStyles({
-                      textColor: s.color,
-                      pathColor: s.color,
-                      trailColor: '#e5e7eb',
-                      textSize: '16px',
-                      pathTransitionDuration: 1.5
-                    })}
-                  />
-                </div>
-                <p className="mt-2 text-gray-600 font-semibold text-sm md:text-base">{s.label}</p>
+      {/* ---------------- DASHBOARD TAB ---------------- */}
+      {activeTab==='dashboard' && (
+        <>
+          {/* Top Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {[{ icon: Users, label: 'Instructors', value: instructors.length },
+              { icon: BookOpen, label: 'Bookings', value: filteredBookings.length },
+              { icon: DollarSign, label: 'Revenue', value: totalRevenue, prefix:'$' },
+              { icon: Users, label: 'Students', value: totalStudents }].map((stat,i)=>(
+              <div key={i} className="bg-gray-800 p-4 rounded-lg flex flex-col items-center shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1">
+                <stat.icon className="mb-2 w-6 h-6" /> 
+                <span className="text-sm">{stat.label}</span>
+                <CountUpNumber end={stat.value}/> {stat.prefix||''}
               </div>
             ))}
           </div>
 
-          {/* Line Chart */}
-          <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg hover:shadow-2xl transition" style={{ height: 280 }}>
-            <Line data={chartData} options={chartOptions} />
+          {/* Tutor Filter */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 mb-2">
+            <label>Show trends for:</label>
+            <select className="bg-gray-700 p-2 rounded" value={trendTutorId} onChange={e=>setTrendTutorId(e.target.value==='all'?'all':parseInt(e.target.value))}>
+              <option value="all">All Tutors Combined</option>
+              {instructors.map(i=><option key={i.id} value={i.id}>{i.name}</option>)}
+            </select>
           </div>
 
-          {/* Mini sparkline cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {['Revenue', 'Lessons'].map((metric) => (
-              <div key={metric} className="bg-white p-4 rounded-2xl shadow-lg hover:shadow-2xl transition">
-                <p className="text-gray-500 font-semibold text-sm">{metric} Trend</p>
-                <Line
-                  data={{
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [
-                      {
-                        data: Array.from({ length: 6 }, () => Math.floor(Math.random() * 500 + 50)),
-                        borderColor: metric === 'Revenue' ? 'rgba(20,184,166,1)' : 'rgba(249,115,22,1)',
-                        backgroundColor: 'rgba(0,0,0,0)',
-                        tension: 0.4,
-                        fill: false,
-                        pointRadius: 3,
-                        pointHoverRadius: 5
-                      }
-                    ]
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                    scales: { x: { display: false }, y: { display: false } }
-                  }}
-                  style={{ height: 80 }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Recent Activities & Upcoming Lessons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg hover:shadow-2xl transition">
-              <h3 className="font-bold text-lg mb-2 md:mb-4">Recent Activity</h3>
-              <ul className="space-y-2">
-                {activities.map((act, idx) => (
-                  <li key={idx} className="flex justify-between px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm md:text-base">
-                    <span>{act.text}</span>
-                    <span className="text-gray-400">{act.time}</span>
-                  </li>
+          {/* Revenue Trend Chart */}
+          <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">{trendTutorId==='all'?'Revenue Trend':'Revenue Trend by Tutor'}</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={revenueByDay} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid stroke="#333" strokeDasharray="3 3"/>
+                <XAxis dataKey="date" stroke="#fff" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#fff" tick={{ fontSize: 12 }} />
+                <Tooltip contentStyle={{ backgroundColor:'#222', border:'none', color:'#fff' }} formatter={(value:number)=>[`$${value.toFixed(2)}`,'Revenue']}/>
+                <Legend />
+                {instructors.map((tutor,i)=>(
+                  <Line key={tutor.id} type="monotone" dataKey={tutor.id} stroke={lineColors[i%lineColors.length]} strokeWidth={2} dot={{ r:3 }} activeDot={{ r:5 }}/>
                 ))}
-              </ul>
-            </div>
-            <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg hover:shadow-2xl transition">
-              <h3 className="font-bold text-lg mb-2 md:mb-4">Upcoming Lessons</h3>
-              <ul className="space-y-2">
-                {lessons.map((lesson, idx) => (
-                  <li key={idx} className="flex justify-between px-3 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-sm md:text-base">
-                    <span>{lesson.name}</span>
-                    <span className="text-blue-700 font-semibold">{lesson.date}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              </LineChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Students Progress */}
-          <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg hover:shadow-2xl transition">
-            <h3 className="font-bold text-lg mb-2 md:mb-4">Student Progress</h3>
-            <ul className="space-y-2">
-              {students.map((student, idx) => (
-                <li key={idx}>
-                  <p className="font-semibold text-sm md:text-base">{student.name}</p>
-                  <div className="w-full bg-gray-200 rounded-full h-3 md:h-4">
-                    <div
-                      className="h-3 md:h-4 rounded-full transition-all"
-                      style={{
-                        width: `${(student.completed / student.total) * 100}%`,
-                        background: 'linear-gradient(to right, #14b8a6, #f97316)'
-                      }}
-                    />
+          {/* Tutor Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {instructors.map(inst=>{
+              const tutorBookings = bookings.filter(b=>b.instructor_id===inst.id);
+              const tutorRevenue = tutorBookings.reduce((sum,b)=>sum+(b.amount||0),0);
+
+              // Trend data for mini line
+              const trendData = tutorBookings.reduce((acc:any, b)=>{
+                if(!b.lesson_date || !b.amount) return acc;
+                const day = new Date(b.lesson_date).toISOString().slice(0,10);
+                if(!acc[day]) acc[day] = 0;
+                acc[day] += b.amount;
+                return acc;
+              }, {} as Record<string,number>);
+              const trendArray = Object.keys(trendData).sort().map(day=>({ date: day, revenue: trendData[day] }));
+
+              // Status counts for summary pills
+              const statusCounts = { completed:0, pending:0, cancelled:0 };
+              tutorBookings.forEach(b=>statusCounts[b.status]++);
+
+              return (
+                <div key={inst.id} className="p-4 rounded-lg shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ backgroundColor: tutorCardColor, color:'#fff' }}>
+                  <div className="text-lg font-bold">{inst.name}</div>
+                  <div className="text-sm">{inst.language} - {inst.expertise}</div>
+                  <div className="text-sm mt-1">Bookings: {tutorBookings.length}</div>
+                  <div className="text-sm">Revenue: ${tutorRevenue}</div>
+                  <div className="text-xs">{inst.country}</div>
+
+                  {/* Mini Revenue Trend */}
+                  <div className="mt-2 h-16">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={trendArray}>
+                        <Line type="monotone" dataKey="revenue" stroke="#06d6a0" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </div>
-                </li>
-              ))}
-            </ul>
+
+                  {/* Status Pills */}
+                  <div className="flex flex-wrap space-x-2 mt-2 text-xs">
+                    {['completed','pending','cancelled'].map((status)=>{
+                      const count = statusCounts[status as keyof typeof statusCounts];
+                      const percentage = tutorBookings.length ? ((count/tutorBookings.length)*100).toFixed(0) : '0';
+                      const colors: Record<string,string> = { completed:'#06d6a0', pending:'#f9c74f', cancelled:'#f9844a' };
+                      const labels: Record<string,string> = { completed:'Completed', pending:'Pending', cancelled:'Cancelled' };
+                      return (
+                        <span key={status} className={`px-2 py-1 rounded-full font-semibold`} style={{backgroundColor:colors[status]}}>
+                          {labels[status]}: {count} ({percentage}%)
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </>
+      )}
+
+      {/* ---------------- TUTORS TAB ---------------- */}
+      {activeTab==='tutors' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {instructors.map(inst=>{
+            const tutorBookings = bookings.filter(b=>b.instructor_id===inst.id);
+            return (
+              <div key={inst.id} className="p-4 rounded-lg shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ backgroundColor: tutorCardColor, color:'#fff' }}>
+                <div className="text-lg font-bold">{inst.name}</div>
+                <div className="text-sm">{inst.language} - {inst.expertise}</div>
+                <div>${inst.price}</div>
+                <div>Bookings: {tutorBookings.length}</div>
+                <div className="text-xs">{inst.country}</div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Lessons */}
-      {activeTab === 'lessons' && (
-        <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg overflow-x-auto hover:shadow-2xl transition">
-          <table className="min-w-full table-auto border-collapse text-sm md:text-base">
-            <thead>
-              <tr className="bg-teal-600 text-white">
-                <th className="px-3 md:px-4 py-2">Lesson</th>
-                <th className="px-3 md:px-4 py-2">Students</th>
-                <th className="px-3 md:px-4 py-2">Status</th>
-                <th className="px-3 md:px-4 py-2">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lessons.map((lesson, idx) => (
-                <tr key={idx} className="text-center border-b hover:bg-gray-50 transition">
-                  <td className="px-3 md:px-4 py-2">{lesson.name}</td>
-                  <td className="px-3 md:px-4 py-2">{lesson.students}</td>
-                  <td
-                    className={clsx(
-                      'px-3 md:px-4 py-2 font-semibold rounded-full text-white',
-                      lesson.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
-                    )}
-                  >
-                    {lesson.status}
-                  </td>
-                  <td className="px-3 md:px-4 py-2">{lesson.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* ---------------- CALENDAR TAB ---------------- */}
+      {activeTab==='calendar' && (
+        <FullCalendar
+          plugins={[dayGridPlugin,timeGridPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{ left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' }}
+          events={bookings.map(b=>({ 
+            title: `${instructors.find(i=>i.id===b.instructor_id)?.name} - $${b.amount}`,
+            start: b.lesson_date, 
+            color: b.status==='completed'?'#06d6a0': b.status==='cancelled'?'#ffa500':'#f94144'
+          }))}
+          height={600}
+          className="bg-gray-800 rounded-lg p-2 shadow"
+        />
       )}
 
-      {/* Students */}
-      {activeTab === 'students' && (
-        <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg overflow-x-auto hover:shadow-2xl transition">
-          <table className="min-w-full table-auto border-collapse text-sm md:text-base">
-            <thead>
-              <tr className="bg-purple-600 text-white">
-                <th className="px-3 md:px-4 py-2">Student</th>
-                <th className="px-3 md:px-4 py-2">Completed Lessons</th>
-                <th className="px-3 md:px-4 py-2">Progress</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student, idx) => (
-                <tr key={idx} className="text-center border-b hover:bg-gray-50 transition">
-                  <td className="px-3 md:px-4 py-2">{student.name}</td>
-                  <td className="px-3 md:px-4 py-2">{student.completed} / {student.total}</td>
-                  <td className="px-3 md:px-4 py-2">
-                    <div className="w-full bg-gray-200 rounded-full h-3 md:h-4">
-                      <div
-                        className="h-3 md:h-4 rounded-full transition-all"
-                        style={{
-                          width: `${(student.completed / student.total) * 100}%`,
-                          background: 'linear-gradient(to right, #14b8a6, #f97316)'
-                        }}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* ---------------- SETTINGS TAB ---------------- */}
+      {activeTab==='settings' && (
+        <div className="bg-gray-800 p-4 rounded-lg shadow">Settings coming soon...</div>
       )}
 
-      {/* Settings */}
-      {activeTab === 'settings' && (
-        <div className="bg-white p-4 md:p-6 rounded-3xl shadow-lg hover:shadow-2xl transition">
-          <h2 className="text-xl font-bold mb-4">Settings</h2>
-          <p className="text-gray-700 text-sm md:text-base">Here you can add settings like profile info, password change, notifications, etc.</p>
-        </div>
-      )}
     </div>
   );
 }
