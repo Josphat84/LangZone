@@ -69,7 +69,7 @@ export default function Home() {
   const [nativeFilter, setNativeFilter] = useState<'any' | 'native' | 'non-native'>('any');
   const [openDemoVideo, setOpenDemoVideo] = useState<string | null>(null);
 
-  const [blogs, setBlogs] = useState<BlogPost[]>([
+  const [blogs] = useState<BlogPost[]>([
     { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.' },
     { title: 'How to Practice Speaking Every Day', slug: 'practice-speaking', summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.' },
     { title: 'Choosing the Right Tutor', slug: 'choose-tutor', summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.' },
@@ -108,7 +108,7 @@ export default function Home() {
       if (data) {
         const tutorsWithImages = data.map((t: Instructor) => ({
           ...t,
-          image_url: t.image_url ? supabase.storage.from('instructor-images').getPublicUrl(t.image_url).data.publicUrl : '/default-avatar.png',
+          image_url: t.image_url ? `${supabaseUrl}/storage/v1/object/public/instructor-images/${t.image_url}` : '/default-avatar.png',
           demo_video_url: t.demo_video_url || '/default-demo.mp4',
           zoom_link: t.zoom_link || 'https://zoom.us/',
         }));
@@ -122,7 +122,11 @@ export default function Home() {
   useEffect(() => {
     let temp = [...tutors];
     if (searchQuery) {
-      temp = temp.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.language?.toLowerCase().includes(searchQuery.toLowerCase()) || t.expertise?.toLowerCase().includes(searchQuery.toLowerCase()));
+      temp = temp.filter(t => 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        t.language?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        t.expertise?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
     if (priceFilter) temp = temp.filter(t => t.price && t.price <= priceFilter);
     if (nativeFilter !== 'any') temp = temp.filter(t => nativeFilter === 'native' ? t.is_native : !t.is_native);
@@ -137,11 +141,11 @@ export default function Home() {
     };
     getSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user || null);
     });
-    return () => listener.subscription.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
@@ -157,7 +161,7 @@ export default function Home() {
       setStepIndex(prev => (prev + 1) % stepsSlides.length);
     }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroTips.length, infoSlides.length, stepsSlides.length]);
 
   const slideVariants = {
     enter: { x: 400, opacity: 0, scale: 0.9 },
@@ -240,7 +244,7 @@ export default function Home() {
 
               <select 
                 value={nativeFilter} 
-                onChange={e => setNativeFilter(e.target.value as any)} 
+                onChange={e => setNativeFilter(e.target.value as 'any' | 'native' | 'non-native')} 
                 className="w-full md:w-1/6 border border-gray-300 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 bg-white hover:ring-teal-500 transition shadow-sm"
               >
                 <option value="any">Any</option>
@@ -250,8 +254,14 @@ export default function Home() {
             </div>
 
             {/* Enhanced Tutor Grid */}
-            <div className="grid grid-cols-1  gap-8">
-              {filteredTutors.map(tutor => <TutorCard key={tutor.id} tutor={tutor} setOpenDemoVideo={setOpenDemoVideo} />)}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredTutors.map(tutor => (
+                <TutorCard 
+                  key={tutor.id} 
+                  tutor={tutor} 
+                  setOpenDemoVideo={setOpenDemoVideo} 
+                />
+              ))}
             </div>
           </>
         )}
@@ -259,12 +269,17 @@ export default function Home() {
         {/* Info Tab */}
         {activeTab === 'info' && (
           <div className="relative max-w-4xl mx-auto">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {draggableSlide(<InfoSlideComponent slide={infoSlides[infoIndex]} />, infoIndex)}
             </AnimatePresence>
             <div className="flex justify-center gap-3 mt-4">
               {infoSlides.map((_, idx) => (
-                <span key={idx} onClick={() => setInfoIndex(idx)} className={`w-3 h-3 rounded-full cursor-pointer ${infoIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}></span>
+                <button
+                  key={idx}
+                  onClick={() => setInfoIndex(idx)}
+                  className={`w-3 h-3 rounded-full cursor-pointer ${infoIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -273,12 +288,17 @@ export default function Home() {
         {/* Steps Tab */}
         {activeTab === 'steps' && (
           <div className="relative max-w-4xl mx-auto">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {draggableSlide(<StepSlideComponent slide={stepsSlides[stepIndex]} />, stepIndex)}
             </AnimatePresence>
             <div className="flex justify-center gap-3 mt-4">
               {stepsSlides.map((_, idx) => (
-                <span key={idx} onClick={() => setStepIndex(idx)} className={`w-3 h-3 rounded-full cursor-pointer ${stepIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}></span>
+                <button
+                  key={idx}
+                  onClick={() => setStepIndex(idx)}
+                  className={`w-3 h-3 rounded-full cursor-pointer ${stepIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}
+                  aria-label={`Go to step ${idx + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -290,11 +310,24 @@ export default function Home() {
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Frequently Asked Questions</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {faqItems.map((item, idx) => (
-            <motion.div key={idx} layout className={`p-6 rounded-xl shadow-lg cursor-pointer bg-gradient-to-r ${item.bgGradient} text-white`} onClick={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
+            <motion.div 
+              key={idx} 
+              layout 
+              className={`p-6 rounded-xl shadow-lg cursor-pointer bg-gradient-to-r ${item.bgGradient} text-white`} 
+              onClick={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
+            >
               <motion.h3 layout className="font-semibold text-lg">{item.question}</motion.h3>
               <AnimatePresence>
                 {openFAQIndex === idx && (
-                  <motion.p layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-3 text-white/90">{item.answer}</motion.p>
+                  <motion.p 
+                    layout 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    exit={{ opacity: 0, height: 0 }} 
+                    className="mt-3 text-white/90"
+                  >
+                    {item.answer}
+                  </motion.p>
                 )}
               </AnimatePresence>
             </motion.div>
@@ -305,9 +338,15 @@ export default function Home() {
       {/* Blog */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10" id="blog">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Latest from Our Blog</h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogs.map((post, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="bg-white rounded-3xl shadow-lg p-8 text-gray-800 hover:shadow-2xl hover:scale-105 transition transform">
+            <motion.div 
+              key={idx} 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.8, delay: idx * 0.1 }} 
+              className="bg-white rounded-3xl shadow-lg p-8 text-gray-800 hover:shadow-2xl hover:scale-105 transition transform"
+            >
               <h3 className="text-2xl font-bold mb-4 text-gray-800">{post.title}</h3>
               <p className="text-gray-600">{post.summary}</p>
             </motion.div>
@@ -318,17 +357,40 @@ export default function Home() {
       {/* Demo Video Modal */}
       <AnimatePresence>
         {openDemoVideo && (
-          <motion.div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="bg-white rounded-3xl overflow-hidden w-11/12 md:w-3/4 lg:w-1/2 relative" initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}>
+          <motion.div 
+            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            onClick={() => setOpenDemoVideo(null)}
+          >
+            <motion.div 
+              className="bg-white rounded-3xl overflow-hidden w-11/12 md:w-3/4 lg:w-1/2 relative"
+              initial={{ scale: 0.8 }} 
+              animate={{ scale: 1 }} 
+              exit={{ scale: 0.8 }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <video src={openDemoVideo} controls autoPlay className="w-full h-auto rounded-3xl object-cover" />
-              <button onClick={() => setOpenDemoVideo(null)} className="absolute top-4 right-4 text-white bg-red-500 px-3 py-1 rounded-full hover:bg-red-600 transition">Close</button>
+              <button 
+                onClick={() => setOpenDemoVideo(null)} 
+                className="absolute top-4 right-4 text-white bg-red-500 px-3 py-1 rounded-full hover:bg-red-600 transition"
+              >
+                Close
+              </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Auth Modal */}
-      {isAuthModalOpen && <AuthModal isOpen={isAuthModalOpen} setIsOpen={setIsAuthModalOpen} mode={authMode} />}
+      {isAuthModalOpen && (
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          setIsOpen={setIsAuthModalOpen} 
+          mode={authMode} 
+        />
+      )}
     </div>
   );
 }
@@ -445,15 +507,15 @@ function TutorCard({ tutor, setOpenDemoVideo }: { tutor: Instructor; setOpenDemo
         </div>
 
         {/* Demo Video Section */}
-{tutor.demo_video_url && (
-  <div className="mb-4">
-    <div className="relative group">
-      <div className="w-full h-48 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-lg">
-        <video 
-          src={tutor.demo_video_url} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-          poster="/video-thumbnail.jpg"
-        />
+        {tutor.demo_video_url && (
+          <div className="mb-4">
+            <div className="relative group">
+              <div className="w-full h-48 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-lg">
+                <video 
+                  src={tutor.demo_video_url} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                  poster="/video-thumbnail.jpg"
+                />
                 
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
