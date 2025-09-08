@@ -253,7 +253,7 @@ export default function Footer() {
         {/* Divider and Copyright */}
         <div className="border-t border-white/20 mt-10 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-center md:text-left text-teal-100 text-sm font-medium tracking-wide mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} LangZone Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} No Name Inc. All rights reserved.
           </p>
           <div className="flex items-center space-x-2 text-teal-100 text-sm">
             <span>English</span>

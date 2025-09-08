@@ -11,7 +11,15 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Updated to a language learning themed background image
-const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'; 
+const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
+
+
+
+
+
+
+
+
 
 // Add Instructor interface
 interface Instructor {
@@ -472,7 +480,7 @@ export default function Home() {
       {/* Tabs */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
         <div className="flex justify-center gap-4 mb-10 flex-wrap">
-          <button onClick={() => setActiveTab('packages')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'packages' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Our Packages</button>
+          <button onClick={() => setActiveTab('packages')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'packages' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Our Courses</button>
           <button onClick={() => setActiveTab('info')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>About Us</button>
           <button onClick={() => setActiveTab('steps')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'steps' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>How It Works</button>
         </div>
