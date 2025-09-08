@@ -1,196 +1,303 @@
-// frontend/app/contact/page.tsx
-'use client'; // This directive is crucial for using client-side hooks like useState
+//app/contact-us/page.tsx
 
-import { useState } from 'react';
-import Image from 'next/image'; // Assuming you have a logo image
-import Link from 'next/link';
+'use client'
 
-export default function ContactPage() {
+
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Mail, Phone, MapPin, Clock, MessageCircle, Send, CheckCircle } from 'lucide-react';
+
+const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: '',
+    message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmissionStatus('submitting');
-    setErrorMessage('');
-
-    try {
-      const response = await fetch('/api/contact', { // Path to your API route
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setSubmissionStatus('success');
-        setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
-      } else {
-        const errorData = await response.json();
-        setSubmissionStatus('error');
-        setErrorMessage(errorData.message || 'An unknown error occurred.');
-        console.error('Form submission failed:', errorData);
-      }
-    } catch (error) {
-      setSubmissionStatus('error');
-      setErrorMessage('Network error. Please check your connection.');
-      console.error('Error during form submission:', error);
-    }
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsSubmitting(false);
+    setIsSubmitted(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 3000);
   };
 
-  // Common Tailwind CSS classes for consistency
-  const sectionTitleClasses = "text-4xl font-extrabold text-gray-900 mb-6 text-center";
-  const sectionParagraphClasses = "text-lg text-gray-700 mb-8 text-center max-w-3xl mx-auto";
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Message Sent Successfully!</h3>
+              <p className="text-gray-600 mb-6">
+                Thank you for reaching out. We'll get back to you within 24 hours.
+              </p>
+              <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                Response time: Usually within 2-4 hours
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800">
-      {/* Header - Reusing your existing header structure from AboutUsPage */}
-      <header className="bg-white shadow-sm py-4 px-6 border-b border-gray-100 sticky top-0 z-50">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <Link href="/" className="flex items-center space-x-2 text-xl font-bold text-teal-700">
-              <Image src="/icons/logo-icon.svg" alt="App Logo" width={28} height={28} />
-              <span>LangZone</span>
-            </Link>
-            <nav className="hidden md:flex space-x-5">
-              <Link href="/" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Find Instructors</Link>
-              <Link href="/enterprise" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Enterprise Solutions</Link>
-              <Link href="/courses" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Courses</Link>
-              <Link href="/create-new-profile" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Become an Instructor</Link>
-              <Link href="/about-us" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">About Us</Link>
-              <Link href="/contact" className="text-teal-600 font-medium transition-colors">Contact Us</Link> {/* Highlighted link */}
-              <Link href="/help-center" className="text-gray-700 hover:text-teal-600 font-medium transition-colors">Help Center</Link> {/* Added Help Center link */}
-            </nav>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <Badge variant="outline" className="mb-4 bg-white/50 backdrop-blur-sm">
+            <MessageCircle className="h-4 w-4 mr-2" />
+            Get in Touch
+          </Badge>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            We'd Love to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Hear From You</span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Have a question about language learning, need support, or want to become an instructor? 
+            Fill out the form below and our team will respond as soon as possible.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Contact Form */}
+          <div className="lg:col-span-2">
+            <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-bold text-gray-900">Send us a Message</CardTitle>
+                <CardDescription className="text-base text-gray-600">
+                  We typically respond within 2-4 hours during business hours
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                        Full Name *
+                      </Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="h-12 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Email Address *
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="h-12 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subject" className="text-sm font-medium text-gray-700">
+                      Subject *
+                    </Label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      placeholder="What's this about?"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required
+                      className="h-12 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-sm font-medium text-gray-700">
+                      Message *
+                    </Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      placeholder="Tell us more about your question or feedback..."
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      rows={6}
+                      className="resize-none border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                    />
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold text-base transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <Send className="h-5 w-5 mr-2" />
+                        Send Message
+                      </div>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex items-center space-x-5">
-            <Link href="/rewards" className="text-gray-600 hover:text-teal-600 transition-colors hidden sm:block">Rewards</Link>
-            <div className="relative">
-              <select className="border border-gray-200 rounded-md py-1.5 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal-400 appearance-none bg-white pr-8">
-                <option>English ($USD)</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9l4.5 4.5z"/></svg>
-              </div>
-            </div>
-            <Link href="/saved-instructors" className="text-gray-600 hover:text-red-500 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 22l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-            </Link>
-            <Link href="/alerts" className="text-gray-600 hover:text-teal-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            </Link>
-            <button className="bg-teal-600 text-white py-2 px-5 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-md">Sign In</button>
+
+          {/* Contact Information */}
+          <div className="space-y-6">
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-gray-900">Other Ways to Reach Us</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
+                    <p className="text-blue-600 font-medium">support@langzone.com</p>
+                    <p className="text-sm text-gray-600">For general inquiries</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-green-50 border border-green-100">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Phone className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Phone</h4>
+                    <p className="text-green-600 font-medium">+26377897314</p>
+                    <p className="text-sm text-gray-600">Mon-Fri, 9AM-5PM GMT</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 p-4 rounded-lg bg-purple-50 border border-purple-100">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <MapPin className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Address</h4>
+                    <p className="text-purple-600 font-medium">123 Language Lane</p>
+                    <p className="text-sm text-gray-600">Fluent City, Global Hub, 45678</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Clock className="h-6 w-6" />
+                  <h4 className="font-bold text-lg">Business Hours</h4>
+                </div>
+                <div className="space-y-2 text-blue-100">
+                  <div className="flex justify-between">
+                    <span>Monday - Friday</span>
+                    <span className="font-semibold">9:00 AM - 6:00 PM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Saturday</span>
+                    <span className="font-semibold">10:00 AM - 4:00 PM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sunday</span>
+                    <span className="font-semibold">Closed</span>
+                  </div>
+                  <Separator className="my-3 bg-white/20" />
+                  <p className="text-sm text-blue-100">
+                    All times are in GMT timezone
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </header>
 
-      <main className="container mx-auto px-6 py-12 max-w-4xl">
-        <section className="text-center mb-10">
-          <h1 className={sectionTitleClasses}>Contact Us</h1>
-          <p className={sectionParagraphClasses}>
-            Have a question, feedback, or need support? Fill out the form below, and we'll get back to you as soon as possible.
-          </p>
-        </section>
-
-        <section className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 mb-10 animate-fadeIn">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">Name:</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-teal-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-teal-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="subject" className="block text-gray-700 text-sm font-bold mb-2">Subject:</label>
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                required
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-teal-500 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">Message:</label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={6}
-                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-teal-500 transition-colors resize-y"
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              className="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-700 focus:outline-none focus:shadow-outline transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full"
-              disabled={submissionStatus === 'submitting'}
-            >
-              {submissionStatus === 'submitting' ? 'Sending Message...' : 'Send Message'}
-            </button>
-
-            {submissionStatus === 'success' && (
-              <p className="text-center text-green-600 mt-4 font-semibold">
-                Your message has been sent successfully! We will get back to you soon.
-              </p>
-            )}
-            {submissionStatus === 'error' && (
-              <p className="text-center text-red-600 mt-4 font-semibold">
-                There was an error sending your message: {errorMessage}. Please try again later.
-              </p>
-            )}
-          </form>
-        </section>
-
-        <section className="text-center p-8 bg-white rounded-xl shadow-lg border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Other Ways to Reach Us</h2>
-          <p className="text-lg text-gray-700 mb-2">Email: <a href="mailto:support@langzone.com" className="text-teal-600 hover:underline">support@langzone.com</a></p>
-          <p className="text-lg text-gray-700 mb-2">Phone: <a href="tel:+1234567890" className="text-teal-600 hover:underline">+263778973142</a></p>
-          <p className="text-lg text-gray-700">Address: 123 Language Lane, Fluent City, Global Hub, 45678</p>
-        </section>
-      </main>
-
-      
+        {/* FAQ Section */}
+        <div className="mt-16">
+          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Frequently Asked Questions</CardTitle>
+              <CardDescription className="text-base">
+                Quick answers to common questions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">How quickly do you respond?</h4>
+                    <p className="text-gray-600 text-sm">We typically respond within 2-4 hours during business hours, and within 24 hours on weekends.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Do you offer phone support?</h4>
+                    <p className="text-gray-600 text-sm">Yes! Call us during business hours for immediate assistance with urgent matters.</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Can I schedule a consultation?</h4>
+                    <p className="text-gray-600 text-sm">Absolutely! Mention your preferred time in your message and we'll coordinate a call.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">What languages do you support?</h4>
+                    <p className="text-gray-600 text-sm">Our support team can assist in English, Spanish, French, and German.</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default ContactPage;
