@@ -61,7 +61,7 @@ export default function Header() {
           href="/"
           className="text-2xl font-bold text-white hover:text-teal-200 transition-all duration-300 hover:shadow-[0_0_12px_rgba(255,255,255,0.7)] hover:animate-pulse-slow"
         >
-          LangZone
+          No Name Yet
         </Link>
 
         {/* Desktop Navigation */}
