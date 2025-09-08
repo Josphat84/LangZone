@@ -4,15 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient, Session, User } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserGroupIcon, LightBulbIcon, CheckBadgeIcon, PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
-import AuthModal from '@/components/AuthModal';
+import { UserGroupIcon, LightBulbIcon, CheckBadgeIcon, PlusIcon, MinusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// AI-generated background image URL (you can replace with your preferred image)
-const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'; 
+// Updated to a language learning themed background image
+const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'; 
 
 // Add Instructor interface
 interface Instructor {
@@ -69,6 +68,128 @@ interface Package {
   features: string[];
   popular?: boolean;
   bgGradient: string;
+}
+
+// AuthModal Component
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  setIsOpen?: (open: boolean) => void;
+  mode: 'sign-up' | 'sign-in';
+}
+
+function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [currentMode, setCurrentMode] = useState(mode);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+
+    try {
+      if (currentMode === 'sign-up') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setMessage('Check your email for the confirmation link!');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        onClose(); // Close modal on successful sign in
+      }
+    } catch (error: any) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        {currentMode === 'sign-up' ? 'Create Account' : 'Sign In'}
+      </h2>
+      
+      <form onSubmit={handleAuth} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Your email address"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
+            placeholder="Your password"
+          />
+        </div>
+        
+        {message && (
+          <div className={`p-3 rounded-lg text-sm ${message.includes('error') ? 'bg-red-100 text-red-700' : 'bg-teal-100 text-teal-700'}`}>
+            {message}
+          </div>
+        )}
+        
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-teal-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-teal-700 transition disabled:opacity-50"
+        >
+          {loading ? 'Processing...' : currentMode === 'sign-up' ? 'Sign Up' : 'Sign In'}
+        </button>
+      </form>
+      
+      <div className="mt-4 text-center">
+        <button
+          type="button"
+          onClick={() => setCurrentMode(currentMode === 'sign-up' ? 'sign-in' : 'sign-up')}
+          className="text-teal-600 hover:text-teal-700 text-sm font-medium"
+        >
+          {currentMode === 'sign-up' 
+            ? 'Already have an account? Sign In' 
+            : "Don't have an account? Sign Up"}
+        </button>
+      </div>
+      
+      <div className="mt-6 pt-4 border-t border-gray-200">
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full text-gray-500 hover:text-gray-700 text-sm font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -236,11 +357,11 @@ export default function Home() {
       setHeroTipIndex(prev => (prev + 1) % heroTips.length);
     }, 6000);
     
-    // Info and Steps slides change much slower (30 seconds) to allow more reading time
+    // Info and Steps slides change much slower (60 seconds/1 minute) to allow more reading time
     const infoAndStepsInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
       setStepIndex(prev => (prev + 1) % stepsSlides.length);
-    }, 30000); // Changed from 12000 to 30000 (30 seconds)
+    }, 60000); // 60 seconds/1 minute
     
     return () => {
       clearInterval(heroTipInterval);
@@ -270,7 +391,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Partial background image - only covers top portion */}
+      {/* Partial background image - updated to language learning themed image */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ 
@@ -396,7 +517,7 @@ export default function Home() {
               {draggableSlide(<StepSlideComponent slide={stepsSlides[stepIndex]} />, stepIndex)}
             </AnimatePresence>
             <div className="flex justify-center gap-3 mt-4">
-              {stepsSlides.map((_, idx) => (
+            {stepsSlides.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setStepIndex(idx)}
@@ -469,13 +590,39 @@ export default function Home() {
       </section>
 
       {/* Auth Modal */}
-      {isAuthModalOpen && (
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          setIsOpen={setIsAuthModalOpen}
-          mode={authMode}
-        />
-      )}
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsAuthModalOpen(false)}
+          >
+            <motion.div
+              className="bg-white rounded-3xl overflow-hidden w-full max-w-md relative"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsAuthModalOpen(false)}
+                className="absolute top-4 right-4 z-50 bg-gray-100 hover:bg-gray-200 rounded-full p-1 transition-colors"
+                aria-label="Close modal"
+              >
+                <XMarkIcon className="w-6 h-6 text-gray-600" />
+              </button>
+              <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                setIsOpen={setIsAuthModalOpen}
+                mode={authMode}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
