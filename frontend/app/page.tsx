@@ -4,27 +4,33 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient, Session, User } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserGroupIcon, LightBulbIcon } from '@heroicons/react/24/outline';
+import { UserGroupIcon, LightBulbIcon, CheckBadgeIcon, PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
 import AuthModal from '@/components/AuthModal';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// AI-generated background image URL (you can replace with your preferred image)
+const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'; 
+
+// Add Instructor interface
 interface Instructor {
   id: string;
   name: string;
-  slug: string;
-  image_url?: string;
-  expertise?: string;
-  years_experience?: number;
   language?: string;
-  is_native?: boolean;
+  expertise?: string;
   price?: number;
-  country?: string;
-  qualifications?: string;
+  is_native: boolean;
+  image_url?: string;
   demo_video_url?: string;
   zoom_link?: string;
+  slug: string;
+  country?: string;
+  years_experience?: number;
+  qualifications?: string;
+  rating?: number;
+  total_students?: number;
 }
 
 interface InfoSlide {
@@ -52,10 +58,23 @@ interface BlogPost {
   summary: string;
 }
 
+interface Package {
+  id: string;
+  name: string;
+  type: 'single' | 'weekly' | 'monthly' | 'premium';
+  price: number;
+  discountedPrice?: number;
+  lessons: number;
+  duration: string;
+  features: string[];
+  popular?: boolean;
+  bgGradient: string;
+}
+
 export default function Home() {
   const [tutors, setTutors] = useState<Instructor[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<Instructor[]>([]);
-  const [activeTab, setActiveTab] = useState<'tutors' | 'info' | 'steps'>('tutors');
+  const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
   const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
@@ -68,12 +87,83 @@ export default function Home() {
   const [priceFilter, setPriceFilter] = useState<number | null>(null);
   const [nativeFilter, setNativeFilter] = useState<'any' | 'native' | 'non-native'>('any');
   const [openDemoVideo, setOpenDemoVideo] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
   const [blogs] = useState<BlogPost[]>([
     { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.' },
     { title: 'How to Practice Speaking Every Day', slug: 'practice-speaking', summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.' },
     { title: 'Choosing the Right Tutor', slug: 'choose-tutor', summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.' },
   ]);
+
+  const packages: Package[] = [
+    {
+      id: 'single',
+      name: 'Single Lesson',
+      type: 'single',
+      price: 25,
+      lessons: 1,
+      duration: '60 minutes',
+      features: [
+        'One 60-minute lesson',
+        'Choose any available tutor',
+        'Flexible scheduling',
+        'Perfect for trying out'
+      ],
+      bgGradient: 'from-blue-400 to-blue-600'
+    },
+    {
+      id: 'weekly',
+      name: 'Weekly Package',
+      type: 'weekly',
+      price: 90,
+      discountedPrice: 80,
+      lessons: 4,
+      duration: '4 weeks',
+      features: [
+        'Four 60-minute lessons',
+        'Same tutor for consistency',
+        'Weekly progress tracking',
+        '10% discount on single rate'
+      ],
+      popular: true,
+      bgGradient: 'from-purple-400 to-purple-600'
+    },
+    {
+      id: 'monthly',
+      name: 'Monthly Intensive',
+      type: 'monthly',
+      price: 300,
+      discountedPrice: 250,
+      lessons: 12,
+      duration: '4 weeks',
+      features: [
+        'Twelve 60-minute lessons',
+        '3 lessons per week',
+        'Personalized learning plan',
+        'Progress reports',
+        '20% discount on single rate'
+      ],
+      bgGradient: 'from-teal-400 to-teal-600'
+    },
+    {
+      id: 'premium',
+      name: 'Premium Program',
+      type: 'premium',
+      price: 500,
+      discountedPrice: 450,
+      lessons: 20,
+      duration: '2 months',
+      features: [
+        'Twenty 60-minute lessons',
+        'Dedicated tutor',
+        'Custom curriculum',
+        'Weekly progress assessments',
+        'Learning materials included',
+        'Certificate of completion'
+      ],
+      bgGradient: 'from-orange-400 to-orange-600'
+    }
+  ];
 
   const infoSlides: InfoSlide[] = [
     { title: 'Who We Are', description: 'Connecting learners with certified instructors worldwide.', icon: UserGroupIcon, bgGradient: 'from-teal-400 to-teal-600' },
@@ -120,20 +210,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    let temp = [...tutors];
-    if (searchQuery) {
-      temp = temp.filter(t =>
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.language?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.expertise?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    if (priceFilter) temp = temp.filter(t => t.price && t.price <= priceFilter);
-    if (nativeFilter !== 'any') temp = temp.filter(t => nativeFilter === 'native' ? t.is_native : !t.is_native);
-    setFilteredTutors(temp);
-  }, [searchQuery, priceFilter, nativeFilter, tutors]);
-
-  useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
@@ -155,12 +231,21 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Hero tips change faster (6 seconds)
+    const heroTipInterval = setInterval(() => {
       setHeroTipIndex(prev => (prev + 1) % heroTips.length);
+    }, 6000);
+    
+    // Info and Steps slides change much slower (30 seconds) to allow more reading time
+    const infoAndStepsInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
       setStepIndex(prev => (prev + 1) % stepsSlides.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    }, 30000); // Changed from 12000 to 30000 (30 seconds)
+    
+    return () => {
+      clearInterval(heroTipInterval);
+      clearInterval(infoAndStepsInterval);
+    };
   }, [heroTips.length, infoSlides.length, stepsSlides.length]);
 
   const slideVariants = {
@@ -176,7 +261,7 @@ export default function Home() {
       initial="enter"
       animate="center"
       exit="exit"
-      transition={{ duration: 1.2, ease: 'easeInOut' }}
+      transition={{ duration: 1.5, ease: 'easeInOut' }} // Slightly longer transition
       className="w-full flex flex-col md:flex-row items-center justify-center relative"
     >
       {children}
@@ -184,86 +269,105 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Partial background image - only covers top portion */}
+      <div
+        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: `url(${HOMEPAGE_BG})`,
+          clipPath: 'polygon(0 0, 100% 0, 100% 60%, 0 80%)'
+        }}
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white/85 via-white/70 to-white" />
+
+      {/* Header placeholder (adjust positioning as needed) */}
+      <div className="h-16 relative z-10" />
+
+      {/* Floating Auth Controls - positioned below header */}
+      <div className="fixed top-20 right-4 z-50 flex items-center gap-2">
+        {!user ? (
+          <>
+            <button
+              onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
+              className="bg-white/90 backdrop-blur border border-teal-600 text-teal-700 hover:bg-white text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
+              className="bg-teal-600 text-white hover:bg-teal-700 text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+            >
+              Sign In
+            </button>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="inline-block text-sm px-4 py-2 rounded-full font-semibold text-teal-800 bg-white/90 backdrop-blur border border-teal-200 shadow">
+              Hi, {user.email}
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="bg-red-500 text-white hover:bg-red-600 text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+            >
+              Sign Out
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Hero */}
       <section className="py-20 md:py-32 text-center px-4 sm:px-6 md:px-10">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-teal-600 mb-6">Master New Languages</h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-8">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-teal-700 drop-shadow-sm mb-6">
+          Master New Languages
+        </h1>
+        <p className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto mb-8">
           Connect with certified language instructors for personalized 1-on-1 lessons tailored to your goals and schedule.
         </p>
         <div className="max-w-3xl mx-auto mb-8 relative h-14">
           <AnimatePresence mode="wait">
-            <motion.p key={heroTipIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.8 }} className="text-teal-600 font-semibold text-lg sm:text-xl">{heroTips[heroTipIndex]}</motion.p>
+            <motion.p
+              key={heroTipIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.8 }}
+              className="text-teal-700 font-semibold text-lg sm:text-xl"
+            >
+              {heroTips[heroTipIndex]}
+            </motion.p>
           </AnimatePresence>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link href="/instructors" className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition">Find Instructors</Link>
-          {!user && (
-            <>
-              <button onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }} className="inline-block bg-white text-teal-600 border border-teal-600 py-3 px-8 rounded-full font-semibold hover:bg-teal-50 transition">Sign Up</button>
-              <button onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }} className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition">Sign In</button>
-            </>
-          )}
-          {user && (
-            <>
-              <span className="inline-block py-3 px-8 rounded-full font-semibold text-teal-800 bg-white shadow">Hi, {user.email}</span>
-              <button onClick={handleSignOut} className="inline-block bg-red-500 text-white py-3 px-8 rounded-full font-semibold hover:bg-red-600 transition">Sign Out</button>
-            </>
-          )}
+          <Link
+            href="/instructors"
+            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition shadow"
+          >
+            Find Instructors
+          </Link>
         </div>
       </section>
 
       {/* Tabs */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
         <div className="flex justify-center gap-4 mb-10 flex-wrap">
-          <button onClick={() => setActiveTab('tutors')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'tutors' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Tutors</button>
+          <button onClick={() => setActiveTab('packages')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'packages' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Our Packages</button>
           <button onClick={() => setActiveTab('info')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>About Us</button>
           <button onClick={() => setActiveTab('steps')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'steps' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>How It Works</button>
         </div>
 
-        {/* Tutors Tab */}
-        {activeTab === 'tutors' && (
-          <>
-            {/* Filters */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <input
-                type="text"
-                placeholder="Search by name, language, or expertise..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full md:w-1/3 border border-gray-300 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 placeholder-gray-400 shadow-sm"
+        {/* Packages Tab */}
+        {activeTab === 'packages' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {packages.map((pkg) => (
+              <PackageCard 
+                key={pkg.id} 
+                pkg={pkg} 
+                selected={selectedPackage === pkg.id}
+                onSelect={() => setSelectedPackage(pkg.id)}
               />
-
-              <input
-                type="number"
-                placeholder="Max price ($)"
-                value={priceFilter ?? ''}
-                onChange={e => setPriceFilter(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full md:w-1/6 border border-gray-300 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 placeholder-gray-400 shadow-sm"
-              />
-
-              <select
-                value={nativeFilter}
-                onChange={e => setNativeFilter(e.target.value as 'any' | 'native' | 'non-native')}
-                className="w-full md:w-1/6 border border-gray-300 rounded-full py-3 px-6 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 bg-white hover:ring-teal-500 transition shadow-sm"
-              >
-                <option value="any">Any</option>
-                <option value="native">Native</option>
-                <option value="non-native">Non-Native</option>
-              </select>
-            </div>
-
-            {/* Enhanced Tutor Grid */}
-            <div className="grid grid-cols-1 gap-8">
-              {filteredTutors.map(tutor => (
-                <TutorCard
-                  key={tutor.id}
-                  tutor={tutor}
-                  setOpenDemoVideo={setOpenDemoVideo}
-                />
-              ))}
-            </div>
-          </>
+            ))}
+          </div>
         )}
 
         {/* Info Tab */}
@@ -316,7 +420,16 @@ export default function Home() {
               className={`p-6 rounded-xl shadow-lg cursor-pointer bg-gradient-to-r ${item.bgGradient} text-white`}
               onClick={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
             >
-              <motion.h3 layout className="font-semibold text-lg">{item.question}</motion.h3>
+              <div className="flex items-center justify-between">
+                <motion.h3 layout className="font-semibold text-lg">{item.question}</motion.h3>
+                <div className="ml-4 flex-shrink-0">
+                  {openFAQIndex === idx ? (
+                    <MinusIcon className="w-5 h-5 text-white" />
+                  ) : (
+                    <PlusIcon className="w-5 h-5 text-white" />
+                  )}
+                </div>
+              </div>
               <AnimatePresence>
                 {openFAQIndex === idx && (
                   <motion.p
@@ -324,6 +437,7 @@ export default function Home() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.5 }}
                     className="mt-3 text-white/90"
                   >
                     {item.answer}
@@ -345,7 +459,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.1 }}
-              className="bg-white rounded-3xl shadow-lg p-8 text-gray-800 hover:shadow-2xl hover:scale-105 transition transform"
+              className="bg-white/95 backdrop-blur rounded-3xl shadow-lg p-8 text-gray-800 hover:shadow-2xl hover:scale-105 transition transform"
             >
               <h3 className="text-2xl font-bold mb-4 text-gray-800">{post.title}</h3>
               <p className="text-gray-600">{post.summary}</p>
@@ -353,35 +467,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      {/* Demo Video Modal */}
-      <AnimatePresence>
-        {openDemoVideo && (
-          <motion.div
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOpenDemoVideo(null)}
-          >
-            <motion.div
-              className="bg-white rounded-3xl overflow-hidden w-11/12 md:w-3/4 lg:w-1/2 relative"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <video src={openDemoVideo} controls autoPlay className="w-full h-auto rounded-3xl object-cover" />
-              <button
-                onClick={() => setOpenDemoVideo(null)}
-                className="absolute top-4 right-4 text-white bg-red-500 px-3 py-1 rounded-full hover:bg-red-600 transition"
-              >
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Auth Modal */}
       {isAuthModalOpen && (
@@ -395,209 +480,62 @@ export default function Home() {
   );
 }
 
-// --- Enhanced TutorCard Component with Improved Demo Video Layout ---
-function TutorCard({ tutor, setOpenDemoVideo }: { tutor: Instructor; setOpenDemoVideo: (url: string) => void }) {
-  const zoomLink = tutor.zoom_link?.startsWith('zoommtg://')
-    ? tutor.zoom_link
-    : `zoommtg://zoom.us/join?confno=${tutor.zoom_link?.split('/').pop() || ''}`;
-
+// PackageCard Component
+function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: boolean; onSelect: () => void }) {
   return (
     <motion.div
-      whileHover={{
-        scale: 1.02,
-        y: -8,
-        boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
-      }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="relative bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 hover:border-teal-200 transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className={`relative rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ${selected ? 'ring-4 ring-teal-500 scale-105' : 'hover:shadow-xl'}`}
+      onClick={onSelect}
     >
-      <div className="flex flex-col">
-        {/* Header Section with Profile and Basic Info */}
-        <div className="flex flex-col md:flex-row px-6 pt-6 pb-4 bg-gradient-to-r from-teal-50 to-blue-50">
-          {/* Profile Image */}
-          <div className="relative flex-shrink-0 mb-4 md:mb-0 md:mr-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full blur-sm opacity-75"></div>
-            <img
-              src={tutor.image_url}
-              alt={tutor.name}
-              className="relative w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
-            />
-            {/* Online Status Indicator */}
-            <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-400 rounded-full ring-2 ring-white shadow-md flex items-center justify-center">
-              <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-            </div>
-            
-            {/* Native Speaker Badge */}
-            {tutor.is_native && (
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg whitespace-nowrap">
-                Native Speaker
-              </div>
-            )}
-          </div>
-
-          {/* Profile Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
-              <div className="mb-2 sm:mb-0">
-                <h3 className="text-xl font-bold text-gray-900">{tutor.name}</h3>
-                <p className="text-teal-600 font-medium text-sm">{tutor.expertise || 'Language Tutor'}</p>
-              </div>
-
-              {/* Price Tag */}
-              <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-3 py-1.5 rounded-full shadow-lg self-start">
-                <span className="text-lg font-bold">${tutor.price ?? 0}</span>
-                <span className="text-xs opacity-90">/hr</span>
-              </div>
-            </div>
-
-            {/* Stats Row */}
-            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-2">
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="font-medium">4.9</span>
-                <span className="text-gray-400">(127 reviews)</span>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{tutor.years_experience ?? 0} years exp</span>
-              </div>
-            </div>
-
-            {/* Language & Location */}
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">{tutor.language}</span>
-              <div className="flex items-center gap-1 text-gray-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{tutor.country}</span>
-              </div>
-            </div>
-          </div>
+      {pkg.popular && (
+        <div className="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
+          MOST POPULAR
         </div>
-
-        {/* Demo Video Section - Now integrated better with the content */}
-        {tutor.demo_video_url && (
-          <div className="px-6 py-4 border-b border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-semibold text-gray-700">Introduction Video</h4>
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                DEMO
-              </span>
-            </div>
-            <div className="relative group w-full rounded-xl overflow-hidden shadow-md cursor-pointer">
-              <video
-                src={tutor.demo_video_url}
-                className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                poster="/video-thumbnail.jpg"
-                onClick={() => setOpenDemoVideo(tutor.demo_video_url!)}
-              />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button
-                  className="bg-white/90 hover:bg-white rounded-full p-3 shadow-lg transform hover:scale-110 transition-all duration-200"
-                  aria-label="Play Demo Video"
-                >
-                  <svg className="w-6 h-6 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 5v10l7-5-7-5z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                1:24
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Click to watch my introduction and teaching style</p>
-          </div>
-        )}
-
-        {/* Qualifications & Specialties */}
-        <div className="px-6 py-4">
-          {tutor.qualifications && (
-            <div className="mb-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Qualifications</h4>
-              <p className="text-sm text-gray-600">{tutor.qualifications}</p>
-            </div>
+      )}
+      
+      <div className={`bg-gradient-to-br ${pkg.bgGradient} text-white p-6`}>
+        <h3 className="text-xl font-bold mb-2">{pkg.name}</h3>
+        <div className="flex items-end mb-4">
+          {pkg.discountedPrice ? (
+            <>
+              <span className="text-3xl font-bold">${pkg.discountedPrice}</span>
+              <span className="text-lg line-through ml-2 opacity-80">${pkg.price}</span>
+            </>
+          ) : (
+            <span className="text-3xl font-bold">${pkg.price}</span>
           )}
-
-          {/* Specialties */}
-          <div className="mb-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Specialties</h4>
-            <div className="flex flex-wrap gap-2">
-              <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-1 rounded-full">Conversation</span>
-              <span className="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">Grammar</span>
-              <span className="bg-pink-100 text-pink-700 text-xs font-medium px-2 py-1 rounded-full">Business</span>
-              <span className="bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-1 rounded-full">IELTS Prep</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              href={`/tutors/${tutor.slug}`}
-              className="col-span-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white py-3 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              Book a Lesson
-            </Link>
-
-            <Link
-              href={`/tutors/${tutor.slug}`}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl font-medium text-center transition-all duration-200 text-sm"
-            >
-              View Profile
-            </Link>
-
-            <a
-              href={zoomLink}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2.5 px-4 rounded-xl font-medium text-center transition-all duration-200 text-sm flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM5 8a1 1 0 000 2h8a1 1 0 100-2H5z" />
-              </svg>
-              Join Call
-            </a>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="flex justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
-            <button className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              Save
-            </button>
-
-            <button className="flex items-center gap-2 text-gray-500 hover:text-blue-500 transition-colors text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-              </svg>
-              Share
-            </button>
-
-            <button className="flex items-center gap-2 text-gray-500 hover:text-yellow-500 transition-colors text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-              Rate
-            </button>
-          </div>
         </div>
+        <p className="text-sm opacity-90">{pkg.lessons} lessons • {pkg.duration}</p>
       </div>
-
-      {/* Availability Indicator */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-teal-500"></div>
+      
+      <div className="bg-white p-6">
+        <ul className="space-y-3 mb-6">
+          {pkg.features.map((feature, index) => (
+            <li key={index} className="flex items-start">
+              <CheckBadgeIcon className="w-5 h-5 text-teal-500 mt-0.5 mr-2 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{feature}</span>
+            </li>
+          ))}
+        </ul>
+        
+        <button
+          className={`w-full py-3 rounded-lg font-semibold transition ${
+            selected 
+              ? 'bg-teal-600 text-white hover:bg-teal-700' 
+              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+        >
+          {selected ? 'Selected' : 'Select Package'}
+        </button>
+      </div>
     </motion.div>
   );
 }
 
-// --- InfoSlideComponent ---
+// InfoSlideComponent
 function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   const Icon = slide.icon;
   return (
@@ -611,7 +549,7 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   );
 }
 
-// --- StepSlideComponent ---
+// StepSlideComponent
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
     <div className="flex flex-col md:flex-row items-center justify-center gap-6 p-6 rounded-3xl shadow-lg bg-white">
