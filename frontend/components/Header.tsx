@@ -1,8 +1,14 @@
+//frontend/components/Header.tsx  
+
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { ChevronDown, Menu } from 'lucide-react';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +25,6 @@ export default function Header() {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchInstructors = async () => {
@@ -33,22 +38,8 @@ export default function Header() {
     fetchInstructors();
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const linkClasses =
-    "relative hover:text-teal-200 hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200 before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full";
-
-  const desktopDropdownBase =
-    "absolute mt-3 w-60 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto " +
-    "opacity-0 scale-95 translate-y-1 transition-all duration-200 ease-out";
+    "relative hover:text-teal-200 hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200 before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full font-medium";
 
   const dropdownItemClasses =
     "block px-4 py-2 text-gray-700 rounded-md transition-all duration-200 hover:bg-teal-50 hover:text-teal-700 hover:shadow-[0_0_12px_rgba(0,0,0,0.15)] hover:scale-[1.02]";
@@ -66,128 +57,136 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`${linkClasses} font-medium flex items-center`}
+          <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <button className={`${linkClasses} flex items-center`}>
+                Find Instructors
+                <ChevronDown 
+                  className={`ml-1 h-4 w-4 transform transition-transform duration-300 ${
+                    isDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'
+                  }`}
+                />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className="w-60 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto mt-3"
             >
-              Find Instructors
-              <svg
-                className={`ml-1 h-4 w-4 transform transition-transform duration-300 ${
-                  isDropdownOpen ? 'rotate-180 scale-110 hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'rotate-0 scale-100 hover:shadow-[0_0_8px_rgba(255,255,255,0.3)]'
-                }`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {isDropdownOpen && (
-              <div className={`${desktopDropdownBase} opacity-100 scale-105 translate-y-0 animate-bounce-in`}>
-                {instructors.length > 0 ? (
-                  instructors.map((instructor) => (
+              {instructors.length > 0 ? (
+                instructors.map((instructor) => (
+                  <DropdownMenuItem key={instructor.id} asChild className="p-0">
                     <Link
-                      key={instructor.id}
                       href={`/tutors/${instructor.slug}`}
                       className={dropdownItemClasses}
                     >
                       {instructor.name}
                     </Link>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-gray-500">Loading...</div>
-                )}
-              </div>
-            )}
-          </div>
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-gray-500">Loading...</div>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <Link href="/create-new-profile" className={linkClasses + " font-medium"}>
+          <Link href="/create-new-profile" className={linkClasses}>
             Become an Instructor
           </Link>
-          <Link href="/help-center" className={linkClasses + " font-medium"}>
+          <Link href="/help-center" className={linkClasses}>
             Help Center
           </Link>
-          <Link href="/blog" className={linkClasses + " font-medium"}>
+          <Link href="/blog" className={linkClasses}>
             Blog
           </Link>
         </nav>
 
         {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden hover:text-teal-200 focus:outline-none"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile Navigation with Slide Down Animation */}
-      <div
-        className={`md:hidden bg-teal-600/90 backdrop-blur-lg border-t border-white/10 shadow-sm overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${
-          isMenuOpen ? 'max-h-screen opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
-        }`}
-      >
-        <nav className="flex flex-col p-4 space-y-3">
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="text-white hover:text-teal-200 font-medium text-left relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger asChild className="md:hidden">
+            <button className="hover:text-teal-200 focus:outline-none text-white">
+              <Menu className="w-6 h-6" />
+            </button>
+          </SheetTrigger>
+          <SheetContent 
+            side="right" 
+            className="bg-teal-600/90 backdrop-blur-lg border-l border-white/10 w-[85%] sm:w-[400px] p-0"
           >
-            Find Instructors
-            <svg
-              className={`ml-1 inline h-4 w-4 transform transition-transform duration-300 ${
-                isDropdownOpen ? 'rotate-180 scale-110 hover:shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'rotate-0 scale-100 hover:shadow-[0_0_8px_rgba(255,255,255,0.3)]'
-              }`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div
-            className={`overflow-hidden transition-[max-height,opacity,transform] duration-300 ease-out ${
-              isDropdownOpen ? 'max-h-72 opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2'
-            }`}
-          >
-            {instructors.length > 0 ? (
-              instructors.map((instructor) => (
+            <div className="flex flex-col p-4 space-y-3">
+              <div className="flex justify-between items-center mb-4">
                 <Link
-                  key={instructor.id}
-                  href={`/tutors/${instructor.slug}`}
-                  className="block px-3 py-2 text-gray-700 rounded-md transition-all duration-200 hover:bg-teal-100 hover:shadow-[0_0_12px_rgba(0,0,0,0.15)] hover:text-teal-700 hover:scale-[1.02]"
+                  href="/"
+                  className="text-xl font-bold text-white"
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  {instructor.name}
+                  No Name Yet
                 </Link>
-              ))
-            ) : (
-              <div className="px-3 py-2 text-gray-500">Loading...</div>
-            )}
-          </div>
-          <Link
-            href="/create-new-profile"
-            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
-          >
-            Become an Instructor
-          </Link>
-          <Link
-            href="/help-center"
-            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
-          >
-            Help Center
-          </Link>
-          <Link
-            href="/blog"
-            className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
-          >
-            Blog
-          </Link>
-        </nav>
+                <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+                  <span className="text-white">Close</span>
+                </SheetClose>
+              </div>
+              
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="text-white hover:text-teal-200 font-medium text-left relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200 flex items-center"
+              >
+                Find Instructors
+                <ChevronDown 
+                  className={`ml-1 h-4 w-4 transform transition-transform duration-300 ${
+                    isDropdownOpen ? 'rotate-180 scale-110' : 'rotate-0 scale-100'
+                  }`}
+                />
+              </button>
+              
+              <div
+                className={`ml-4 overflow-hidden transition-[max-height] duration-300 ease-out ${
+                  isDropdownOpen ? 'max-h-72' : 'max-h-0'
+                }`}
+              >
+                {instructors.length > 0 ? (
+                  instructors.map((instructor) => (
+                    <SheetClose asChild key={instructor.id}>
+                      <Link
+                        href={`/tutors/${instructor.slug}`}
+                        className="block px-3 py-2 text-gray-700 rounded-md transition-all duration-200 hover:bg-teal-100 hover:shadow-[0_0_12px_rgba(0,0,0,0.15)] hover:text-teal-700"
+                      >
+                        {instructor.name}
+                      </Link>
+                    </SheetClose>
+                  ))
+                ) : (
+                  <div className="px-3 py-2 text-gray-500">Loading...</div>
+                )}
+              </div>
+              
+              <SheetClose asChild>
+                <Link
+                  href="/create-new-profile"
+                  className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+                >
+                  Become an Instructor
+                </Link>
+              </SheetClose>
+              
+              <SheetClose asChild>
+                <Link
+                  href="/help-center"
+                  className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+                >
+                  Help Center
+                </Link>
+              </SheetClose>
+              
+              <SheetClose asChild>
+                <Link
+                  href="/blog"
+                  className="text-white hover:text-teal-200 font-medium relative before:absolute before:bottom-0 before:left-0 before:w-0 before:h-[2px] before:bg-white before:transition-all hover:before:w-full hover:shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200"
+                >
+                  Blog
+                </Link>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </header>
   );
