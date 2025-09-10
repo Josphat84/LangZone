@@ -6,8 +6,9 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, BarChart, Bar
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 // ---------------------- Types ----------------------
 interface Instructor {
@@ -120,20 +121,24 @@ export default function DashboardPage(){
   return (
     <div className="p-4 text-white space-y-6 font-sans">
 
-      {/* Tabs */}
-      <div className="flex flex-wrap space-x-2 mb-4 sticky top-0 bg-gray-900 z-10 p-2 rounded">
-        {['dashboard','tutors','calendar','settings'].map(tab=>(
-          <button key={tab} 
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-300 ${activeTab===tab?'bg-cyan-500 text-white':'bg-gray-700/50 text-gray-300 hover:bg-cyan-400 hover:text-white'}`}
-            onClick={()=>setActiveTab(tab)}>
-            {tab.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      {/* ---------------- Tabs ---------------- */}
+      <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-gray-900 p-2 rounded mb-4 space-x-2 sticky top-0 z-10">
+          {['dashboard','tutors','calendar','settings'].map(tab=>(
+            <TabsTrigger
+              key={tab}
+              value={tab as any}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                activeTab===tab ? 'bg-cyan-500 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`}
+            >
+              {tab.toUpperCase()}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {/* ---------------- DASHBOARD TAB ---------------- */}
-      {activeTab==='dashboard' && (
-        <>
+        {/* ---------------- DASHBOARD TAB ---------------- */}
+        <TabsContent value="dashboard">
           {/* Top Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[{ icon: Users, label: 'Instructors', value: instructors.length },
@@ -179,8 +184,6 @@ export default function DashboardPage(){
             {instructors.map(inst=>{
               const tutorBookings = bookings.filter(b=>b.instructor_id===inst.id);
               const tutorRevenue = tutorBookings.reduce((sum,b)=>sum+(b.amount||0),0);
-
-              // Trend data for mini line
               const trendData = tutorBookings.reduce((acc:any, b)=>{
                 if(!b.lesson_date || !b.amount) return acc;
                 const day = new Date(b.lesson_date).toISOString().slice(0,10);
@@ -189,11 +192,8 @@ export default function DashboardPage(){
                 return acc;
               }, {} as Record<string,number>);
               const trendArray = Object.keys(trendData).sort().map(day=>({ date: day, revenue: trendData[day] }));
-
-              // Status counts for summary pills
               const statusCounts = { completed:0, pending:0, cancelled:0 };
               tutorBookings.forEach(b=>statusCounts[b.status]++);
-
               return (
                 <div key={inst.id} className="p-4 rounded-lg shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ backgroundColor: tutorCardColor, color:'#fff' }}>
                   <div className="text-lg font-bold">{inst.name}</div>
@@ -202,7 +202,6 @@ export default function DashboardPage(){
                   <div className="text-sm">Revenue: ${tutorRevenue}</div>
                   <div className="text-xs">{inst.country}</div>
 
-                  {/* Mini Revenue Trend */}
                   <div className="mt-2 h-16">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={trendArray}>
@@ -211,7 +210,6 @@ export default function DashboardPage(){
                     </ResponsiveContainer>
                   </div>
 
-                  {/* Status Pills */}
                   <div className="flex flex-wrap space-x-2 mt-2 text-xs">
                     {['completed','pending','cancelled'].map((status)=>{
                       const count = statusCounts[status as keyof typeof statusCounts];
@@ -229,48 +227,47 @@ export default function DashboardPage(){
               );
             })}
           </div>
-        </>
-      )}
+        </TabsContent>
 
-      {/* ---------------- TUTORS TAB ---------------- */}
-      {activeTab==='tutors' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {instructors.map(inst=>{
-            const tutorBookings = bookings.filter(b=>b.instructor_id===inst.id);
-            return (
-              <div key={inst.id} className="p-4 rounded-lg shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ backgroundColor: tutorCardColor, color:'#fff' }}>
-                <div className="text-lg font-bold">{inst.name}</div>
-                <div className="text-sm">{inst.language} - {inst.expertise}</div>
-                <div>${inst.price}</div>
-                <div>Bookings: {tutorBookings.length}</div>
-                <div className="text-xs">{inst.country}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        {/* ---------------- TUTORS TAB ---------------- */}
+        <TabsContent value="tutors">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {instructors.map(inst=>{
+              const tutorBookings = bookings.filter(b=>b.instructor_id===inst.id);
+              return (
+                <div key={inst.id} className="p-4 rounded-lg shadow hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1" style={{ backgroundColor: tutorCardColor, color:'#fff' }}>
+                  <div className="text-lg font-bold">{inst.name}</div>
+                  <div className="text-sm">{inst.language} - {inst.expertise}</div>
+                  <div>${inst.price}</div>
+                  <div>Bookings: {tutorBookings.length}</div>
+                  <div className="text-xs">{inst.country}</div>
+                </div>
+              );
+            })}
+          </div>
+        </TabsContent>
 
-      {/* ---------------- CALENDAR TAB ---------------- */}
-      {activeTab==='calendar' && (
-        <FullCalendar
-          plugins={[dayGridPlugin,timeGridPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{ left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' }}
-          events={bookings.map(b=>({ 
-            title: `${instructors.find(i=>i.id===b.instructor_id)?.name} - $${b.amount}`,
-            start: b.lesson_date, 
-            color: b.status==='completed'?'#06d6a0': b.status==='cancelled'?'#ffa500':'#f94144'
-          }))}
-          height={600}
-          className="bg-gray-800 rounded-lg p-2 shadow"
-        />
-      )}
+        {/* ---------------- CALENDAR TAB ---------------- */}
+        <TabsContent value="calendar">
+          <FullCalendar
+            plugins={[dayGridPlugin,timeGridPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{ left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' }}
+            events={bookings.map(b=>({ 
+              title: `${instructors.find(i=>i.id===b.instructor_id)?.name} - $${b.amount}`,
+              start: b.lesson_date, 
+              color: b.status==='completed'?'#06d6a0': b.status==='cancelled'?'#ffa500':'#f94144'
+            }))}
+            height={600}
+            className="bg-gray-800 rounded-lg p-2 shadow"
+          />
+        </TabsContent>
 
-      {/* ---------------- SETTINGS TAB ---------------- */}
-      {activeTab==='settings' && (
-        <div className="bg-gray-800 p-4 rounded-lg shadow">Settings coming soon...</div>
-      )}
-
+        {/* ---------------- SETTINGS TAB ---------------- */}
+        <TabsContent value="settings">
+          <div className="bg-gray-800 p-4 rounded-lg shadow">Settings coming soon...</div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

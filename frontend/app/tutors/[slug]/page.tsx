@@ -6,32 +6,50 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { useSwipeable } from 'react-swipeable';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tooltip } from 'react-tooltip';
-import 'react-tooltip/dist/react-tooltip.css';
 import InteractiveBookingCalendar from './InteractiveBookingCalendar';
 import PaymentsZoomButtons from '../../../components/PaymentsZoomButtons';
 
+// shadcn/ui imports
 import {
-  FaStar,
-  FaHeart,
-  FaMapMarkerAlt,
-  FaLanguage,
-  FaGraduationCap,
-  FaBriefcase,
-  FaInfoCircle,
-  FaSearch,
-  FaSun,
-  FaMoon,
-  FaPlay,
-  FaGlobe,
-  FaClock,
-  FaDollarSign,
-  FaVideo,
-  FaPhone,
-  FaEnvelope,
-  FaCircle,
-  FaDotCircle,
-} from 'react-icons/fa';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useTheme } from "next-themes";
+import {
+  Heart,
+  MapPin,
+  Languages,
+  GraduationCap,
+  Briefcase,
+  Info,
+  Search,
+  Sun,
+  Moon,
+  Play,
+  Globe,
+  Clock,
+  DollarSign,
+  Video,
+  Phone,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Star,
+  Calendar,
+  Award,
+  BookOpen
+} from "lucide-react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -57,6 +75,8 @@ interface Instructor {
   zoom_meeting_id?: string;
   zoom_password?: string;
   createdAt?: string;
+  rating?: number;
+  total_reviews?: number;
 }
 
 type Cached = { instructor: Instructor; avatarUrl: string; cachedAt: number };
@@ -64,6 +84,7 @@ type Cached = { instructor: Instructor; avatarUrl: string; cachedAt: number };
 export default function TutorPage() {
   const { slug } = useParams() as { slug: string };
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +93,6 @@ export default function TutorPage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [likes, setLikes] = useState(0);
   const [userLiked, setUserLiked] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
   const [allSlugs, setAllSlugs] = useState<string[]>([]);
   const [direction, setDirection] = useState<1 | -1>(1);
 
@@ -216,409 +236,397 @@ export default function TutorPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-500"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="text-center">
-          <div className="text-6xl mb-4">😞</div>
-          <h2 className="text-2xl font-bold mb-2 text-red-500">Oops! Something went wrong</h2>
-          <p className="text-gray-500 mb-6">{error}</p>
-          <button 
-            onClick={() => router.push('/instructors')}
-            className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-          >
-            Browse All Instructors
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="text-center">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold mb-2 text-destructive">Oops! Something went wrong</CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/instructors')}>
+              Browse All Instructors
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div {...handlers} className={`min-h-screen relative transition-colors duration-500 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className={`absolute inset-0 bg-gradient-to-br ${
-          darkMode 
-            ? 'from-gray-900 via-gray-800 to-indigo-900' 
-            : 'from-blue-50 via-indigo-50 to-purple-50'
-        }`} />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-teal-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-pink-500/20 rounded-full blur-3xl animate-pulse" />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+    <TooltipProvider>
+      <div {...handlers} className="min-h-screen relative">
+        <AnimatePresence>
+          {navigating && (
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50"
             >
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                Instructor Profile
-              </h1>
+              <div className="text-foreground text-xl font-semibold animate-pulse">Loading tutor…</div>
             </motion.div>
+          )}
+        </AnimatePresence>
 
-            <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setDarkMode((prev) => !prev)}
-                className={`px-4 py-2 rounded-full shadow-lg transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20' 
-                    : 'bg-white/80 backdrop-blur-sm text-gray-700 border border-gray-200 hover:bg-white'
-                }`}
-                data-tooltip-id="theme-tip"
-                data-tooltip-content={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        {/* Header */}
+        <header className="relative z-10 px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                {darkMode ? <FaSun className="text-lg" /> : <FaMoon className="text-lg" />}
-              </motion.button>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  Instructor Profile
+                </h1>
+              </motion.div>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/instructors')}
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full shadow-lg bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-medium transition-all duration-300"
-                data-tooltip-id="find-tip"
-                data-tooltip-content="Browse all instructors"
-              >
-                <FaSearch className="text-sm" />
-                <span className="hidden sm:inline">Find Instructors</span>
-              </motion.button>
+              <div className="flex items-center gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="theme-mode"
+                          checked={theme === "dark"}
+                          onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                        />
+                        <Label htmlFor="theme-mode">
+                          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        </Label>
+                      </div>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{theme === "dark" ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</p>
+                  </TooltipContent>
+                </Tooltip>
 
-              {/* ✅ Dashboard Link (added) */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.push('/dashboard/tutor')}
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium transition-all duration-300"
-                data-tooltip-id="dashboard-tip"
-                data-tooltip-content="Go to your dashboard"
-              >
-                <FaGraduationCap className="text-sm" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </motion.button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button onClick={() => router.push('/instructors')}>
+                        <Search className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Find Instructors</span>
+                      </Button>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Browse all instructors</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button variant="secondary" onClick={() => router.push('/dashboard/tutor')}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span className="hidden sm:inline">Dashboard</span>
+                      </Button>
+                    </motion.div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Go to your dashboard</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
-        </div>
-        <Tooltip id="find-tip" />
-        <Tooltip id="theme-tip" place="left" />
-        {/* ✅ Tooltip for dashboard */}
-        <Tooltip id="dashboard-tip" place="left" />
-      </header>
+        </header>
 
-      {/* Navigation Loading Overlay */}
-      <AnimatePresence>
-        {navigating && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9000]"
-          >
-            <div className="text-white text-xl font-semibold animate-pulse">Loading tutor…</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Main Content */}
+        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+            {/* Left Column - Profile Info (3/5 width) */}
+            <div className="xl:col-span-3">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={instructor?.slug || 'loading-left'}
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
+                  {instructor && (
+                    <InstructorProfileLeft
+                      instructor={instructor}
+                      avatarUrl={avatarUrl}
+                      likes={likes}
+                      userLiked={userLiked}
+                      handleLike={handleLike}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
-          {/* Left Column - Profile Info (3/5 width) */}
-          <div className="xl:col-span-3">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={instructor?.slug || 'loading-left'}
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              >
-                {instructor && (
-                  <InstructorProfileLeft
-                    instructor={instructor}
-                    avatarUrl={avatarUrl}
-                    likes={likes}
-                    userLiked={userLiked}
-                    handleLike={handleLike}
-                    darkMode={darkMode}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
+            {/* Right Column - Booking & Actions (2/5 width) */}
+            <div className="xl:col-span-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={instructor?.slug || 'loading-right'}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
+                  {instructor && (
+                    <div className="space-y-6 sticky top-6">
+                      {/* Booking Calendar */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Calendar className="text-primary" />
+                              Booking & Schedule
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <InteractiveBookingCalendar instructor={instructor} />
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+
+                      {/* Action Buttons */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <PaymentsZoomButtons 
+                          instructor={instructor} 
+                          avatarUrl={avatarUrl} 
+                        />
+                      </motion.div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
+        </main>
 
-          {/* Right Column - Booking & Actions (2/5 width) */}
-          <div className="xl:col-span-2">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={instructor?.slug || 'loading-right'}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 50 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+        {/* Navigation Buttons */}
+        <motion.div
+          className="fixed top-1/2 -translate-y-1/2 left-4 z-50"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                onClick={handlePrevTutor}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-12 rounded-full bg-background border shadow-lg flex items-center justify-center hover:bg-accent transition-colors"
               >
-                {instructor && (
-                  <div className="space-y-6 sticky top-6">
-                    {/* Booking Calendar */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className={`rounded-2xl shadow-xl p-6 ${
-                        darkMode 
-                          ? 'bg-white/5 backdrop-blur-sm border border-white/10' 
-                          : 'bg-white/80 backdrop-blur-sm border border-gray-200'
-                      }`}
-                    >
-                      <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        <FaClock className="text-teal-500" />
-                        Booking & Schedule
-                      </h3>
-                      <InteractiveBookingCalendar instructor={instructor} darkMode={darkMode} />
-                    </motion.div>
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Previous tutor</p>
+            </TooltipContent>
+          </Tooltip>
+        </motion.div>
 
-                    {/* Action Buttons */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                    >
-                      <PaymentsZoomButtons 
-                        instructor={instructor} 
-                        btnClass={`shadow-lg font-bold transition-all duration-300 ${
-                          darkMode 
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-700 hover:from-purple-700 hover:to-pink-800 text-white border border-purple-500/50' 
-                            : 'bg-gradient-to-r from-purple-800 to-pink-900 hover:from-purple-900 hover:to-pink-950 text-black border border-purple-700'
-                        }`}
-                        avatarUrl={avatarUrl} 
-                      />
-                    </motion.div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </main>
-
-      {/* Elegant Navigation Buttons */}
-      <motion.div
-        className="fixed top-1/2 -translate-y-1/2 left-4 z-50"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <motion.button
-          onHoverStart={handlePrevTutor}
-          whileHover={{ scale: 1.1, rotate: -180 }}
-          whileTap={{ scale: 0.95 }}
-          className={`w-16 h-16 rounded-full shadow-2xl backdrop-blur-xl transition-all duration-700 flex items-center justify-center group relative overflow-hidden ${
-            darkMode
-              ? 'bg-gradient-to-r from-teal-500/20 to-blue-600/20 hover:from-teal-400/30 hover:to-blue-500/30 text-white border border-white/30'
-              : 'bg-gradient-to-r from-teal-100 to-blue-200 hover:from-teal-200 hover:to-blue-300 text-gray-800 border border-gray-300'
-          }`}
-          data-tooltip-id="prev-tip"
-          data-tooltip-content="Previous tutor"
+        <motion.div
+          className="fixed top-1/2 -translate-y-1/2 right-4 z-50"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-          <FaCircle className="text-sm absolute" />
-          <FaDotCircle className="text-lg group-hover:animate-pulse" />
-        </motion.button>
-      </motion.div>
-
-      <motion.div
-        className="fixed top-1/2 -translate-y-1/2 right-4 z-50"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <motion.button
-          onHoverStart={handleNextTutor}
-          whileHover={{ scale: 1.1, rotate: 180 }}
-          whileTap={{ scale: 0.95 }}
-          className={`w-16 h-16 rounded-full shadow-2xl backdrop-blur-xl transition-all duration-700 flex items-center justify-center group relative overflow-hidden ${
-            darkMode
-              ? 'bg-gradient-to-r from-blue-600/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-400/30 text-white border border-white/30'
-              : 'bg-gradient-to-r from-blue-200 to-purple-300 hover:from-blue-300 hover:to-purple-400 text-gray-800 border border-gray-300'
-          }`}
-          data-tooltip-id="next-tip"
-          data-tooltip-content="Next tutor"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-          <FaCircle className="text-sm absolute" />
-          <FaDotCircle className="text-lg group-hover:animate-pulse" />
-        </motion.button>
-      </motion.div>
-
-      <Tooltip id="prev-tip" place="right" />
-      <Tooltip id="next-tip" place="left" />
-    </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                onClick={handleNextTutor}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-12 rounded-full bg-background border shadow-lg flex items-center justify-center hover:bg-accent transition-colors"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Next tutor</p>
+            </TooltipContent>
+          </Tooltip>
+        </motion.div>
+      </div>
+    </TooltipProvider>
   );
 }
 
-// ----------------------------------
-// Enhanced Left Profile Component
-// ----------------------------------
+// Enhanced Left Profile Component with better layout
 function InstructorProfileLeft({
   instructor,
   avatarUrl,
   likes,
   userLiked,
   handleLike,
-  darkMode,
 }: {
   instructor: Instructor;
   avatarUrl: string;
   likes: number;
   userLiked: boolean;
   handleLike: () => void;
-  darkMode: boolean;
 }) {
-  const cardClass = `rounded-2xl shadow-xl p-6 mb-6 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 ${
-    darkMode 
-      ? 'bg-gradient-to-br from-white/5 via-white/10 to-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/15 hover:shadow-2xl hover:shadow-teal-500/10' 
-      : 'bg-gradient-to-br from-white/90 via-white to-white/90 backdrop-blur-sm border border-gray-200 hover:bg-white hover:shadow-2xl hover:shadow-blue-500/20'
-  }`;
-  
-  const titleClass = `text-xl font-bold mb-4 flex items-center gap-3 transition-all duration-300 group-hover:scale-105 ${darkMode ? 'text-white' : 'text-gray-900'}`;
-  const textClass = `${darkMode ? 'text-gray-200' : 'text-gray-700'} leading-relaxed`;
-  const iconClass = 'text-teal-500 text-lg';
-
   return (
-    <div>
+    <div className="space-y-6">
       {/* Hero Profile Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className={`${cardClass} group relative overflow-hidden`}
       >
-        {/* Animated background effect */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 via-blue-500/5 to-purple-500/5 animate-pulse"></div>
-        </div>
-        
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-          {/* Avatar */}
-          <div className="relative group">
-            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-2xl ring-4 ring-gradient-to-r from-teal-400 via-blue-500 to-purple-600 group-hover:ring-8 transition-all duration-300">
-              <img 
-                src={avatarUrl || '/default-avatar.png'} 
-                alt={instructor.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/default-avatar.png';
-                }}
-              />
-            </div>
-            {/* Online status indicator */}
-            <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-white rounded-full animate-pulse"></div>
-          </div>
-
-          {/* Name and Basic Info */}
-          <div className="space-y-3">
-            <h2 className={`text-3xl sm:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {instructor.name}
-            </h2>
-            
-            {instructor.expertise && (
-              <p className="text-lg text-teal-500 font-medium">{instructor.expertise}</p>
-            )}
-
-            {instructor.price && (
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${
-                darkMode 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                <FaDollarSign />
-                {instructor.price}/hour
+        <Card className="overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
+              {/* Avatar Section */}
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <Avatar className="w-32 h-32 sm:w-40 sm:h-40 ring-4 ring-primary/20">
+                    <AvatarImage 
+                      src={avatarUrl || '/default-avatar.png'} 
+                      alt={instructor.name}
+                      className="object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
+                    />
+                    <AvatarFallback className="text-2xl">
+                      <User className="w-16 h-16" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {/* Online status indicator */}
+                  <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-2 border-background rounded-full animate-pulse"></div>
+                </div>
               </div>
-            )}
 
-            {/* Simple Like Button */}
-            <div className="flex justify-center">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleLike}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-300 ${
-                  userLiked 
-                    ? (darkMode ? 'bg-red-500/20 border border-red-500/50' : 'bg-red-100 border border-red-300')
-                    : (darkMode ? 'bg-gray-700/50 border border-gray-600' : 'bg-gray-100 border border-gray-300')
-                }`}
-              >
-                <FaHeart 
-                  className={`text-xl ${userLiked ? 'text-red-500' : darkMode ? 'text-gray-400' : 'text-gray-500'} transition-colors`} 
-                />
-                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {likes} {likes === 1 ? 'Like' : 'Likes'}
-                </span>
-              </motion.button>
+              {/* Profile Info Section */}
+              <div className="flex-1 text-center lg:text-left space-y-4">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold">
+                    {instructor.name}
+                  </h2>
+                  
+                  {instructor.expertise && (
+                    <p className="text-lg text-primary font-medium mt-1">{instructor.expertise}</p>
+                  )}
+
+                  {/* Rating and Reviews */}
+                  <div className="flex items-center justify-center lg:justify-start gap-2 mt-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">
+                        {instructor.rating || 4.8}
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground text-sm">
+                      ({instructor.total_reviews || 124} reviews)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price and Quick Stats */}
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                  {instructor.price && (
+                    <Badge variant="secondary" className="px-3 py-1 text-sm font-semibold">
+                      <DollarSign className="w-3 h-3 mr-1" />
+                      {instructor.price}/hour
+                    </Badge>
+                  )}
+                  
+                  {instructor.years_experience && (
+                    <Badge variant="outline" className="px-3 py-1 text-sm">
+                      <Briefcase className="w-3 h-3 mr-1" />
+                      {instructor.years_experience}+ years
+                    </Badge>
+                  )}
+
+                  {instructor.is_native && (
+                    <Badge variant="success" className="px-3 py-1 text-sm">
+                      <Languages className="w-3 h-3 mr-1" />
+                      Native Speaker
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Like Button */}
+                <div className="flex justify-center lg:justify-start">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant={userLiked ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={handleLike}
+                      className="flex items-center gap-2"
+                    >
+                      <Heart 
+                        className={`w-4 h-4 ${userLiked ? 'fill-current' : ''}`}
+                      />
+                      <span>
+                        {likes} {likes === 1 ? 'Like' : 'Likes'}
+                      </span>
+                    </Button>
+                  </motion.div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Quick Contact Info */}
-          <div className="flex flex-wrap justify-center gap-3 text-sm w-full">
-            {instructor.email && (
-              <motion.a 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href={`mailto:${instructor.email}`}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  darkMode
-                    ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 border border-teal-500/30'
-                    : 'bg-teal-100 text-teal-700 hover:bg-teal-200 border border-teal-300'
-                }`}
-              >
-                <FaEnvelope />
-                Email
-              </motion.a>
-            )}
-            {instructor.phone_number && (
-              <motion.a 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href={`tel:${instructor.phone_number}`}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  darkMode
-                    ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300'
-                }`}
-              >
-                <FaPhone />
-                Call
-              </motion.a>
-            )}
-            {instructor.video_intro_url && (
-              <motion.a 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href={instructor.video_intro_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                  darkMode
-                    ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30'
-                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300'
-                }`}
-              >
-                <FaPlay />
-                Intro Video
-              </motion.a>
-            )}
-          </div>
-        </div>
+            {/* Contact Actions */}
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
+              {instructor.email && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`mailto:${instructor.email}`}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email
+                  </a>
+                </Button>
+              )}
+              {instructor.phone_number && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`tel:${instructor.phone_number}`}>
+                    <Phone className="w-4 h-4 mr-2" />
+                    Call
+                  </a>
+                </Button>
+              )}
+              {instructor.video_intro_url && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={instructor.video_intro_url} target="_blank" rel="noopener noreferrer">
+                    <Play className="w-4 h-4 mr-2" />
+                    Intro Video
+                  </a>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* About Section */}
@@ -627,124 +635,104 @@ function InstructorProfileLeft({
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className={`${cardClass} group relative overflow-hidden`}
         >
-          {/* Floating particles effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-            <div className="absolute top-4 left-4 w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="absolute top-8 right-8 w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
-            <div className="absolute bottom-6 left-1/3 w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
-          </div>
-          
-          <div className="relative z-10">
-            <h3 className={titleClass}>
-              <FaInfoCircle className={`${iconClass} group-hover:rotate-12 transition-transform duration-300`} />
-              About Me
-            </h3>
-            <p className={`${textClass} group-hover:text-opacity-90 transition-all duration-300`}>{instructor.description}</p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Info className="text-primary" />
+                About Me
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">{instructor.description}</p>
+            </CardContent>
+          </Card>
         </motion.div>
       )}
 
-      {/* Personal Info */}
+      {/* Personal Info Grid */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className={`${cardClass} group relative overflow-hidden`}
       >
-        {/* Wave animation background */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-500/5 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-        </div>
-        
-        <div className="relative z-10">
-          <h3 className={titleClass}>
-            <FaGlobe className={`${iconClass} group-hover:rotate-180 transition-transform duration-500`} />
-            Personal Info
-          </h3>
-          <div className="space-y-3">
-            {instructor.country && (
-              <motion.div 
-                whileHover={{ x: 5 }}
-                className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                  darkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'
-                }`}
-              >
-                <FaMapMarkerAlt className={`${iconClass} animate-pulse`} />
-                <span className={textClass}>{instructor.country}</span>
-              </motion.div>
-            )}
-            {instructor.language && (
-              <motion.div 
-                whileHover={{ x: 5 }}
-                className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                  darkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'
-                }`}
-              >
-                <FaLanguage className={`${iconClass} group-hover:animate-pulse`} />
-                <div className="flex items-center gap-2">
-                  <span className={textClass}>{instructor.language}</span>
-                  {instructor.is_native && (
-                    <span className={`px-2 py-1 text-xs rounded-full animate-bounce ${
-                      darkMode 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      Native
-                    </span>
-                  )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Globe className="text-primary" />
+              Personal Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {instructor.country && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <MapPin className="text-primary w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Location</p>
+                    <p className="text-muted-foreground">{instructor.country}</p>
+                  </div>
                 </div>
-              </motion.div>
-            )}
-          </div>
-        </div>
+              )}
+              
+              {instructor.language && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Languages className="text-primary w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Language</p>
+                    <p className="text-muted-foreground">{instructor.language}</p>
+                  </div>
+                </div>
+              )}
+              
+              {instructor.years_experience && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Briefcase className="text-primary w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Experience</p>
+                    <p className="text-muted-foreground">{instructor.years_experience}+ years</p>
+                  </div>
+                </div>
+              )}
+              
+              {instructor.expertise && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Award className="text-primary w-5 h-5" />
+                  <div>
+                    <p className="text-sm font-medium">Expertise</p>
+                    <p className="text-muted-foreground">{instructor.expertise}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
-      {/* Experience & Qualifications */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-        className={`${cardClass} group relative overflow-hidden`}
-      >
-        {/* Gradient orb effect */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-700"></div>
-        
-        <div className="relative z-10">
-          <h3 className={titleClass}>
-            <FaGraduationCap className={`${iconClass} group-hover:animate-bounce`} />
-            Experience & Qualifications
-          </h3>
-          <div className="space-y-4">
-            {instructor.qualifications && (
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className={`p-4 rounded-lg transition-all duration-300 ${darkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
-              >
-                <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
-                  <FaGraduationCap className="animate-pulse" />
-                  Qualifications
-                </h4>
-                <p className={textClass}>{instructor.qualifications}</p>
-              </motion.div>
-            )}
-            
-            {instructor.years_experience !== undefined && (
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className={`p-4 rounded-lg transition-all duration-300 ${darkMode ? 'bg-white/5 hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'}`}
-              >
-                <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                  <FaBriefcase className="group-hover:rotate-12 transition-transform duration-300" />
-                  Experience
-                </h4>
-                <p className={textClass}>{instructor.years_experience}+ years of teaching experience</p>
-              </motion.div>
-            )}
-          </div>
-        </div>
-      </motion.div>
+      {/* Qualifications Section */}
+      {instructor.qualifications && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <GraduationCap className="text-primary" />
+                Qualifications & Education
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <p className="text-muted-foreground">{instructor.qualifications}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Social Links */}
       {instructor.social_links && (
@@ -752,34 +740,23 @@ function InstructorProfileLeft({
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className={`${cardClass} group relative overflow-hidden`}
         >
-          {/* Shimmer effect */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-pulse"></div>
-          </div>
-          
-          <div className="relative z-10">
-            <h3 className={titleClass}>
-              <FaGlobe className={`${iconClass} group-hover:animate-spin transition-transform duration-1000`} />
-              Social Links
-            </h3>
-            <motion.a 
-              whileHover={{ scale: 1.05, rotate: 2 }}
-              whileTap={{ scale: 0.95 }}
-              href={instructor.social_links} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:shadow-lg ${
-                darkMode
-                  ? 'bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white'
-                  : 'bg-gradient-to-r from-teal-600 to-blue-700 hover:from-teal-700 hover:to-blue-800 text-white'
-              }`}
-            >
-              <FaGlobe className="animate-pulse" />
-              View Social Profile
-            </motion.a>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Globe className="text-primary" />
+                Connect With Me
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <a href={instructor.social_links} target="_blank" rel="noopener noreferrer">
+                  <Globe className="w-4 h-4 mr-2" />
+                  View Social Profile
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
         </motion.div>
       )}
     </div>

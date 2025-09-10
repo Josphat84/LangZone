@@ -1,14 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { Range, getTrackBackground } from 'react-range';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Clock, MapPin, Play, User, BookOpen, Languages } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { FaPaypal } from 'react-icons/fa';
+import { SiZoom, SiWise } from 'react-icons/si';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
 interface Instructor {
   id: string;
@@ -16,6 +28,7 @@ interface Instructor {
   slug: string;
   image_url?: string;
   expertise?: string;
+  teaching_style?: string;
   years_experience?: number;
   language?: string;
   is_native?: boolean;
@@ -33,14 +46,10 @@ export default function TutorsList() {
   const [error, setError] = useState<string | null>(null);
   const [openDemoVideo, setOpenDemoVideo] = useState<string | null>(null);
 
-  // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [languageFilter, setLanguageFilter] = useState('');
-  const [countryFilter, setCountryFilter] = useState('');
-  const [sortOption, setSortOption] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
-
-  const STEP = 1;
+  const [languageFilter, setLanguageFilter] = useState('all');
+  const [countryFilter, setCountryFilter] = useState('all');
+  const [sortOption, setSortOption] = useState('default');
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -52,16 +61,12 @@ export default function TutorsList() {
           return;
         }
         if (data) {
-          const tutorsWithDemoVideos = data.map((t: Instructor) => ({
+          const tutorsWithDefaults = data.map((t: Instructor) => ({
             ...t,
             demo_video_url: t.demo_video_url || '/default-demo.mp4',
             zoom_link: t.zoom_link || 'https://zoom.us/',
           }));
-          setInstructors(tutorsWithDemoVideos);
-          const prices = tutorsWithDemoVideos.map(d => d.price || 0);
-          const min = Math.min(...prices);
-          const max = Math.max(...prices);
-          setPriceRange([min, max]);
+          setInstructors(tutorsWithDefaults);
         }
       } catch {
         setError('Unexpected error occurred');
@@ -72,179 +77,107 @@ export default function TutorsList() {
     fetchTutors();
   }, []);
 
-  // Filter and sort tutors
   const filtered = instructors
-    .filter(inst => !languageFilter || (inst.language || '').toLowerCase() === languageFilter.toLowerCase())
-    .filter(inst => !countryFilter || (inst.country || '').toLowerCase() === countryFilter.toLowerCase())
-    .filter(inst =>
-      (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (inst.language || '').toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(inst => {
-      const price = inst.price || 0;
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
+    .filter(inst => languageFilter === 'all' || (inst.language || '').toLowerCase() === languageFilter.toLowerCase())
+    .filter(inst => countryFilter === 'all' || (inst.country || '').toLowerCase() === countryFilter.toLowerCase())
+    .filter(inst => (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (inst.language || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
   const sorted = [...filtered].sort((a, b) => {
+    if (sortOption === 'experience') return (b.years_experience || 0) - (a.years_experience || 0);
     if (sortOption === 'priceAsc') return (a.price || 0) - (b.price || 0);
     if (sortOption === 'priceDesc') return (b.price || 0) - (a.price || 0);
-    if (sortOption === 'experience') return (b.years_experience || 0) - (a.years_experience || 0);
     return 0;
   });
 
   const uniqueLanguages = Array.from(new Set(instructors.map(i => i.language).filter(Boolean)));
   const uniqueCountries = Array.from(new Set(instructors.map(i => i.country).filter(Boolean)));
 
-  // Skeleton Loader
-  const SkeletonCard = () => (
-    <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 flex flex-col lg:flex-row gap-6 animate-pulse h-80">
-      <div className="flex-1 flex flex-col sm:flex-row gap-6">
-        <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gray-300 flex-shrink-0" />
-        <div className="flex-1 space-y-3">
-          <div className="h-6 bg-gray-300 rounded w-3/4" />
-          <div className="h-4 bg-gray-300 rounded w-1/2" />
-          <div className="h-4 bg-gray-300 rounded w-2/3" />
-          <div className="h-4 bg-gray-300 rounded w-1/3" />
-          <div className="h-4 bg-gray-300 rounded w-1/4" />
-        </div>
-      </div>
-      <div className="lg:w-72 bg-gray-300 rounded-xl" />
-    </div>
-  );
-
   if (loading)
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-4 sm:px-6 md:px-10">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-teal-600 mb-10">Our Tutors</h1>
-        <div className="grid gap-6">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
+      <div className="min-h-screen bg-cover bg-center py-8 px-4 sm:px-6 md:px-8" style={{ backgroundImage: `url(${HOMEPAGE_BG})` }}>
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 drop-shadow-lg">Our Tutors</h1>
+        <div className="space-y-4 max-w-5xl mx-auto">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="w-full p-4 animate-pulse"><div className="h-24 bg-muted rounded"></div></Card>
+          ))}
         </div>
       </div>
     );
 
   if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
-  if (!sorted.length) return <div className="text-center mt-10 text-gray-400">No tutors found.</div>;
+  if (!sorted.length) return <div className="text-center mt-10 text-white">No tutors found.</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-4 sm:px-6 md:px-10">
-      <h1 className="text-4xl md:text-5xl font-bold text-center text-teal-600 mb-10">Our Tutors</h1>
+    <div className="min-h-screen bg-cover bg-center py-8 px-4 sm:px-6 md:px-8" style={{ backgroundImage: `url(${HOMEPAGE_BG})` }}>
+      <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 drop-shadow-lg">Our Tutors</h1>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-center mb-10 flex-wrap">
-        <input
-          type="text"
-          placeholder="Search by name or language..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="p-3 border border-gray-300 rounded-xl shadow-sm w-full md:w-1/3 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 placeholder-gray-400 transition"
-        />
-        <select
-          value={languageFilter}
-          onChange={e => setLanguageFilter(e.target.value)}
-          className="p-3 border border-gray-300 rounded-xl shadow-sm w-full md:w-1/5 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 transition"
-        >
-          <option value="">All Languages</option>
-          {uniqueLanguages.map(lang => <option key={lang} value={lang}>{lang}</option>)}
-        </select>
-        <select
-          value={countryFilter}
-          onChange={e => setCountryFilter(e.target.value)}
-          className="p-3 border border-gray-300 rounded-xl shadow-sm w-full md:w-1/5 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 transition"
-        >
-          <option value="">All Countries</option>
-          {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select
-          value={sortOption}
-          onChange={e => setSortOption(e.target.value)}
-          className="p-3 border border-gray-300 rounded-xl shadow-sm w-full md:w-1/5 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 transition"
-        >
-          <option value="">Sort By</option>
-          <option value="priceAsc">Price: Low → High</option>
-          <option value="priceDesc">Price: High → Low</option>
-          <option value="experience">Experience</option>
-        </select>
-      </div>
-
-      {/* Price Slider */}
-      <div className="flex flex-col items-center gap-2 mb-10">
-        <span className="text-gray-700 font-medium">Price Range: ${priceRange[0]} - ${priceRange[1]}</span>
-        <Range
-          step={STEP}
-          min={Math.min(...instructors.map(i => i.price || 0))}
-          max={Math.max(...instructors.map(i => i.price || 0))}
-          values={priceRange}
-          onChange={values => setPriceRange(values as [number, number])}
-          renderTrack={({ props, children }) => (
-            <div
-              {...props}
-              className="w-64 h-2 bg-gray-300 rounded-full relative"
-              style={{
-                ...props.style,
-                background: getTrackBackground({
-                  values: priceRange,
-                  colors: ['#22d3ee', '#3b82f6', '#22d3ee'],
-                  min: Math.min(...instructors.map(i => i.price || 0)),
-                  max: Math.max(...instructors.map(i => i.price || 0)),
-                }),
-              }}
-            >
-              {children}
-            </div>
-          )}
-          renderThumb={({ props }) => (
-            <div {...props} className="h-5 w-5 bg-teal-600 rounded-full shadow-md" />
-          )}
-        />
+      <div className="max-w-5xl mx-auto mb-8">
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-center mb-4 flex-wrap">
+          <Input type="text" placeholder="Search by name or language..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-1/3" />
+          <Select value={languageFilter} onValueChange={setLanguageFilter}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="All Languages" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Languages</SelectItem>
+              {uniqueLanguages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={countryFilter} onValueChange={setCountryFilter}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="All Countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="experience">Experience</SelectItem>
+              <SelectItem value="priceAsc">Price Low → High</SelectItem>
+              <SelectItem value="priceDesc">Price High → Low</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tutors List */}
-      <div className="flex flex-col gap-8">
-        {sorted.map(tutor => (
-          <TutorCard
-            key={tutor.id}
-            tutor={tutor}
-            setOpenDemoVideo={setOpenDemoVideo}
-          />
-        ))}
-      </div>
+      <AnimatePresence>
+        <div className="max-w-5xl mx-auto space-y-6">
+          {sorted.map((tutor, index) => (
+            <TutorCard key={tutor.id} tutor={tutor} setOpenDemoVideo={setOpenDemoVideo} delay={index * 0.2} />
+          ))}
+        </div>
+      </AnimatePresence>
 
       {/* Demo Video Modal */}
-      <AnimatePresence>
-        {openDemoVideo && (
-          <motion.div
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setOpenDemoVideo(null)}
-          >
-            <motion.div
-              className="bg-white rounded-3xl overflow-hidden w-11/12 md:w-3/4 lg:w-1/2 relative"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <video src={openDemoVideo} controls autoPlay className="w-full h-auto rounded-3xl object-cover" />
-              <button
-                onClick={() => setOpenDemoVideo(null)}
-                className="absolute top-4 right-4 text-white bg-red-500 px-3 py-1 rounded-full hover:bg-red-600 transition"
-              >
-                Close
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Dialog open={!!openDemoVideo} onOpenChange={() => setOpenDemoVideo(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden relative">
+          <DialogTitle className="sr-only">Demo Video</DialogTitle>
+          <DialogClose className="absolute top-2 right-2 text-white bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">X</DialogClose>
+          {openDemoVideo && <video src={openDemoVideo} controls autoPlay className="w-full h-auto rounded-lg" />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-// Enhanced TutorCard Component with demo video on the right
-function TutorCard({ tutor, setOpenDemoVideo }: { tutor: Instructor; setOpenDemoVideo: (url: string) => void }) {
+interface TutorCardProps {
+  tutor: Instructor;
+  setOpenDemoVideo: (url: string) => void;
+  delay?: number;
+}
+
+function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-50px' });
+
   const avatarUrl = tutor.image_url
     ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
     : '/default-avatar.png';
@@ -253,220 +186,82 @@ function TutorCard({ tutor, setOpenDemoVideo }: { tutor: Instructor; setOpenDemo
     ? tutor.zoom_link
     : `zoommtg://zoom.us/join?confno=${tutor.zoom_link?.split('/').pop() || ''}`;
 
+  const badgeColors = ['bg-purple-100 text-purple-700', 'bg-green-100 text-green-700', 'bg-yellow-100 text-yellow-800', 'bg-pink-100 text-pink-700'];
+
   return (
     <motion.div
-      whileHover={{
-        scale: 1.01,
-        y: -4,
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-      }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-gray-200 hover:border-teal-200 transition-all duration-300"
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, ease: 'easeOut', delay }}
+      whileHover={{ scale: 1.03 }}
     >
-      <div className="flex flex-col lg:flex-row">
-        {/* Left Side - Main Content */}
-        <div className="flex-1 p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            {/* Profile Image */}
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full blur-sm opacity-75"></div>
-              <img
-                src={avatarUrl}
-                alt={tutor.name}
-                loading="lazy"
-                className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 border-white shadow-lg hover:scale-105 transition-transform duration-300"
-              />
-              
-              {/* Online Status */}
-              <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-400 rounded-full ring-2 ring-white shadow-md flex items-center justify-center">
-                <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
-              </div>
+      <Card className="w-full hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/20 bg-gradient-to-tr from-white via-purple-50 to-pink-50">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
 
-              {/* Native Speaker Badge */}
-              {tutor.is_native && (
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-lg whitespace-nowrap">
-                  Native Speaker
-                </div>
-              )}
-            </div>
+            {/* Left side */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 flex-1">
+              <Link href={`/tutors/${tutor.slug}`} className="relative cursor-pointer">
+                <Avatar className="w-28 h-28 sm:w-32 sm:h-32 ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
+                  <AvatarImage src={avatarUrl} alt={tutor.name} style={{ objectFit: 'cover' }} />
+                  <AvatarFallback>{tutor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+              </Link>
 
-            {/* Profile Info */}
-            <div className="flex-1 text-center sm:text-left space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between">
-                <div>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">{tutor.name}</h3>
-                  <p className="text-teal-600 font-medium">{tutor.expertise || 'Language Tutor'}</p>
-                </div>
-                
-                {/* Price Tag */}
-                {tutor.price && (
-                  <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-full shadow-lg mt-2 sm:mt-0">
-                    <span className="text-xl font-bold">${tutor.price}</span>
-                    <span className="text-sm opacity-90">/hr</span>
+              <div className="flex-1 text-center sm:text-left space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground line-clamp-1">{tutor.name}</h3>
+                    <p className="text-primary text-sm font-medium">{tutor.expertise || 'Language Tutor'}</p>
                   </div>
-                )}
-              </div>
-
-              {/* Stats and Info */}
-              <div className="space-y-2">
-                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="font-medium">4.8</span>
-                    <span className="text-gray-400">(89 reviews)</span>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{tutor.years_experience ? `${tutor.years_experience} years exp` : 'Experience N/A'}</span>
-                  </div>
+                  {tutor.price && <Badge className="text-base px-3 py-1 bg-primary text-primary-foreground border-primary self-center sm:self-start"><span className="font-bold">${tutor.price}</span><span className="text-xs opacity-90">/hr</span></Badge>}
                 </div>
 
-                {/* Languages and Location */}
-                <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-                  {tutor.language && (
-                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium text-sm">
-                      {tutor.language}
-                    </span>
-                  )}
-                  {tutor.country && (
-                    <div className="flex items-center gap-1 text-gray-500 text-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span>{tutor.country}</span>
-                    </div>
-                  )}
+                {/* Tutor Info with Native badge */}
+                <div className="flex flex-wrap gap-2 mt-1 items-center">
+                  {tutor.years_experience && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[0]}`}><Clock className="w-3 h-3" />{tutor.years_experience} yrs</Badge>}
+                  {tutor.country && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[1]}`}><MapPin className="w-3 h-3" />{tutor.country}</Badge>}
+                  {tutor.language && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[2]}`}><Languages className="w-3 h-3" />{tutor.language}</Badge>}
+                  {tutor.teaching_style && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[3]}`}><BookOpen className="w-3 h-3" />{tutor.teaching_style}</Badge>}
+                  {tutor.is_native && <Badge className="bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold">Native</Badge>}
                 </div>
 
-                {/* Expertise Tags */}
-                {tutor.expertise && (
-                  <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-                    {tutor.expertise.split(',').slice(0, 4).map((tag, idx) => (
-                      <span key={idx} className="bg-teal-50 text-teal-700 px-2 py-1 rounded-full text-xs font-medium">
-                        {tag.trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <p className="text-muted-foreground text-sm mt-2">{tutor.description}</p>
 
-                {/* Qualifications */}
-                {tutor.qualifications && (
-                  <p className="text-gray-600 text-sm leading-relaxed">{tutor.qualifications}</p>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Link
-                  href={`/tutors/${tutor.slug}`}
-                  className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white py-3 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  Book a Lesson
-                </Link>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    href={`/tutors/${tutor.slug}`}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-medium text-center transition-all text-sm"
-                  >
-                    View Profile
-                  </Link>
-
-                  <a
-                    href={zoomLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-4 rounded-xl font-medium text-center transition-all text-sm flex items-center justify-center gap-1"
-                  >
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                    </svg>
-                    Join
-                  </a>
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2 flex-wrap">
+                  <Button asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all">
+                    <Link href={`/tutors/${tutor.slug}`}><User className="w-4 h-4 mr-1" />View Profile</Link>
+                  </Button>
+                  <Button variant="outline" asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all">
+                    <a href={zoomLink} target="_blank" rel="noreferrer"><SiZoom className="w-4 h-4 mr-1 text-blue-500" />Zoom Call</a>
+                  </Button>
+                  <Button variant="outline" asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-yellow-400 hover:to-orange-400 hover:text-white transition-all">
+                    <a href="#" target="_blank" rel="noreferrer"><FaPaypal className="w-4 h-4 mr-1 text-yellow-600" />PayPal</a>
+                  </Button>
+                  <Button variant="outline" asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-green-400 hover:to-lime-400 hover:text-white transition-all">
+                    <a href="#" target="_blank" rel="noreferrer"><SiWise className="w-4 h-4 mr-1 text-green-500" />Wise</a>
+                  </Button>
                 </div>
               </div>
             </div>
+
+            {/* Right side - Demo video */}
+            {tutor.demo_video_url && (
+              <motion.div whileHover={{ scale: 1.03 }} className="md:w-44 lg:w-52 bg-gradient-to-br from-purple-50 via-yellow-50 to-pink-50 p-3 rounded-lg flex flex-col justify-between cursor-pointer" onClick={() => setOpenDemoVideo(tutor.demo_video_url!)}>
+                <h4 className="text-xs font-semibold text-foreground mb-1">Demo Video</h4>
+                <Card className="overflow-hidden relative" style={{ paddingBottom: '75%' }}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/30 flex items-center justify-center group-hover:animate-pulse">
+                    <Play className="w-6 h-6 text-foreground/70 transition-colors group-hover:text-primary" />
+                  </div>
+                </Card>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">Watch introduction video</p>
+              </motion.div>
+            )}
           </div>
-        </div>
-
-        {/* Right Side - Demo Video Section */}
-        {tutor.demo_video_url && (
-          <div className="lg:w-72 bg-gradient-to-b from-gray-50 to-gray-100 p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-700">Introduction Video</h4>
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                DEMO
-              </span>
-            </div>
-
-            {/* Video Container */}
-            <div className="relative w-full rounded-xl overflow-hidden shadow-md cursor-pointer group mb-3" onClick={() => setOpenDemoVideo(tutor.demo_video_url!)}>
-              <div className="relative w-full bg-gray-900" style={{ paddingBottom: '60%' }}>
-                <video
-                  src={tutor.demo_video_url}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  poster="/video-thumbnail.jpg"
-                  preload="metadata"
-                />
-              </div>
-
-              {/* Play overlay */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <button
-                  className="bg-white/95 hover:bg-white rounded-full p-3 shadow-lg transform group-hover:scale-110 transition-all duration-200"
-                  aria-label="Play Demo Video"
-                >
-                  <svg className="w-5 h-5 text-gray-900 ml-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 5v10l7-5-7-5z" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Duration badge */}
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                1:47
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-500 mb-3">Watch introduction & teaching style</p>
-
-            {/* Additional Info Boxes */}
-            <div className="space-y-2 flex-1">
-              <div className="bg-white rounded-lg p-2 shadow-sm">
-                <h5 className="text-xs font-semibold text-gray-600 mb-1">Teaching Style</h5>
-                <p className="text-xs text-gray-700">Interactive conversation with practical examples</p>
-              </div>
-
-              <div className="bg-white rounded-lg p-2 shadow-sm">
-                <h5 className="text-xs font-semibold text-gray-600 mb-1">Next Available</h5>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-xs text-gray-700">Today 3:00 PM</span>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-2 shadow-sm">
-                <h5 className="text-xs font-semibold text-gray-600 mb-1">Student Rating</h5>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '96%' }}></div>
-                  </div>
-                  <span className="text-xs font-medium text-green-600">96%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Status Indicator Bar */}
-      <div className="h-1 bg-gradient-to-r from-green-400 to-teal-500"></div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }

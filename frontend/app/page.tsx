@@ -6,20 +6,45 @@ import { createClient, Session, User } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserGroupIcon, LightBulbIcon, CheckBadgeIcon, PlusIcon, MinusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
+// shadcn imports
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Updated to a language learning themed background image
 const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
-
-
-
-
-
-
-
-
 
 // Add Instructor interface
 interface Instructor {
@@ -78,7 +103,7 @@ interface Package {
   bgGradient: string;
 }
 
-// AuthModal Component
+// Enhanced AuthModal Component with shadcn
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -121,82 +146,80 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        {currentMode === 'sign-up' ? 'Create Account' : 'Sign In'}
-      </h2>
-      
-      <form onSubmit={handleAuth} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-            placeholder="Your email address"
-          />
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-center">
+            {currentMode === 'sign-up' ? 'Create Account' : 'Sign In'}
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            {currentMode === 'sign-up' 
+              ? 'Join our community of language learners' 
+              : 'Welcome back! Please sign in to continue'}
+          </DialogDescription>
+        </DialogHeader>
         
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
-            placeholder="Your password"
-          />
-        </div>
-        
-        {message && (
-          <div className={`p-3 rounded-lg text-sm ${message.includes('error') ? 'bg-red-100 text-red-700' : 'bg-teal-100 text-teal-700'}`}>
-            {message}
+        <form onSubmit={handleAuth} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="Your email address"
+            />
           </div>
-        )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Your password"
+            />
+          </div>
+          
+          {message && (
+            <div className={`p-3 rounded-lg text-sm ${
+              message.includes('error') 
+                ? 'bg-destructive/10 text-destructive' 
+                : 'bg-teal-50 text-teal-700 border border-teal-200'
+            }`}>
+              {message}
+            </div>
+          )}
+          
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-teal-600 hover:bg-teal-700"
+          >
+            {loading ? 'Processing...' : currentMode === 'sign-up' ? 'Sign Up' : 'Sign In'}
+          </Button>
+        </form>
         
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-teal-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-teal-700 transition disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : currentMode === 'sign-up' ? 'Sign Up' : 'Sign In'}
-        </button>
-      </form>
-      
-      <div className="mt-4 text-center">
-        <button
-          type="button"
-          onClick={() => setCurrentMode(currentMode === 'sign-up' ? 'sign-in' : 'sign-up')}
-          className="text-teal-600 hover:text-teal-700 text-sm font-medium"
-        >
-          {currentMode === 'sign-up' 
-            ? 'Already have an account? Sign In' 
-            : "Don't have an account? Sign Up"}
-        </button>
-      </div>
-      
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full text-gray-500 hover:text-gray-700 text-sm font-medium"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+        <Separator className="my-4" />
+        
+        <div className="text-center">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setCurrentMode(currentMode === 'sign-up' ? 'sign-in' : 'sign-up')}
+            className="text-teal-600 hover:text-teal-700"
+          >
+            {currentMode === 'sign-up' 
+              ? 'Already have an account? Sign In' 
+              : "Don't have an account? Sign Up"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -413,46 +436,68 @@ export default function Home() {
       {/* Header placeholder (adjust positioning as needed) */}
       <div className="h-16 relative z-10" />
 
-      {/* Floating Auth Controls - positioned below header */}
+      {/* Enhanced Floating Auth Controls with shadcn */}
       <div className="fixed top-20 right-4 z-50 flex items-center gap-2">
         {!user ? (
           <>
-            <button
+            <Button
               onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
-              className="bg-white/90 backdrop-blur border border-teal-600 text-teal-700 hover:bg-white text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+              variant="outline"
+              size="sm"
+              className="bg-white/90 backdrop-blur border-teal-600 text-teal-700 hover:bg-white shadow-md"
             >
               Sign Up
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
-              className="bg-teal-600 text-white hover:bg-teal-700 text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+              size="sm"
+              className="bg-teal-600 hover:bg-teal-700 shadow-md"
             >
               Sign In
-            </button>
+            </Button>
           </>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="inline-block text-sm px-4 py-2 rounded-full font-semibold text-teal-800 bg-white/90 backdrop-blur border border-teal-200 shadow">
-              Hi, {user.email}
-            </span>
-            <button
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur border border-teal-200 rounded-full px-4 py-2 shadow-md">
+              <Avatar className="h-6 w-6">
+                <AvatarFallback className="bg-teal-100 text-teal-800 text-xs">
+                  {user.email?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-teal-800 hidden sm:inline">
+                Hi, {user.email?.split('@')[0]}
+              </span>
+            </div>
+            <Button
               onClick={handleSignOut}
-              className="bg-red-500 text-white hover:bg-red-600 text-sm font-semibold px-4 py-2 rounded-full shadow-md transition"
+              variant="destructive"
+              size="sm"
+              className="shadow-md"
             >
               Sign Out
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
-      {/* Hero */}
+      {/* Enhanced Hero Section */}
       <section className="py-20 md:py-32 text-center px-4 sm:px-6 md:px-10">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-teal-700 drop-shadow-sm mb-6">
+        <motion.h1 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-teal-700 drop-shadow-sm mb-6"
+        >
           Master New Languages
-        </h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto mb-8">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto mb-8"
+        >
           Connect with certified language instructors for personalized 1-on-1 lessons tailored to your goals and schedule.
-        </p>
+        </motion.p>
         <div className="max-w-3xl mx-auto mb-8 relative h-14">
           <AnimatePresence mode="wait">
             <motion.p
@@ -467,118 +512,127 @@ export default function Home() {
             </motion.p>
           </AnimatePresence>
         </div>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link
-            href="/instructors"
-            className="inline-block bg-teal-600 text-white py-3 px-8 rounded-full font-semibold hover:bg-teal-700 transition shadow"
-          >
-            Find Instructors
-          </Link>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="flex flex-col sm:flex-row justify-center gap-4"
+        >
+          <Button asChild size="lg" className="bg-teal-600 hover:bg-teal-700 text-lg px-8 py-3 rounded-full">
+            <Link href="/instructors">
+              Find Instructors
+            </Link>
+          </Button>
+        </motion.div>
       </section>
 
-      {/* Tabs */}
+      {/* Enhanced Tabs Section with shadcn */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
-        <div className="flex justify-center gap-4 mb-10 flex-wrap">
-          <button onClick={() => setActiveTab('packages')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'packages' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Our Courses</button>
-          <button onClick={() => setActiveTab('info')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>About Us</button>
-          <button onClick={() => setActiveTab('steps')} className={`py-2 px-6 rounded-full font-semibold transition ${activeTab === 'steps' ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>How It Works</button>
-        </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-10">
+            <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+              Our Courses
+            </TabsTrigger>
+            <TabsTrigger value="info" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+              About Us
+            </TabsTrigger>
+            <TabsTrigger value="steps" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+              How It Works
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Packages Tab */}
-        {activeTab === 'packages' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {packages.map((pkg) => (
-              <PackageCard 
-                key={pkg.id} 
-                pkg={pkg} 
-                selected={selectedPackage === pkg.id}
-                onSelect={() => setSelectedPackage(pkg.id)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Info Tab */}
-        {activeTab === 'info' && (
-          <div className="relative max-w-4xl mx-auto">
-            <AnimatePresence mode="wait">
-              {draggableSlide(<InfoSlideComponent slide={infoSlides[infoIndex]} />, infoIndex)}
-            </AnimatePresence>
-            <div className="flex justify-center gap-3 mt-4">
-              {infoSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setInfoIndex(idx)}
-                  className={`w-3 h-3 rounded-full cursor-pointer ${infoIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}
-                  aria-label={`Go to slide ${idx + 1}`}
+          <TabsContent value="packages" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {packages.map((pkg) => (
+                <PackageCard 
+                  key={pkg.id} 
+                  pkg={pkg} 
+                  selected={selectedPackage === pkg.id}
+                  onSelect={() => setSelectedPackage(pkg.id)}
                 />
               ))}
             </div>
-          </div>
-        )}
+          </TabsContent>
 
-        {/* Steps Tab */}
-        {activeTab === 'steps' && (
-          <div className="relative max-w-4xl mx-auto">
-            <AnimatePresence mode="wait">
-              {draggableSlide(<StepSlideComponent slide={stepsSlides[stepIndex]} />, stepIndex)}
-            </AnimatePresence>
-            <div className="flex justify-center gap-3 mt-4">
-            {stepsSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setStepIndex(idx)}
-                  className={`w-3 h-3 rounded-full cursor-pointer ${stepIndex === idx ? 'bg-teal-600' : 'bg-gray-300'}`}
-                  aria-label={`Go to step ${idx + 1}`}
-                />
-              ))}
+          <TabsContent value="info" className="space-y-6">
+            <div className="relative max-w-4xl mx-auto">
+              <AnimatePresence mode="wait">
+                {draggableSlide(<InfoSlideComponent slide={infoSlides[infoIndex]} />, infoIndex)}
+              </AnimatePresence>
+              <div className="flex justify-center gap-3 mt-4">
+                {infoSlides.map((_, idx) => (
+                  <Button
+                    key={idx}
+                    onClick={() => setInfoIndex(idx)}
+                    variant={infoIndex === idx ? "default" : "outline"}
+                    size="sm"
+                    className={`w-3 h-3 p-0 rounded-full ${
+                      infoIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="steps" className="space-y-6">
+            <div className="relative max-w-4xl mx-auto">
+              <AnimatePresence mode="wait">
+                {draggableSlide(<StepSlideComponent slide={stepsSlides[stepIndex]} />, stepIndex)}
+              </AnimatePresence>
+              <div className="flex justify-center gap-3 mt-4">
+                {stepsSlides.map((_, idx) => (
+                  <Button
+                    key={idx}
+                    onClick={() => setStepIndex(idx)}
+                    variant={stepIndex === idx ? "default" : "outline"}
+                    size="sm"
+                    className={`w-3 h-3 p-0 rounded-full ${
+                      stepIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                    }`}
+                    aria-label={`Go to step ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </section>
 
-      {/* FAQ */}
+      {/* Enhanced FAQ Section */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10" id="faq">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Frequently Asked Questions</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {faqItems.map((item, idx) => (
-            <motion.div
-              key={idx}
-              layout
-              className={`p-6 rounded-xl shadow-lg cursor-pointer bg-gradient-to-r ${item.bgGradient} text-white`}
-              onClick={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
-            >
-              <div className="flex items-center justify-between">
-                <motion.h3 layout className="font-semibold text-lg">{item.question}</motion.h3>
-                <div className="ml-4 flex-shrink-0">
-                  {openFAQIndex === idx ? (
-                    <MinusIcon className="w-5 h-5 text-white" />
-                  ) : (
-                    <PlusIcon className="w-5 h-5 text-white" />
-                  )}
-                </div>
-              </div>
-              <AnimatePresence>
-                {openFAQIndex === idx && (
-                  <motion.p
-                    layout
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mt-3 text-white/90"
-                  >
-                    {item.answer}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+            <Collapsible key={idx} open={openFAQIndex === idx} onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
+              <Card className={`cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-r ${item.bgGradient} text-white border-none`}>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg font-semibold text-white">{item.question}</CardTitle>
+                      <div className="ml-4 flex-shrink-0">
+                        {openFAQIndex === idx ? (
+                          <MinusIcon className="w-5 h-5 text-white" />
+                        ) : (
+                          <PlusIcon className="w-5 h-5 text-white" />
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0">
+                    <p className="text-white/90">{item.answer}</p>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           ))}
         </div>
       </section>
 
-      {/* Blog */}
+      {/* Enhanced Blog Section */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10" id="blog">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Latest from Our Blog</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -588,131 +642,122 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.1 }}
-              className="bg-white/95 backdrop-blur rounded-3xl shadow-lg p-8 text-gray-800 hover:shadow-2xl hover:scale-105 transition transform"
             >
-              <h3 className="text-2xl font-bold mb-4 text-gray-800">{post.title}</h3>
-              <p className="text-gray-600">{post.summary}</p>
+              <Card className="h-full hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white/95 backdrop-blur border-none">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-gray-800">{post.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-gray-600">{post.summary}</CardDescription>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Auth Modal */}
-      <AnimatePresence>
-        {isAuthModalOpen && (
-          <motion.div
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsAuthModalOpen(false)}
-          >
-            <motion.div
-              className="bg-white rounded-3xl overflow-hidden w-full max-w-md relative"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setIsAuthModalOpen(false)}
-                className="absolute top-4 right-4 z-50 bg-gray-100 hover:bg-gray-200 rounded-full p-1 transition-colors"
-                aria-label="Close modal"
-              >
-                <XMarkIcon className="w-6 h-6 text-gray-600" />
-              </button>
-              <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
-                setIsOpen={setIsAuthModalOpen}
-                mode={authMode}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        setIsOpen={setIsAuthModalOpen}
+        mode={authMode}
+      />
     </div>
   );
 }
 
-// PackageCard Component
+// Enhanced PackageCard Component
 function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: boolean; onSelect: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className={`relative rounded-2xl overflow-hidden shadow-lg transition-all duration-300 ${selected ? 'ring-4 ring-teal-500 scale-105' : 'hover:shadow-xl'}`}
+      className={`relative transition-all duration-300 ${selected ? 'scale-105' : 'hover:scale-105'}`}
       onClick={onSelect}
     >
-      {pkg.popular && (
-        <div className="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
-          MOST POPULAR
-        </div>
-      )}
-      
-      <div className={`bg-gradient-to-br ${pkg.bgGradient} text-white p-6`}>
-        <h3 className="text-xl font-bold mb-2">{pkg.name}</h3>
-        <div className="flex items-end mb-4">
-          {pkg.discountedPrice ? (
-            <>
-              <span className="text-3xl font-bold">${pkg.discountedPrice}</span>
-              <span className="text-lg line-through ml-2 opacity-80">${pkg.price}</span>
-            </>
-          ) : (
-            <span className="text-3xl font-bold">${pkg.price}</span>
-          )}
-        </div>
-        <p className="text-sm opacity-90">{pkg.lessons} lessons • {pkg.duration}</p>
-      </div>
-      
-      <div className="bg-white p-6">
-        <ul className="space-y-3 mb-6">
-          {pkg.features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <CheckBadgeIcon className="w-5 h-5 text-teal-500 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-sm text-gray-700">{feature}</span>
-            </li>
-          ))}
-        </ul>
+      <Card className={`overflow-hidden cursor-pointer transition-all ${
+        selected ? 'ring-4 ring-teal-500 shadow-xl' : 'hover:shadow-xl'
+      }`}>
+        {pkg.popular && (
+          <Badge className="absolute top-4 right-4 z-10 bg-yellow-500 hover:bg-yellow-500 text-yellow-900">
+            MOST POPULAR
+          </Badge>
+        )}
         
-        <button
-          className={`w-full py-3 rounded-lg font-semibold transition ${
-            selected 
-              ? 'bg-teal-600 text-white hover:bg-teal-700' 
-              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-          }`}
-        >
-          {selected ? 'Selected' : 'Select Package'}
-        </button>
-      </div>
+        <CardHeader className={`bg-gradient-to-br ${pkg.bgGradient} text-white p-6`}>
+          <CardTitle className="text-xl font-bold">{pkg.name}</CardTitle>
+          <div className="flex items-end mb-4">
+            {pkg.discountedPrice ? (
+              <>
+                <span className="text-3xl font-bold">${pkg.discountedPrice}</span>
+                <span className="text-lg line-through ml-2 opacity-80">${pkg.price}</span>
+              </>
+            ) : (
+              <span className="text-3xl font-bold">${pkg.price}</span>
+            )}
+          </div>
+          <CardDescription className="text-white/90">
+            {pkg.lessons} lessons • {pkg.duration}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="p-6">
+          <ul className="space-y-3 mb-6">
+            {pkg.features.map((feature, index) => (
+              <li key={index} className="flex items-start">
+                <CheckBadgeIcon className="w-5 h-5 text-teal-500 mt-0.5 mr-2 flex-shrink-0" />
+                <span className="text-sm text-gray-700">{feature}</span>
+              </li>
+            ))}
+          </ul>
+          
+          <Button
+            className={`w-full ${
+              selected 
+                ? 'bg-teal-600 hover:bg-teal-700 text-white' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+            }`}
+            variant={selected ? "default" : "secondary"}
+          >
+            {selected ? 'Selected' : 'Select Package'}
+          </Button>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }
 
-// InfoSlideComponent
+// Enhanced InfoSlideComponent
 function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   const Icon = slide.icon;
   return (
-    <div className={`flex flex-col md:flex-row items-center justify-center gap-6 p-6 rounded-3xl shadow-lg bg-gradient-to-r ${slide.bgGradient} text-white`}>
-      <Icon className="w-16 h-16 md:w-20 md:h-20" />
-      <div className="text-center md:text-left max-w-xl">
-        <h3 className="text-2xl font-bold mb-2">{slide.title}</h3>
-        <p className="text-white/90">{slide.description}</p>
-      </div>
-    </div>
+    <Card className={`border-none bg-gradient-to-r ${slide.bgGradient} text-white shadow-lg`}>
+      <CardContent className="flex flex-col md:flex-row items-center justify-center gap-6 p-8">
+        <Icon className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0" />
+        <div className="text-center md:text-left max-w-xl">
+          <CardTitle className="text-2xl font-bold mb-2 text-white">{slide.title}</CardTitle>
+          <CardDescription className="text-white/90">{slide.description}</CardDescription>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// StepSlideComponent
+// Enhanced StepSlideComponent
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center gap-6 p-6 rounded-3xl shadow-lg bg-white">
-      <div className="w-16 h-16 flex items-center justify-center rounded-full bg-teal-600 text-white text-xl font-bold">{slide.step}</div>
-      <div className="text-center md:text-left max-w-xl">
-        <h3 className="text-2xl font-bold mb-2">{slide.title}</h3>
-        <p className="text-gray-700">{slide.description}</p>
-      </div>
-    </div>
+    <Card className="shadow-lg border-gray-200">
+      <CardContent className="flex flex-col md:flex-row items-center justify-center gap-6 p-8">
+        <div className="w-16 h-16 flex items-center justify-center rounded-full bg-teal-600 text-white text-xl font-bold flex-shrink-0">
+          {slide.step}
+        </div>
+        <div className="text-center md:text-left max-w-xl">
+          <CardTitle className="text-2xl font-bold mb-2">{slide.title}</CardTitle>
+          <CardDescription className="text-gray-700">{slide.description}</CardDescription>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
