@@ -1,22 +1,16 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header'; // ✅ Your custom header
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
+import "../lib/i18n"; // i18next initialization
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Language Learning App",
-  description: "Find your perfect language instructor",
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   if (!googleClientId) {
@@ -34,14 +28,19 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800`}>
+      <body
+        className={`${inter.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800`}
+      >
         <GoogleOAuthProvider clientId={googleClientId}>
-          {/* ✅ Use Header component */}
-          <Header />
+          {/* Header with LanguageSwitcher */}
+          <div className="relative">
+            <Header />
+            <div className="absolute top-4 right-4">
+              <LanguageSwitcher />
+            </div>
+          </div>
 
-          <main className="flex-grow">
-            {children}
-          </main>
+          <main className="flex-grow">{children}</main>
 
           <Footer />
         </GoogleOAuthProvider>
