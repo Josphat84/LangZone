@@ -4,7 +4,17 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient, Session, User } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserGroupIcon, LightBulbIcon, CheckBadgeIcon, PlusIcon, MinusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { 
+  UserGroupIcon, 
+  LightBulbIcon, 
+  CheckBadgeIcon, 
+  PlusIcon, 
+  MinusIcon,
+  GlobeAltIcon, // New icon for global connection
+  AcademicCapIcon, // New icon for expertise
+  CalendarDaysIcon // New icon for flexible scheduling
+} from '@heroicons/react/24/outline';
+import { ArrowRightIcon, StarFilledIcon } from "@radix-ui/react-icons";
 
 // shadcn imports
 import { Button } from "@/components/ui/button";
@@ -19,8 +29,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogClose
 } from "@/components/ui/dialog";
 import { 
   AlertDialog,
@@ -223,11 +231,118 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
   );
 }
 
+// New "Why LangZone?" Section to replace testimonials
+function WhyLangZoneSection() {
+  return (
+    <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10">
+      <div className="container mx-auto max-w-7xl">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
+          {/* Left Column: Text & CTA */}
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-4xl sm:text-5xl md:text-6xl font-bold text-teal-700 drop-shadow-sm mb-6"
+            >
+              Master New Languages
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-lg mb-8"
+            >
+              Connect with certified language instructors for personalized 1-on-1 lessons tailored to your goals and schedule.
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="w-full max-w-md"
+            >
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <Input
+                  type="text"
+                  placeholder="e.g., Spanish, French, Japanese..."
+                  className="rounded-full w-full px-6 py-3 text-lg border-2 border-gray-200 focus:border-teal-500 transition-colors duration-300"
+                />
+                <Button
+                  size="lg"
+                  asChild
+                  className="bg-teal-600 hover:bg-teal-700 text-lg px-8 py-3 rounded-full flex-shrink-0"
+                >
+                  <Link href="/instructors">
+                    Find Instructors
+                  </Link>
+                </Button>
+              </div>
+              <p className="mt-4 text-sm text-gray-500">
+                Or <Link href="/lessons" className="text-teal-600 hover:underline">browse all lessons</Link>.
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Right Column: Generated Images & Info with enhanced icons */}
+          <div className="relative w-full lg:w-1/2 mt-10 lg:mt-0 flex-shrink-0">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.6 }}
+              className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+            >
+              {/* Image generation tag */}
+              
+            </motion.div>
+            
+            {/* Floating Info Card with enhanced icons */}
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+              className="absolute -bottom-10 lg:-bottom-16 left-1/2 -translate-x-1/2 w-[90%] md:w-[75%] lg:w-[85%] max-w-sm"
+            >
+              <Card className="shadow-lg border-none bg-white/90 backdrop-blur-sm">
+                <CardHeader className="p-4 flex flex-row items-center space-x-4">
+                  <GlobeAltIcon className="w-8 h-8 text-teal-600 flex-shrink-0" />
+                  <div>
+                    <CardTitle className="text-base font-semibold">Global Learning</CardTitle>
+                    <CardDescription className="text-gray-600">
+                      Connect with tutors from around the world.
+                    </CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <p className="text-gray-600 italic mb-4">
+                    "Our expert tutors create a custom learning plan just for you, so you can achieve your language goals faster and more effectively."
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <AcademicCapIcon className="w-6 h-6 text-purple-600" />
+                      <span className="text-sm font-medium text-gray-700">Expert Tutors</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <CalendarDaysIcon className="w-6 h-6 text-orange-600" />
+                      <span className="text-sm font-medium text-gray-700">Flexible Schedule</span>
+                    </div>
+                  </div>
+                  {/* Image generation tag for diversity */}
+                  
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [tutors, setTutors] = useState<Instructor[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<Instructor[]>([]);
   const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
-  const [heroTipIndex, setHeroTipIndex] = useState(0);
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
@@ -329,13 +444,6 @@ export default function Home() {
     { step: 4, title: 'Track Progress', description: 'Monitor your improvement with detailed reports, session summaries, and actionable feedback from tutors.' },
   ];
 
-  const heroTips: string[] = [
-    'Learn at your own pace with personalized lessons.',
-    'Track your progress with actionable feedback.',
-    'Choose from native-speaking instructors.',
-    'Flexible scheduling to fit your lifestyle.',
-  ];
-
   const faqItems: FAQItem[] = [
     { question: 'What is the pricing for lessons?', answer: 'Pricing varies by instructor. Most lessons start at $15/hr. You can see each tutor\'s rates on their profile.', bgGradient: 'from-orange-400 to-orange-500' },
     { question: 'Which devices and internet speed are required?', answer: 'Desktop, tablet, or mobile. Webcam and mic required. Stable 5Mbps+ internet recommended.', bgGradient: 'from-orange-400 to-orange-500' },
@@ -383,11 +491,6 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Hero tips change faster (6 seconds)
-    const heroTipInterval = setInterval(() => {
-      setHeroTipIndex(prev => (prev + 1) % heroTips.length);
-    }, 6000);
-    
     // Info and Steps slides change much slower (60 seconds/1 minute) to allow more reading time
     const infoAndStepsInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
@@ -395,10 +498,9 @@ export default function Home() {
     }, 60000); // 60 seconds/1 minute
     
     return () => {
-      clearInterval(heroTipInterval);
       clearInterval(infoAndStepsInterval);
     };
-  }, [heroTips.length, infoSlides.length, stepsSlides.length]);
+  }, [infoSlides.length, stepsSlides.length]);
 
   const slideVariants = {
     enter: { x: 400, opacity: 0, scale: 0.9 },
@@ -436,95 +538,8 @@ export default function Home() {
       {/* Header placeholder (adjust positioning as needed) */}
       <div className="h-16 relative z-10" />
 
-      {/* Enhanced Floating Auth Controls with shadcn */}
-      <div className="fixed top-20 right-4 z-50 flex items-center gap-2">
-        {!user ? (
-          <>
-            <Button
-              onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-up'); }}
-              variant="outline"
-              size="sm"
-              className="bg-white/90 backdrop-blur border-teal-600 text-teal-700 hover:bg-white shadow-md"
-            >
-              Sign Up
-            </Button>
-            <Button
-              onClick={() => { setIsAuthModalOpen(true); setAuthMode('sign-in'); }}
-              size="sm"
-              className="bg-teal-600 hover:bg-teal-700 shadow-md"
-            >
-              Sign In
-            </Button>
-          </>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-white/90 backdrop-blur border border-teal-200 rounded-full px-4 py-2 shadow-md">
-              <Avatar className="h-6 w-6">
-                <AvatarFallback className="bg-teal-100 text-teal-800 text-xs">
-                  {user.email?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-teal-800 hidden sm:inline">
-                Hi, {user.email?.split('@')[0]}
-              </span>
-            </div>
-            <Button
-              onClick={handleSignOut}
-              variant="destructive"
-              size="sm"
-              className="shadow-md"
-            >
-              Sign Out
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Enhanced Hero Section */}
-      <section className="py-20 md:py-32 text-center px-4 sm:px-6 md:px-10">
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-teal-700 drop-shadow-sm mb-6"
-        >
-          Master New Languages
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto mb-8"
-        >
-          Connect with certified language instructors for personalized 1-on-1 lessons tailored to your goals and schedule.
-        </motion.p>
-        <div className="max-w-3xl mx-auto mb-8 relative h-14">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={heroTipIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.8 }}
-              className="text-teal-700 font-semibold text-lg sm:text-xl"
-            >
-              {heroTips[heroTipIndex]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex flex-col sm:flex-row justify-center gap-4"
-        >
-          <Button asChild size="lg" className="bg-teal-600 hover:bg-teal-700 text-lg px-8 py-3 rounded-full">
-            <Link href="/instructors">
-              Find Instructors
-            </Link>
-          </Button>
-        </motion.div>
-      </section>
+      {/* New Why LangZone Section */}
+      <WhyLangZoneSection />
 
       {/* Enhanced Tabs Section with shadcn */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
@@ -542,7 +557,7 @@ export default function Home() {
           </TabsList>
 
           <TabsContent value="packages" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               {packages.map((pkg) => (
                 <PackageCard 
                   key={pkg.id} 
@@ -608,9 +623,11 @@ export default function Home() {
             <Collapsible key={idx} open={openFAQIndex === idx} onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
               <Card className={`cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-r ${item.bgGradient} text-white border-none`}>
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="pb-3">
+                  <CardHeader className="py-4 px-6">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-semibold text-white">{item.question}</CardTitle>
+                      <CardTitle className="text-base font-semibold text-white">
+                        {item.question}
+                      </CardTitle>
                       <div className="ml-4 flex-shrink-0">
                         {openFAQIndex === idx ? (
                           <MinusIcon className="w-5 h-5 text-white" />
@@ -622,8 +639,8 @@ export default function Home() {
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <p className="text-white/90">{item.answer}</p>
+                  <CardContent className="px-6 pb-4 pt-0">
+                    <p className="text-white/90 text-sm">{item.answer}</p>
                   </CardContent>
                 </CollapsibleContent>
               </Card>
@@ -674,10 +691,10 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className={`relative transition-all duration-300 ${selected ? 'scale-105' : 'hover:scale-105'}`}
+      className={`relative h-full flex flex-col transition-all duration-300 ${selected ? 'scale-105' : 'hover:scale-105'}`}
       onClick={onSelect}
     >
-      <Card className={`overflow-hidden cursor-pointer transition-all ${
+      <Card className={`h-full overflow-hidden cursor-pointer transition-all ${
         selected ? 'ring-4 ring-teal-500 shadow-xl' : 'hover:shadow-xl'
       }`}>
         {pkg.popular && (
@@ -703,8 +720,8 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="p-6">
-          <ul className="space-y-3 mb-6">
+        <CardContent className="p-6 flex-grow flex flex-col">
+          <ul className="space-y-3 mb-6 flex-grow">
             {pkg.features.map((feature, index) => (
               <li key={index} className="flex items-start">
                 <CheckBadgeIcon className="w-5 h-5 text-teal-500 mt-0.5 mr-2 flex-shrink-0" />
@@ -714,7 +731,7 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
           </ul>
           
           <Button
-            className={`w-full ${
+            className={`w-full mt-auto ${
               selected 
                 ? 'bg-teal-600 hover:bg-teal-700 text-white' 
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
