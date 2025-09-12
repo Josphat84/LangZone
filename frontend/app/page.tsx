@@ -243,8 +243,8 @@ function WhyLangZoneSection() {
   }, [heroTexts.length]);
 
   return (
-    <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10"> {/* Removed semi-transparent background */}
-      <div className="container mx-auto max-w-7xl">
+    <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10 lg:px-20">
+      <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between gap-16">
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
             <motion.h1 
@@ -511,7 +511,7 @@ const MainContent = () => {
   );
 
   return (
-    <div className="flex-1 space-y-20 rounded-lg p-6 md:p-12"> {/* Removed semi-transparent background */}
+    <div className="flex-1 space-y-20 rounded-lg p-6 md:p-12">
       <section id="courses" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Our Courses</h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
@@ -685,7 +685,7 @@ export default function Home() {
 
       <WhyLangZoneSection />
       
-      <div className="flex flex-col lg:flex-row container mx-auto gap-12 px-4 sm:px-6 md:px-10 py-16">
+      <div className="flex flex-col lg:flex-row gap-12 px-4 sm:px-6 md:px-10 lg:px-20 py-16">
         <Sidebar />
         <MainContent />
       </div>
