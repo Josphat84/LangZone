@@ -21,8 +21,7 @@ import {
   HomeIcon,
   BuildingLibraryIcon,
   QuestionMarkCircleIcon,
-  NewspaperIcon,
-  ArrowRightIcon
+  NewspaperIcon
 } from '@heroicons/react/24/outline';
 
 // shadcn imports
@@ -45,7 +44,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -245,7 +243,7 @@ function WhyLangZoneSection() {
   }, [heroTexts.length]);
 
   return (
-    <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10">
+    <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10"> {/* Removed semi-transparent background */}
       <div className="container mx-auto max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between gap-16">
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
@@ -513,7 +511,7 @@ const MainContent = () => {
   );
 
   return (
-    <div className="flex-1 space-y-20">
+    <div className="flex-1 space-y-20 rounded-lg p-6 md:p-12"> {/* Removed semi-transparent background */}
       <section id="courses" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Our Courses</h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
@@ -672,7 +670,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div id="top" className="min-h-screen relative overflow-hidden bg-gray-50">
+    <div id="top" className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
       <div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ 
@@ -681,8 +680,7 @@ export default function Home() {
         }}
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white/60 via-white/50 to-white" />
-
+      
       <div className="h-16 relative z-10" />
 
       <WhyLangZoneSection />
@@ -780,7 +778,7 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
 
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
-    <Card className="shadow-lg border-gray-200">
+    <Card className="shadow-lg border-gray-200 bg-white/70 backdrop-blur-sm">
       <CardContent className="flex flex-col md:flex-row items-center justify-center gap-6 p-8">
         <div className="w-16 h-16 flex items-center justify-center rounded-full bg-teal-600 text-white text-xl font-bold flex-shrink-0">
           {slide.step}
