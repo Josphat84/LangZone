@@ -10,11 +10,20 @@ import {
   CheckBadgeIcon, 
   PlusIcon, 
   MinusIcon,
-  GlobeAltIcon, // New icon for global connection
-  AcademicCapIcon, // New icon for expertise
-  CalendarDaysIcon // New icon for flexible scheduling
+  GlobeAltIcon,
+  AcademicCapIcon,
+  CalendarDaysIcon,
+  BookOpenIcon,
+  SparklesIcon,
+  TrophyIcon,
+  ChatBubbleBottomCenterTextIcon,
+  BriefcaseIcon,
+  HomeIcon,
+  BuildingLibraryIcon,
+  QuestionMarkCircleIcon,
+  NewspaperIcon,
+  ArrowRightIcon
 } from '@heroicons/react/24/outline';
-import { ArrowRightIcon, StarFilledIcon } from "@radix-ui/react-icons";
 
 // shadcn imports
 import { Button } from "@/components/ui/button";
@@ -30,15 +39,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { 
   Collapsible,
@@ -51,10 +51,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Updated to a language learning themed background image
 const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
-// Add Instructor interface
+// Type definitions
 interface Instructor {
   id: string;
   name: string;
@@ -89,13 +88,13 @@ interface StepSlide {
 interface FAQItem {
   question: string;
   answer: string;
-  bgGradient?: string;
 }
 
 interface BlogPost {
   title: string;
   slug: string;
   summary: string;
+  icon: JSX.Element;
 }
 
 interface Package {
@@ -111,7 +110,6 @@ interface Package {
   bgGradient: string;
 }
 
-// Enhanced AuthModal Component with shadcn
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -145,7 +143,7 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
           password,
         });
         if (error) throw error;
-        onClose(); // Close modal on successful sign in
+        onClose();
       }
     } catch (error: any) {
       setMessage(error.message);
@@ -231,43 +229,57 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
   );
 }
 
-// New "Why LangZone?" Section to replace testimonials
 function WhyLangZoneSection() {
+  const [heroTextIndex, setHeroTextIndex] = useState(0);
+  const heroTexts = [
+    { text: "Personalized lessons with certified instructors tailored to your goals and schedule." },
+    { text: "Learn any language, from Spanish to Mandarin, with native speakers who make learning fun." },
+    { text: "Accelerate your fluency with custom-built learning plans and real-time feedback." }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroTextIndex(prev => (prev + 1) % heroTexts.length);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [heroTexts.length]);
+
   return (
     <section className="py-20 md:py-32 px-4 sm:px-6 md:px-10">
       <div className="container mx-auto max-w-7xl">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
-          {/* Left Column: Text & CTA */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between gap-16">
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl md:text-6xl font-bold text-teal-700 drop-shadow-sm mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-teal-700 drop-shadow-sm mb-6"
             >
               Master New Languages
             </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-lg sm:text-xl md:text-2xl text-gray-700 max-w-lg mb-8"
-            >
-              Connect with certified language instructors for personalized 1-on-1 lessons tailored to your goals and schedule.
-            </motion.p>
+            
+            <div className="h-20 flex items-start justify-center lg:justify-start overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.p 
+                  key={heroTextIndex}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.8 }}
+                  className="text-lg sm:text-xl text-gray-700 max-w-xl mb-4"
+                >
+                  {heroTexts[heroTextIndex].text}
+                </motion.p>
+              </AnimatePresence>
+            </div>
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="w-full max-w-md"
+              className="w-full max-w-md mt-4"
             >
-              <div className="flex flex-col sm:flex-row gap-4 w-full">
-                <Input
-                  type="text"
-                  placeholder="e.g., Spanish, French, Japanese..."
-                  className="rounded-full w-full px-6 py-3 text-lg border-2 border-gray-200 focus:border-teal-500 transition-colors duration-300"
-                />
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start">
                 <Button
                   size="lg"
                   asChild
@@ -278,30 +290,15 @@ function WhyLangZoneSection() {
                   </Link>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-gray-500">
-                Or <Link href="/lessons" className="text-teal-600 hover:underline">browse all lessons</Link>.
-              </p>
             </motion.div>
           </div>
 
-          {/* Right Column: Generated Images & Info with enhanced icons */}
-          <div className="relative w-full lg:w-1/2 mt-10 lg:mt-0 flex-shrink-0">
-            <motion.div 
+          <div className="flex justify-center items-center lg:justify-end">
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.6 }}
-              className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
-            >
-              {/* Image generation tag */}
-              
-            </motion.div>
-            
-            {/* Floating Info Card with enhanced icons */}
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 1, delay: 1, ease: "easeOut" }}
-              className="absolute -bottom-10 lg:-bottom-16 left-1/2 -translate-x-1/2 w-[90%] md:w-[75%] lg:w-[85%] max-w-sm"
+              className="w-full max-w-lg"
             >
               <Card className="shadow-lg border-none bg-white/90 backdrop-blur-sm">
                 <CardHeader className="p-4 flex flex-row items-center space-x-4">
@@ -326,9 +323,15 @@ function WhyLangZoneSection() {
                       <CalendarDaysIcon className="w-6 h-6 text-orange-600" />
                       <span className="text-sm font-medium text-gray-700">Flexible Schedule</span>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <BookOpenIcon className="w-6 h-6 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-700">Rich Resources</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <SparklesIcon className="w-6 h-6 text-yellow-600" />
+                      <span className="text-sm font-medium text-gray-700">Engaging Lessons</span>
+                    </div>
                   </div>
-                  {/* Image generation tag for diversity */}
-                  
                 </CardContent>
               </Card>
             </motion.div>
@@ -339,28 +342,54 @@ function WhyLangZoneSection() {
   );
 }
 
-export default function Home() {
-  const [tutors, setTutors] = useState<Instructor[]>([]);
-  const [filteredTutors, setFilteredTutors] = useState<Instructor[]>([]);
+const Sidebar = () => {
+  return (
+    <aside className="w-56 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 h-fit sticky top-24 hidden lg:block">
+      <h3 className="font-bold text-lg mb-4">Quick Navigation</h3>
+      <nav>
+        <ul className="space-y-2">
+          <li>
+            <a href="#top" className="flex items-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <HomeIcon className="w-5 h-5 mr-2 text-teal-600" />
+              <span>Top</span>
+            </a>
+          </li>
+          <li>
+            <a href="#courses" className="flex items-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <BuildingLibraryIcon className="w-5 h-5 mr-2 text-sky-600" />
+              <span>Courses</span>
+            </a>
+          </li>
+          <li>
+            <a href="#faq" className="flex items-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <QuestionMarkCircleIcon className="w-5 h-5 mr-2 text-purple-600" />
+              <span>FAQ</span>
+            </a>
+          </li>
+          <li>
+            <a href="#blog" className="flex items-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <NewspaperIcon className="w-5 h-5 mr-2 text-orange-600" />
+              <span>Blog</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+  );
+};
+
+const MainContent = () => {
   const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [priceFilter, setPriceFilter] = useState<number | null>(null);
-  const [nativeFilter, setNativeFilter] = useState<'any' | 'native' | 'non-native'>('any');
-  const [openDemoVideo, setOpenDemoVideo] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
-  const [blogs] = useState<BlogPost[]>([
-    { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.' },
-    { title: 'How to Practice Speaking Every Day', slug: 'practice-speaking', summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.' },
-    { title: 'Choosing the Right Tutor', slug: 'choose-tutor', summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.' },
-  ]);
+  const blogs: BlogPost[] = [
+    { title: 'Top Tips to Learn Languages Fast', slug: 'tips-learn-fast', summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.', icon: <TrophyIcon className="w-12 h-12 text-teal-600" /> },
+    { title: 'How to Practice Speaking Every Day', slug: 'practice-speaking', summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.', icon: <ChatBubbleBottomCenterTextIcon className="w-12 h-12 text-teal-600" /> },
+    { title: 'Choosing the Right Tutor', slug: 'choose-tutor', summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.', icon: <BriefcaseIcon className="w-12 h-12 text-teal-600" /> },
+  ];
 
   const packages: Package[] = [
     {
@@ -393,7 +422,7 @@ export default function Home() {
         '10% discount on single rate'
       ],
       popular: true,
-      bgGradient: 'from-purple-400 to-purple-600'
+      bgGradient: 'from-sky-400 to-sky-600'
     },
     {
       id: 'monthly',
@@ -434,7 +463,7 @@ export default function Home() {
 
   const infoSlides: InfoSlide[] = [
     { title: 'Who We Are', description: 'Connecting learners with certified instructors worldwide.', icon: UserGroupIcon, bgGradient: 'from-teal-400 to-teal-600' },
-    { title: 'What We Offer', description: 'Personalized lessons, flexible scheduling, expert guidance.', icon: LightBulbIcon, bgGradient: 'from-purple-400 to-pink-500' },
+    { title: 'What We Offer', description: 'Personalized lessons, flexible scheduling, expert guidance.', icon: LightBulbIcon, bgGradient: 'from-sky-400 to-sky-600' },
   ];
 
   const stepsSlides: StepSlide[] = [
@@ -445,57 +474,18 @@ export default function Home() {
   ];
 
   const faqItems: FAQItem[] = [
-    { question: 'What is the pricing for lessons?', answer: 'Pricing varies by instructor. Most lessons start at $15/hr. You can see each tutor\'s rates on their profile.', bgGradient: 'from-orange-400 to-orange-500' },
-    { question: 'Which devices and internet speed are required?', answer: 'Desktop, tablet, or mobile. Webcam and mic required. Stable 5Mbps+ internet recommended.', bgGradient: 'from-orange-400 to-orange-500' },
-    { question: 'How do I find a tutor?', answer: 'Use the "Find Instructors" button to browse tutors by language, expertise, and reviews.', bgGradient: 'from-orange-400 to-orange-500' },
-    { question: 'How do I book a lesson?', answer: 'Select a tutor, choose a convenient slot, and confirm your booking.', bgGradient: 'from-orange-400 to-orange-500' },
-    { question: 'Can I book weekly lessons in advance?', answer: 'Yes! You can select multiple time slots for recurring weekly lessons.', bgGradient: 'from-orange-400 to-orange-500' },
+    { question: 'What is the pricing for lessons?', answer: 'Pricing varies by instructor. Most lessons start at $15/hr. You can see each tutor\'s rates on their profile.' },
+    { question: 'Which devices and internet speed are required?', answer: 'Desktop, tablet, or mobile. Webcam and mic required. Stable 5Mbps+ internet recommended.' },
+    { question: 'How do I find a tutor?', answer: 'Use the "Find Instructors" button to browse tutors by language, expertise, and reviews.' },
+    { question: 'How do I book a lesson?', answer: 'Select a tutor, choose a convenient slot, and confirm your booking.' },
+    { question: 'Can I book weekly lessons in advance?', answer: 'Yes! You can select multiple time slots for recurring weekly lessons.' },
   ];
 
   useEffect(() => {
-    const fetchTutors = async () => {
-      const { data } = await supabase.from('Instructor').select('*').limit(10);
-      if (data) {
-        const tutorsWithImages = data.map((t: Instructor) => ({
-          ...t,
-          image_url: t.image_url ? `${supabaseUrl}/storage/v1/object/public/instructor-images/${t.image_url}` : '/default-avatar.png',
-          demo_video_url: t.demo_video_url || '/default-demo.mp4',
-          zoom_link: t.zoom_link || 'https://zoom.us/',
-        }));
-        setTutors(tutorsWithImages);
-        setFilteredTutors(tutorsWithImages);
-      }
-    };
-    fetchTutors();
-  }, []);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user || null);
-    };
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-  };
-
-  useEffect(() => {
-    // Info and Steps slides change much slower (60 seconds/1 minute) to allow more reading time
     const infoAndStepsInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
       setStepIndex(prev => (prev + 1) % stepsSlides.length);
-    }, 60000); // 60 seconds/1 minute
+    }, 60000);
     
     return () => {
       clearInterval(infoAndStepsInterval);
@@ -515,7 +505,7 @@ export default function Home() {
       initial="enter"
       animate="center"
       exit="exit"
-      transition={{ duration: 1.5, ease: 'easeInOut' }} // Slightly longer transition
+      transition={{ duration: 1.5, ease: 'easeInOut' }}
       className="w-full flex flex-col md:flex-row items-center justify-center relative"
     >
       {children}
@@ -523,30 +513,13 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Partial background image - updated to language learning themed image */}
-      <div
-        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
-        style={{ 
-          backgroundImage: `url(${HOMEPAGE_BG})`,
-          clipPath: 'polygon(0 0, 100% 0, 100% 60%, 0 80%)'
-        }}
-        aria-hidden="true"
-      />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white/85 via-white/70 to-white" />
-
-      {/* Header placeholder (adjust positioning as needed) */}
-      <div className="h-16 relative z-10" />
-
-      {/* New Why LangZone Section */}
-      <WhyLangZoneSection />
-
-      {/* Enhanced Tabs Section with shadcn */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10">
+    <div className="flex-1 space-y-20">
+      <section id="courses" className="space-y-6">
+        <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Our Courses</h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-10">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-10 bg-gray-100">
             <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white">
-              Our Courses
+              Packages
             </TabsTrigger>
             <TabsTrigger value="info" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white">
               About Us
@@ -615,13 +588,12 @@ export default function Home() {
         </Tabs>
       </section>
 
-      {/* Enhanced FAQ Section */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10" id="faq">
+      <section id="faq" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Frequently Asked Questions</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {faqItems.map((item, idx) => (
             <Collapsible key={idx} open={openFAQIndex === idx} onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
-              <Card className={`cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-r ${item.bgGradient} text-white border-none`}>
+              <Card className={`cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-r from-teal-400 to-teal-500 text-white border-none`}>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="py-4 px-6">
                     <div className="flex items-center justify-between">
@@ -630,9 +602,9 @@ export default function Home() {
                       </CardTitle>
                       <div className="ml-4 flex-shrink-0">
                         {openFAQIndex === idx ? (
-                          <MinusIcon className="w-5 h-5 text-white" />
+                          <MinusIcon className="h-6 w-6 text-white" />
                         ) : (
-                          <PlusIcon className="w-5 h-5 text-white" />
+                          <PlusIcon className="h-6 w-6 text-white" />
                         )}
                       </div>
                     </div>
@@ -649,8 +621,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Enhanced Blog Section */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-10 py-16 relative z-10" id="blog">
+      <section id="blog" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-800 mb-10 text-center">Latest from Our Blog</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogs.map((post, idx) => (
@@ -660,8 +631,11 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.1 }}
             >
-              <Card className="h-full hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white/95 backdrop-blur border-none">
-                <CardHeader>
+              <Card className="h-full hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white/95 backdrop-blur border-none flex flex-col">
+                <div className="p-6 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-t-lg">
+                  {post.icon}
+                </div>
+                <CardHeader className="flex-grow">
                   <CardTitle className="text-xl font-bold text-gray-800">{post.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -672,8 +646,52 @@ export default function Home() {
           ))}
         </div>
       </section>
+    </div>
+  );
+};
 
-      {/* Auth Modal */}
+export default function Home() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setUser(data.session?.user || null);
+    };
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user || null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return (
+    <div id="top" className="min-h-screen relative overflow-hidden bg-gray-50">
+      <div
+        className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: `url(${HOMEPAGE_BG})`,
+          clipPath: 'polygon(0 0, 100% 0, 100% 60%, 0 80%)'
+        }}
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white/60 via-white/50 to-white" />
+
+      <div className="h-16 relative z-10" />
+
+      <WhyLangZoneSection />
+      
+      <div className="flex flex-col lg:flex-row container mx-auto gap-12 px-4 sm:px-6 md:px-10 py-16">
+        <Sidebar />
+        <MainContent />
+      </div>
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -684,7 +702,6 @@ export default function Home() {
   );
 }
 
-// Enhanced PackageCard Component
 function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: boolean; onSelect: () => void }) {
   return (
     <motion.div
@@ -699,7 +716,7 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
       }`}>
         {pkg.popular && (
           <Badge className="absolute top-4 right-4 z-10 bg-yellow-500 hover:bg-yellow-500 text-yellow-900">
-            MOST POPULAR
+            POPULAR
           </Badge>
         )}
         
@@ -746,7 +763,6 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
   );
 }
 
-// Enhanced InfoSlideComponent
 function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   const Icon = slide.icon;
   return (
@@ -762,7 +778,6 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   );
 }
 
-// Enhanced StepSlideComponent
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
     <Card className="shadow-lg border-gray-200">
