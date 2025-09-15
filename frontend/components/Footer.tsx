@@ -6,19 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/app/context/TranslationContext';
-import { FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaWhatsapp, FaLinkedinIn } from 'react-icons/fa';
+import { 
+  FaFacebookF, 
+  FaInstagram, 
+  FaYoutube, 
+  FaWhatsapp, 
+  FaLinkedinIn 
+} from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6'; // ✅ official X logo
+import { SiZoom } from 'react-icons/si';
 
 export default function Footer() {
   const { t, lang, availableLanguages, setLang } = useTranslation();
 
-  const socialIcons = [
-    { label: 'Facebook', href: 'https://facebook.com', icon: <FaFacebookF />, color: '#1877F2' },
-    { label: 'X', href: 'https://x.com', icon: <FaTwitter />, color: '#1DA1F2' },
-    { label: 'Instagram', href: 'https://instagram.com', icon: <FaInstagram />, color: 'linear-gradient(45deg, #feda75, #d62976, #8134af, #517fa4, #2d77a5)' },
-    { label: 'YouTube', href: 'https://youtube.com', icon: <FaYoutube />, color: '#FF0000' },
-    { label: 'WhatsApp', href: 'https://wa.me/1234567890', icon: <FaWhatsapp />, color: '#25D366' },
-    { label: 'LinkedIn', href: 'https://linkedin.com', icon: <FaLinkedinIn />, color: '#0A66C2' },
-  ];
+  // Zoom app + fallback
+  const openZoom = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = 'zoomus://zoom.us'; // Try Zoom app
+    setTimeout(() => {
+      window.open('https://zoom.us', '_blank'); // Fallback web
+    }, 500);
+  };
 
   return (
     <footer className="bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white">
@@ -30,19 +38,80 @@ export default function Footer() {
             <h6 className="font-bold text-3xl mb-4">{t("langZone")}</h6>
             <p className="text-teal-200 text-sm mb-6 max-w-xs">{t("footerDescription")}</p>
             <div className="flex space-x-4">
-              {socialIcons.map(({ label, href, icon, color }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="w-10 h-10 flex items-center justify-center rounded-full transition-transform duration-300 transform hover:scale-110 shadow-lg"
-                  style={{ background: color }}
-                >
-                  <span className="text-xl text-white">{icon}</span>
-                </a>
-              ))}
+              {/* Facebook */}
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1877F2] transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <FaFacebookF className="text-white text-xl" />
+              </a>
+
+              {/* YouTube */}
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#FF0000] transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <FaYoutube className="text-white text-xl" />
+              </a>
+
+              {/* WhatsApp ✅ refined official look */}
+              <a
+                href="https://wa.me/1234567890"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#25D366] transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <FaWhatsapp className="text-white text-xl" />
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0A66C2] transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <FaLinkedinIn className="text-white text-xl" />
+              </a>
+
+              {/* Instagram official gradient */}
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="w-10 h-10 flex items-center justify-center rounded-full transition-transform duration-300 transform hover:scale-110 shadow-lg bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600"
+              >
+                <FaInstagram className="text-white text-xl" />
+              </a>
+
+              {/* X (Twitter → X) */}
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-black transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <FaXTwitter className="text-white text-xl" />
+              </a>
+
+              {/* Zoom */}
+              <button
+                onClick={openZoom}
+                aria-label="Zoom"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#2D8CFF] transition-transform duration-300 transform hover:scale-110 shadow-lg"
+              >
+                <SiZoom className="text-white text-xl" />
+              </button>
             </div>
           </div>
 
