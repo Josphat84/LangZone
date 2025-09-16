@@ -181,8 +181,44 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
     ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
     : '/default-avatar.png';
 
-  // Simplified Zoom link: always opens Zoom app
-  const zoomLink = tutor.zoom_link || 'zoommtg://zoom.us';
+  // Mobile-friendly Zoom click handler
+  const handleZoomClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      let mobileZoomUrl: string;
+      
+      // For iOS devices
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        mobileZoomUrl = tutor.zoom_link || 'zoomus://zoom.us/join';
+      }
+      // For Android devices
+      else if (/Android/.test(navigator.userAgent)) {
+        // Use intent URL for better Android support
+        mobileZoomUrl = tutor.zoom_link || 'intent://zoom.us/join#Intent;scheme=zoomus;package=us.zoom.videomeetings;end';
+      }
+      // Fallback for other mobile devices
+      else {
+        mobileZoomUrl = tutor.zoom_link || 'zoomus://zoom.us/join';
+      }
+      
+      // Try to open Zoom app
+      window.location.href = mobileZoomUrl;
+      
+      // Fallback to web version after 2.5 seconds if app doesn't open
+      setTimeout(() => {
+        if (!document.hidden) {
+          window.open('https://zoom.us/join', '_blank');
+        }
+      }, 2500);
+    } else {
+      // For desktop - use web version or custom link
+      const desktopZoomUrl = tutor.zoom_link || 'https://zoom.us/join';
+      window.open(desktopZoomUrl, '_blank');
+    }
+  };
 
   const badgeColors = ['bg-purple-100 text-purple-700', 'bg-green-100 text-green-700', 'bg-yellow-100 text-yellow-800', 'bg-pink-100 text-pink-700'];
 
@@ -232,8 +268,13 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
                   <Button asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all">
                     <Link href={`/tutors/${tutor.slug}`}><User className="w-4 h-4 mr-1" />View Profile</Link>
                   </Button>
-                  <Button variant="outline" asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all">
-                    <a href={zoomLink} target="_blank" rel="noreferrer"><SiZoom className="w-4 h-4 mr-1 text-blue-500" />Zoom Call</a>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all"
+                    onClick={handleZoomClick}
+                  >
+                    <SiZoom className="w-4 h-4 mr-1 text-blue-500" />Zoom Call
                   </Button>
                   <Button variant="outline" asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-yellow-400 hover:to-orange-400 hover:text-white transition-all">
                     <a href="#" target="_blank" rel="noreferrer"><FaPaypal className="w-4 h-4 mr-1 text-yellow-600" />PayPal</a>
