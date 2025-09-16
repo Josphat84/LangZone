@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Clock, MapPin, Play, User, BookOpen, Languages } from 'lucide-react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { SiZoom, SiWise } from 'react-icons/si';
 import { FaPaypal } from 'react-icons/fa';
+import { SiZoom, SiWise } from 'react-icons/si';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -63,7 +63,7 @@ export default function TutorsList() {
           const tutorsWithDefaults = data.map((t: Instructor) => ({
             ...t,
             demo_video_url: t.demo_video_url || '/default-demo.mp4',
-            zoom_link: t.zoom_link || 'https://zoom.us/', // fallback to open Zoom app
+            zoom_link: t.zoom_link || 'zoommtg://zoom.us',
           }));
           setInstructors(tutorsWithDefaults);
         }
@@ -92,7 +92,16 @@ export default function TutorsList() {
   const uniqueCountries = Array.from(new Set(instructors.map(i => i.country).filter(Boolean)));
 
   if (loading)
-    return <div className="min-h-screen flex items-center justify-center text-white text-xl">Loading tutors...</div>;
+    return (
+      <div className="min-h-screen bg-cover bg-center py-8 px-4 sm:px-6 md:px-8" style={{ backgroundImage: `url(${HOMEPAGE_BG})` }}>
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 drop-shadow-lg">Our Tutors</h1>
+        <div className="space-y-4 max-w-5xl mx-auto">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="w-full p-4 animate-pulse"><div className="h-24 bg-muted rounded"></div></Card>
+          ))}
+        </div>
+      </div>
+    );
 
   if (error) return <div className="text-center mt-10 text-red-500">{error}</div>;
   if (!sorted.length) return <div className="text-center mt-10 text-white">No tutors found.</div>;
@@ -102,37 +111,39 @@ export default function TutorsList() {
       <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8 drop-shadow-lg">Our Tutors</h1>
 
       {/* Filters */}
-      <div className="max-w-5xl mx-auto mb-8 flex flex-wrap gap-3 justify-center items-center">
-        <Input type="text" placeholder="Search by name or language..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-1/3" />
-        <Select value={languageFilter} onValueChange={setLanguageFilter}>
-          <SelectTrigger className="w-full md:w-1/5">
-            <SelectValue placeholder="All Languages" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Languages</SelectItem>
-            {uniqueLanguages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={countryFilter} onValueChange={setCountryFilter}>
-          <SelectTrigger className="w-full md:w-1/5">
-            <SelectValue placeholder="All Countries" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem>
-            {uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={sortOption} onValueChange={setSortOption}>
-          <SelectTrigger className="w-full md:w-1/5">
-            <SelectValue placeholder="Sort By" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="experience">Experience</SelectItem>
-            <SelectItem value="priceAsc">Price Low → High</SelectItem>
-            <SelectItem value="priceDesc">Price High → Low</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="max-w-5xl mx-auto mb-8">
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-center mb-4 flex-wrap">
+          <Input type="text" placeholder="Search by name or language..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-1/3" />
+          <Select value={languageFilter} onValueChange={setLanguageFilter}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="All Languages" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Languages</SelectItem>
+              {uniqueLanguages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={countryFilter} onValueChange={setCountryFilter}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="All Countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-full md:w-1/5">
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">Default</SelectItem>
+              <SelectItem value="experience">Experience</SelectItem>
+              <SelectItem value="priceAsc">Price Low → High</SelectItem>
+              <SelectItem value="priceDesc">Price High → Low</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tutors List */}
@@ -170,10 +181,8 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
     ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
     : '/default-avatar.png';
 
-  // Fallback Zoom link: opens app even if no specific meeting
-  const zoomLink = tutor.zoom_link?.startsWith('zoommtg://')
-    ? tutor.zoom_link
-    : `zoommtg://zoom.us/join?confno=${tutor.zoom_link?.split('/').pop() || ''}` || 'zoommtg://zoom.us';
+  // Simplified Zoom link: always opens Zoom app
+  const zoomLink = tutor.zoom_link || 'zoommtg://zoom.us';
 
   const badgeColors = ['bg-purple-100 text-purple-700', 'bg-green-100 text-green-700', 'bg-yellow-100 text-yellow-800', 'bg-pink-100 text-pink-700'];
 
@@ -207,7 +216,7 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
                   {tutor.price && <Badge className="text-base px-3 py-1 bg-primary text-primary-foreground border-primary self-center sm:self-start"><span className="font-bold">${tutor.price}</span><span className="text-xs opacity-90">/hr</span></Badge>}
                 </div>
 
-                {/* Tutor Info */}
+                {/* Tutor Info with Native badge */}
                 <div className="flex flex-wrap gap-2 mt-1 items-center">
                   {tutor.years_experience && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[0]}`}><Clock className="w-3 h-3" />{tutor.years_experience} yrs</Badge>}
                   {tutor.country && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[1]}`}><MapPin className="w-3 h-3" />{tutor.country}</Badge>}
@@ -241,8 +250,8 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
               <motion.div whileHover={{ scale: 1.03 }} className="md:w-44 lg:w-52 bg-gradient-to-br from-purple-50 via-yellow-50 to-pink-50 p-3 rounded-lg flex flex-col justify-between cursor-pointer" onClick={() => setOpenDemoVideo(tutor.demo_video_url!)}>
                 <h4 className="text-xs font-semibold text-foreground mb-1">Demo Video</h4>
                 <Card className="overflow-hidden relative" style={{ paddingBottom: '75%' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/30 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-foreground/70 transition-colors" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/30 flex items-center justify-center group-hover:animate-pulse">
+                    <Play className="w-6 h-6 text-foreground/70 transition-colors group-hover:text-primary" />
                   </div>
                 </Card>
                 <p className="text-[10px] text-muted-foreground mt-2 text-center">Watch introduction video</p>
