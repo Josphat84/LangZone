@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { useTranslation } from '@/app/context/TranslationContext';
+// Removed old translation context - using Google Translate instead
+// import { useTranslation } from '@/app/context/TranslationContext';
 import { 
   FaFacebookF, 
   FaInstagram, 
@@ -17,7 +18,8 @@ import { FaXTwitter } from 'react-icons/fa6'; // ✅ official X logo
 import { SiZoom } from 'react-icons/si';
 
 export default function Footer() {
-  const { t, lang, availableLanguages, setLang } = useTranslation();
+  // Removed old translation system - using Google Translate now
+  // const { t, lang, availableLanguages, setLang } = useTranslation();
 
   // Zoom app + fallback
   const openZoom = (e: React.MouseEvent) => {
@@ -35,8 +37,8 @@ export default function Footer() {
 
           {/* Brand & Socials */}
           <div className="lg:col-span-2">
-            <h6 className="font-bold text-3xl mb-4">{t("langZone")}</h6>
-            <p className="text-teal-200 text-sm mb-6 max-w-xs">{t("footerDescription")}</p>
+            <h6 className="font-bold text-3xl mb-4">LangZone</h6>
+            <p className="text-teal-200 text-sm mb-6 max-w-xs">Connect with language instructors worldwide and master new languages through personalized learning experiences.</p>
             <div className="flex space-x-4">
               {/* Facebook */}
               <a
@@ -117,53 +119,61 @@ export default function Footer() {
 
           {/* Learn */}
           <div>
-            <h6 className="font-semibold text-lg mb-4">{t("learn")}</h6>
+            <h6 className="font-semibold text-lg mb-4">Learn</h6>
             <ul className="space-y-3 text-sm">
-              {[
-                { href: '/learning-guides', key: 'learningGuides' },
-                { href: '/courses', key: 'courses' },
-                { href: '/resources', key: 'resources' },
-                { href: '/practice', key: 'practiceExercises' },
-              ].map(({ href, key }) => (
-                <li key={key}>
-                  <Link href={href} className="hover:text-teal-400 transition-colors">{t(key)}</Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/learning-guides" className="hover:text-teal-400 transition-colors">Learning Guides</Link>
+              </li>
+              <li>
+                <Link href="/courses" className="hover:text-teal-400 transition-colors">Courses</Link>
+              </li>
+              <li>
+                <Link href="/resources" className="hover:text-teal-400 transition-colors">Resources</Link>
+              </li>
+              <li>
+                <Link href="/practice" className="hover:text-teal-400 transition-colors">Practice Exercises</Link>
+              </li>
             </ul>
           </div>
 
           {/* Company */}
           <div>
-            <h6 className="font-semibold text-lg mb-4">{t("company")}</h6>
+            <h6 className="font-semibold text-lg mb-4">Company</h6>
             <ul className="space-y-3 text-sm">
-              {[
-                { href: '/about-us', key: 'aboutUs' },
-                { href: '/careers', key: 'careers' },
-                { href: '/blog', key: 'blog' },
-                { href: '/sitemap', key: 'sitemap' },
-              ].map(({ href, key }) => (
-                <li key={key}>
-                  <Link href={href} className="hover:text-teal-400 transition-colors">{t(key)}</Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/about-us" className="hover:text-teal-400 transition-colors">About Us</Link>
+              </li>
+              <li>
+                <Link href="/careers" className="hover:text-teal-400 transition-colors">Careers</Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-teal-400 transition-colors">Blog</Link>
+              </li>
+              <li>
+                <Link href="/sitemap" className="hover:text-teal-400 transition-colors">Sitemap</Link>
+              </li>
             </ul>
           </div>
 
           {/* Support */}
           <div>
-            <h6 className="font-semibold text-lg mb-4">{t("support")}</h6>
+            <h6 className="font-semibold text-lg mb-4">Support</h6>
             <ul className="space-y-3 text-sm">
-              {[
-                { href: '/faq', key: 'faq' },
-                { href: '/contact-us', key: 'contactUs' },
-                { href: '/help-center', key: 'helpCenter' },
-                { href: '/terms-of-service', key: 'termsOfService' },
-                { href: '/privacy-policy', key: 'privacyPolicy' },
-              ].map(({ href, key }) => (
-                <li key={key}>
-                  <Link href={href} className="hover:text-teal-400 transition-colors">{t(key)}</Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/faq" className="hover:text-teal-400 transition-colors">FAQ</Link>
+              </li>
+              <li>
+                <Link href="/contact-us" className="hover:text-teal-400 transition-colors">Contact Us</Link>
+              </li>
+              <li>
+                <Link href="/help-center" className="hover:text-teal-400 transition-colors">Help Center</Link>
+              </li>
+              <li>
+                <Link href="/terms-of-service" className="hover:text-teal-400 transition-colors">Terms of Service</Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="hover:text-teal-400 transition-colors">Privacy Policy</Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -173,13 +183,13 @@ export default function Footer() {
           <Separator className="bg-white/20 mb-8" />
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
             <div>
-              <h3 className="font-semibold text-xl mb-1">{t("stayUpdated")}</h3>
-              <p className="text-sm text-teal-200">{t("subscribeNewsletter")}</p>
+              <h3 className="font-semibold text-xl mb-1">Stay Updated</h3>
+              <p className="text-sm text-teal-200">Subscribe to our newsletter for the latest updates and language learning tips.</p>
             </div>
             <form className="flex w-full md:w-auto" onSubmit={(e) => e.preventDefault()}>
               <Input 
                 type="email" 
-                placeholder={t("yourEmail")} 
+                placeholder="Your email address" 
                 className="rounded-full rounded-r-none text-gray-800 w-full md:w-72 border-none px-4 py-3 shadow-md focus:ring-2 focus:ring-teal-400 focus:outline-none"
                 required 
               />
@@ -187,7 +197,7 @@ export default function Footer() {
                 type="submit" 
                 className="bg-gradient-to-r from-teal-500 to-teal-400 hover:from-teal-400 hover:to-teal-500 text-white rounded-full rounded-l-none px-6 py-3 shadow-md hover:shadow-lg transition-all"
               >
-                {t("subscribe")}
+                Subscribe
               </Button>
             </form>
           </div>
@@ -195,16 +205,9 @@ export default function Footer() {
           <Separator className="bg-white/20 mb-6" />
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-teal-300">
             <p className="mb-4 md:mb-0">&copy; {new Date().getFullYear()} LangZone. All rights reserved.</p>
-            <div className="flex space-x-4">
-              {availableLanguages.map(({ code, label }) => (
-                <button
-                  key={code}
-                  onClick={() => setLang(code)}
-                  className={`hover:text-white transition-colors ${lang === code ? "font-bold text-white" : ""}`}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Removed old language switcher - Google Translate in header handles all translation now */}
+            <div className="text-teal-200">
+              <p>Use the translate button in the header to view this page in other languages</p>
             </div>
           </div>
         </div>
