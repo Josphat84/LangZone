@@ -1,13 +1,13 @@
-// app/tutors/[slug]/page.tsx
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
 import { useSwipeable } from 'react-swipeable';
 import { motion, AnimatePresence } from 'framer-motion';
 import InteractiveBookingCalendar from './InteractiveBookingCalendar';
 import PaymentsZoomButtons from '../../../components/PaymentsZoomButtons';
+
+import { supabase } from '@/lib/supabase/client'; // <- singleton client
 
 // shadcn/ui imports
 import {
@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useTheme } from "next-themes";
+
 import {
   Heart,
   MapPin,
@@ -51,14 +52,10 @@ import {
   BookOpen
 } from "lucide-react";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-interface Instructor {
+type Instructor = {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone_number?: string;
   country?: string;
   language?: string;
@@ -71,13 +68,13 @@ interface Instructor {
   video_intro_url?: string;
   social_links?: string;
   slug?: string;
-  image_url?: string;
+  image_url?: string | null;
   zoom_meeting_id?: string;
   zoom_password?: string;
   createdAt?: string;
   rating?: number;
   total_reviews?: number;
-}
+};
 
 type Cached = { instructor: Instructor; avatarUrl: string; cachedAt: number };
 
@@ -103,11 +100,12 @@ export default function TutorPage() {
     trackMouse: true,
   });
 
-  const CACHE_TTL = 1000 * 60 * 3;
+  const CACHE_TTL = 1000 * 60 * 3; // 3 minutes
   const cacheKey = (s: string) => `instructor:${s}`;
 
   const readCache = (s: string): Cached | null => {
     try {
+      if (typeof window === 'undefined') return null;
       const raw = localStorage.getItem(cacheKey(s));
       if (!raw) return null;
       const parsed = JSON.parse(raw) as Cached;
@@ -123,14 +121,17 @@ export default function TutorPage() {
 
   const writeCache = (s: string, data: Cached) => {
     try {
+      if (typeof window === 'undefined') return;
       localStorage.setItem(cacheKey(s), JSON.stringify(data));
     } catch {}
   };
 
   const preloadImage = (url: string) => {
     if (!url) return;
-    const img = new Image();
-    img.src = url;
+    try {
+      const img = new Image();
+      img.src = url;
+    } catch {}
   };
 
   const currentIndex = useMemo(
@@ -149,25 +150,34 @@ export default function TutorPage() {
   }, [allSlugs, currentIndex]);
 
   async function fetchAndCacheBySlug(s: string) {
-    const { data, error: fetchError } = await supabase
-      .from('Instructor')
-      .select('*')
-      .eq('slug', s)
-      .single();
-    if (fetchError || !data) return null;
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('Instructor')     // keep the table name you use in DB (was 'Instructor' in your original)
+        .select('*')
+        .eq('slug', s)
+        .single();
 
-    let avatar = '';
-    if (data.image_url) {
-      const { data: publicUrlData } = supabase.storage
-        .from('instructor-images')
-        .getPublicUrl(data.image_url);
-      avatar = publicUrlData.publicUrl || '';
+      if (fetchError || !data) return null;
+
+      let avatar = '';
+      if (data.image_url) {
+        // Supabase storage public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('instructor-images')
+          .getPublicUrl(data.image_url);
+        // API returns data.publicUrl or data.publicURL (depending on version); safely check both
+        // @ts-ignore
+        avatar = (publicUrlData?.publicUrl ?? publicUrlData?.publicURL) || '';
+      }
+
+      const packed: Cached = { instructor: data, avatarUrl: avatar, cachedAt: Date.now() };
+      writeCache(s, packed);
+      preloadImage(avatar);
+      return packed;
+    } catch (err) {
+      console.error('fetchAndCacheBySlug error', err);
+      return null;
     }
-
-    const packed: Cached = { instructor: data, avatarUrl: avatar, cachedAt: Date.now() };
-    writeCache(s, packed);
-    preloadImage(avatar);
-    return packed;
   }
 
   useEffect(() => {
@@ -203,8 +213,16 @@ export default function TutorPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: slugsData } = await supabase.from('Instructor').select('slug');
-      if (slugsData) setAllSlugs(slugsData.map((i: any) => i.slug));
+      try {
+        const { data: slugsData, error } = await supabase.from('Instructor').select('slug');
+        if (error) {
+          console.error('Error fetching slugs', error);
+          return;
+        }
+        if (slugsData) setAllSlugs(slugsData.map((i: any) => i.slug).filter(Boolean));
+      } catch (err) {
+        console.error(err);
+      }
     })();
   }, []);
 
@@ -224,6 +242,7 @@ export default function TutorPage() {
     if (!allSlugs.length || currentIndex === -1) return;
     setDirection(1);
     setNavigating(true);
+    // push to next; AnimatePresence mode="wait" will help avoid DOM remove race
     router.push(`/tutors/${nextSlug}`);
   };
 
@@ -263,7 +282,7 @@ export default function TutorPage() {
   return (
     <TooltipProvider>
       <div {...handlers} className="min-h-screen relative">
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {navigating && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -552,12 +571,12 @@ function InstructorProfileLeft({
 
                 {/* Price and Quick Stats */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                  {instructor.price && (
+                  {/*instructor.price && (
                     <Badge variant="secondary" className="px-3 py-1 text-sm font-semibold">
                       <DollarSign className="w-3 h-3 mr-1" />
                       {instructor.price}/hour
                     </Badge>
-                  )}
+                  )*/}
                   
                   {instructor.years_experience && (
                     <Badge variant="outline" className="px-3 py-1 text-sm">

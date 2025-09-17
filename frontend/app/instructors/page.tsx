@@ -50,22 +50,82 @@ export default function TutorsList() {
   const [countryFilter, setCountryFilter] = useState('all');
   const [sortOption, setSortOption] = useState('default');
 
+  // Helper function to get video URL from Supabase storage
+  const getVideoUrl = (filename: string) => {
+    // Ensure the filename has .mp4 extension
+    const finalFilename = filename.endsWith('.mp4') ? filename : filename + '.mp4';
+    
+    const { data } = supabase.storage.from('demos').getPublicUrl(finalFilename);
+    
+    console.log(`📹 Project URL: ${supabaseUrl}`);
+    console.log(`📹 Bucket: demos`);
+    console.log(`📹 Original filename: "${filename}"`);
+    console.log(`📹 Final filename: "${finalFilename}"`);
+    console.log(`📹 Full URL: "${data.publicUrl}"`);
+    
+    // Test the URL by trying to fetch it
+    fetch(data.publicUrl, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          console.log(`✅ Video file accessible: ${finalFilename}`);
+          console.log(`✅ Content-Type: ${response.headers.get('content-type')}`);
+          console.log(`✅ Content-Length: ${response.headers.get('content-length')} bytes`);
+        } else {
+          console.error(`❌ Video file not accessible (HTTP ${response.status}): ${finalFilename}`);
+          console.error(`❌ Make sure your 'demos' bucket is PUBLIC in Supabase Dashboard`);
+          console.error(`❌ Check that the file '${finalFilename}' exists in the bucket`);
+        }
+      })
+      .catch(err => {
+        console.error(`❌ Network error checking video file: ${finalFilename}`, err);
+        console.error(`❌ This might be a CORS or network connectivity issue`);
+      });
+    
+    return data.publicUrl;
+  };
+
   useEffect(() => {
     const fetchTutors = async () => {
       try {
         setLoading(true);
+        
+        // First, let's list all files in the demos bucket to see exact names
+        console.log('🔍 Checking files in demos bucket...');
+        const { data: files, error: filesError } = await supabase.storage.from('demos').list();
+        
+        if (filesError) {
+          console.error('Error listing files:', filesError);
+        } else {
+          console.log('📁 Files in demos bucket:', files);
+          files?.forEach(file => {
+            console.log(`📄 File: "${file.name}" (${file.metadata?.size} bytes)`);
+          });
+        }
+        
         const { data, error } = await supabase.from('Instructor').select('*');
         if (error) {
           setError(error.message);
           return;
         }
         if (data) {
-          const tutorsWithDefaults = data.map((t: Instructor) => ({
-            ...t,
-            demo_video_url: t.demo_video_url || '/default-demo.mp4',
-            zoom_link: t.zoom_link || 'zoommtg://zoom.us',
-          }));
-          setInstructors(tutorsWithDefaults);
+          // Map tutors to their demo videos from Supabase storage
+          const tutorsWithVideos = data.map((t: Instructor) => {
+            // Set demo video URLs using the new short filenames
+            if (t.name === 'Benson') {
+              // Use the new filename: teach.mp4
+              t.demo_video_url = getVideoUrl('teach');
+              console.log('🎬 Benson setup with teach.mp4');
+            } else if (t.name === 'James Brown') {
+              // Use the new filename: know.mp4
+              t.demo_video_url = getVideoUrl('know');
+              console.log('🎬 James Brown setup with know.mp4');
+            }
+            // Only set demo_video_url for Benson and James Brown
+            
+            t.zoom_link = t.zoom_link || 'zoommtg://zoom.us';
+            return t;
+          });
+          setInstructors(tutorsWithVideos);
         }
       } catch {
         setError('Unexpected error occurred');
@@ -115,27 +175,21 @@ export default function TutorsList() {
         <div className="flex flex-col md:flex-row gap-3 items-center justify-center mb-4 flex-wrap">
           <Input type="text" placeholder="Search by name or language..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full md:w-1/3" />
           <Select value={languageFilter} onValueChange={setLanguageFilter}>
-            <SelectTrigger className="w-full md:w-1/5">
-              <SelectValue placeholder="All Languages" />
-            </SelectTrigger>
+            <SelectTrigger className="w-full md:w-1/5"><SelectValue placeholder="All Languages" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Languages</SelectItem>
               {uniqueLanguages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={countryFilter} onValueChange={setCountryFilter}>
-            <SelectTrigger className="w-full md:w-1/5">
-              <SelectValue placeholder="All Countries" />
-            </SelectTrigger>
+            <SelectTrigger className="w-full md:w-1/5"><SelectValue placeholder="All Countries" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Countries</SelectItem>
               {uniqueCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="w-full md:w-1/5">
-              <SelectValue placeholder="Sort By" />
-            </SelectTrigger>
+            <SelectTrigger className="w-full md:w-1/5"><SelectValue placeholder="Sort By" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="default">Default</SelectItem>
               <SelectItem value="experience">Experience</SelectItem>
@@ -159,8 +213,68 @@ export default function TutorsList() {
       <Dialog open={!!openDemoVideo} onOpenChange={() => setOpenDemoVideo(null)}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden relative">
           <DialogTitle className="sr-only">Demo Video</DialogTitle>
-          <DialogClose className="absolute top-2 right-2 text-white bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">X</DialogClose>
-          {openDemoVideo && <video src={openDemoVideo} controls autoPlay className="w-full h-auto rounded-lg" />}
+          <DialogClose className="absolute top-2 right-2 text-white bg-red-500 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 z-50 text-sm">×</DialogClose>
+          {openDemoVideo && (
+            <div className="relative">
+              <video
+                key={`modal-${openDemoVideo}-${Date.now()}`}
+                src={`${openDemoVideo}?v=${Date.now()}`}
+                controls
+                autoPlay
+                muted={false} // Start unmuted since user clicked to play
+                preload="auto" // Changed back to 'auto' for streaming
+                playsInline
+                webkit-playsinline="true"
+                width="100%"
+                height="auto"
+                className="w-full h-auto rounded-lg bg-black"
+                style={{ 
+                  aspectRatio: '16/9',
+                  maxHeight: '70vh',
+                  objectFit: 'contain'
+                }}
+                onLoadStart={() => {
+                  console.log('🎬 Video loading started - streaming mode');
+                }}
+                onProgress={(e) => {
+                  const video = e.target as HTMLVideoElement;
+                  if (video.buffered.length > 0) {
+                    const bufferedEnd = video.buffered.end(0);
+                    const duration = video.duration || 0;
+                    const percentBuffered = duration > 0 ? (bufferedEnd / duration * 100).toFixed(1) : 0;
+                    console.log(`📊 Buffering: ${percentBuffered}% (${bufferedEnd.toFixed(1)}s of ${duration.toFixed(1)}s)`);
+                  }
+                }}
+                onCanPlay={() => {
+                  console.log('▶️ Video can start playing (streaming)');
+                  const video = document.querySelector('video') as HTMLVideoElement;
+                  if (video && video.paused) {
+                    video.play().catch(e => console.log('Auto-play prevented:', e));
+                  }
+                }}
+                onCanPlayThrough={() => console.log('✅ Video fully buffered')}
+                onWaiting={() => console.log('⏳ Buffering more data...')}
+                onPlaying={() => console.log('🎥 Video playing while streaming')}
+                onLoadedData={() => {
+                  console.log('📥 Initial data loaded - should start playing');
+                }}
+                onSuspend={() => console.log('⏸️ Download suspended (normal for streaming)')}
+                onStalled={() => console.log('🚧 Download stalled - network issue?')}
+                onError={(e) => {
+                  const video = e.target as HTMLVideoElement;
+                  console.error('❌ Video error:', video.error?.code, video.error?.message);
+                }}
+                onDoubleClick={(e) => e.preventDefault()}
+              />
+              <div className="absolute top-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
+                {openDemoVideo.split('/').pop()}
+              </div>
+              {/* Fallback message if video doesn't render properly */}
+              <div className="absolute bottom-4 right-4 bg-yellow-600/80 text-white px-2 py-1 rounded text-xs">
+                If video doesn't show, try: Right-click → "Show controls" or download file
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
@@ -181,42 +295,17 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
     ? supabase.storage.from('instructor-images').getPublicUrl(tutor.image_url).data.publicUrl
     : '/default-avatar.png';
 
-  // Mobile-friendly Zoom click handler
   const handleZoomClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (isMobile) {
-      let mobileZoomUrl: string;
-      
-      // For iOS devices
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        mobileZoomUrl = tutor.zoom_link || 'zoomus://zoom.us/join';
-      }
-      // For Android devices
-      else if (/Android/.test(navigator.userAgent)) {
-        // Use intent URL for better Android support
-        mobileZoomUrl = tutor.zoom_link || 'intent://zoom.us/join#Intent;scheme=zoomus;package=us.zoom.videomeetings;end';
-      }
-      // Fallback for other mobile devices
-      else {
-        mobileZoomUrl = tutor.zoom_link || 'zoomus://zoom.us/join';
-      }
-      
-      // Try to open Zoom app
+      const mobileZoomUrl = tutor.zoom_link || 'zoomus://zoom.us/join';
       window.location.href = mobileZoomUrl;
-      
-      // Fallback to web version after 2.5 seconds if app doesn't open
       setTimeout(() => {
-        if (!document.hidden) {
-          window.open('https://zoom.us/join', '_blank');
-        }
-      }, 2500);
+        if (!document.hidden) window.open('https://zoom.us/join', '_blank');
+      }, 4500);
     } else {
-      // For desktop - use web version or custom link
-      const desktopZoomUrl = tutor.zoom_link || 'https://zoom.us/join';
-      window.open(desktopZoomUrl, '_blank');
+      window.open(tutor.zoom_link || 'https://zoom.us/join', '_blank');
     }
   };
 
@@ -233,7 +322,6 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
       <Card className="w-full hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/20 bg-gradient-to-tr from-white via-purple-50 to-pink-50">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
-
             {/* Left side */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 flex-1">
               <Link href={`/tutors/${tutor.slug}`} className="relative cursor-pointer">
@@ -249,10 +337,10 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
                     <h3 className="text-xl font-bold text-foreground line-clamp-1">{tutor.name}</h3>
                     <p className="text-primary text-sm font-medium">{tutor.expertise || 'Language Tutor'}</p>
                   </div>
-                  {tutor.price && <Badge className="text-base px-3 py-1 bg-primary text-primary-foreground border-primary self-center sm:self-start"><span className="font-bold">${tutor.price}</span><span className="text-xs opacity-90">/hr</span></Badge>}
+                  {/* Price info commented */}
+                  {/* {tutor.price && <Badge className="text-base px-3 py-1 bg-primary text-primary-foreground border-primary self-center sm:self-start"><span className="font-bold">${tutor.price}</span><span className="text-xs opacity-90">/hr</span></Badge>} */}
                 </div>
 
-                {/* Tutor Info with Native badge */}
                 <div className="flex flex-wrap gap-2 mt-1 items-center">
                   {tutor.years_experience && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[0]}`}><Clock className="w-3 h-3" />{tutor.years_experience} yrs</Badge>}
                   {tutor.country && <Badge className={`flex items-center gap-1 px-2 py-1 rounded ${badgeColors[1]}`}><MapPin className="w-3 h-3" />{tutor.country}</Badge>}
@@ -263,7 +351,6 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
 
                 <p className="text-muted-foreground text-sm mt-2">{tutor.description}</p>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2 pt-2 flex-wrap">
                   <Button asChild size="sm" className="flex-1 hover:bg-gradient-to-r hover:from-blue-400 hover:to-cyan-400 hover:text-white transition-all">
                     <Link href={`/tutors/${tutor.slug}`}><User className="w-4 h-4 mr-1" />View Profile</Link>
@@ -286,18 +373,63 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
               </div>
             </div>
 
-            {/* Right side - Demo video */}
-            {tutor.demo_video_url && (
-              <motion.div whileHover={{ scale: 1.03 }} className="md:w-44 lg:w-52 bg-gradient-to-br from-purple-50 via-yellow-50 to-pink-50 p-3 rounded-lg flex flex-col justify-between cursor-pointer" onClick={() => setOpenDemoVideo(tutor.demo_video_url!)}>
-                <h4 className="text-xs font-semibold text-foreground mb-1">Demo Video</h4>
-                <Card className="overflow-hidden relative" style={{ paddingBottom: '75%' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/30 flex items-center justify-center group-hover:animate-pulse">
-                    <Play className="w-6 h-6 text-foreground/70 transition-colors group-hover:text-primary" />
-                  </div>
-                </Card>
-                <p className="text-[10px] text-muted-foreground mt-2 text-center">Watch introduction video</p>
-              </motion.div>
-            )}
+            {/* Right side - Demo video thumbnail - Show for ALL tutors */}
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              className="md:w-44 lg:w-52 bg-gradient-to-br from-purple-50 via-yellow-50 to-pink-50 p-3 rounded-lg flex flex-col justify-between cursor-pointer"
+              onClick={() => {
+                if (tutor.demo_video_url) {
+                  setOpenDemoVideo(tutor.demo_video_url);
+                } else {
+                  console.log('Demo video coming soon for:', tutor.name);
+                  // You could show a "Coming Soon" modal here
+                }
+              }}
+            >
+              <h4 className="text-xs font-semibold text-foreground mb-1">Demo Video</h4>
+              <Card className="overflow-hidden relative" style={{ paddingBottom: '75%' }}>
+                {tutor.demo_video_url ? (
+                  // Show actual video thumbnail if video exists
+                  <>
+                    <video
+                      key={`${tutor.name}-${tutor.demo_video_url}`}
+                      src={`${tutor.demo_video_url}?v=${Date.now()}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      preload="metadata" // Changed from 'auto' to 'metadata' for faster loading
+                      muted
+                      playsInline
+                      onLoadedData={() => console.log('Thumbnail video loaded for:', tutor.name, tutor.demo_video_url)}
+                      onError={(e) => {
+                        console.error('Thumbnail video failed for:', tutor.name, tutor.demo_video_url);
+                        console.error('Error event:', e);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center hover:bg-black/10 transition-colors">
+                      <div className="bg-white/90 rounded-full p-2 shadow-lg">
+                        <Play className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    {/* Debug overlay */}
+                    <div className="absolute bottom-1 left-1 bg-black/70 text-white text-[8px] px-1 rounded max-w-full overflow-hidden">
+                      {tutor.demo_video_url.split('/').pop()}
+                    </div>
+                  </>
+                ) : (
+                  // Show placeholder for tutors without videos
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                      <div className="text-center">
+                        <Play className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                        <p className="text-xs text-blue-800 font-medium">Coming Soon</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </Card>
+              <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                {tutor.demo_video_url ? 'Watch introduction video' : 'Demo video coming soon'}
+              </p>
+            </motion.div>
           </div>
         </CardContent>
       </Card>
