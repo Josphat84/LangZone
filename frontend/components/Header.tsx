@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
@@ -12,21 +11,7 @@ import {
   Users,
   FileText,
   UserPlus,
-  Languages,
-  Globe,
-  ChevronDown,
-  Check,
-  Sparkles,
-  Settings,
-  Eye,
-  EyeOff,
-  RotateCcw,
-  Info,
-  ExternalLink,
-  History,
   ArrowRightLeft,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
@@ -34,30 +19,24 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from '@/compon
 import { AuthButtons } from '@/components/AuthButtons';
 import { useTranslation } from '@/app/context/TranslationContext';
 import { createClient } from '@supabase/supabase-js';
-import { GoogleTranslate } from './GoogleTranslate'; // Make sure this import path is correct
+import { GoogleTranslate } from './GoogleTranslate';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// --- START: Main Header Component Code ---
-
-// New location for the language list
 const languages = [
-  // 3 International Languages
   { code: 'en', name: 'English', native: 'English', flag: '🇺🇸', popular: true },
   { code: 'es', name: 'Spanish', native: 'Español', flag: '🇪🇸', popular: true },
   { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', popular: true },
   
-  // 5 Asian Languages
   { code: 'ja', name: 'Japanese', native: '日本語', flag: '🇯🇵', popular: true },
   { code: 'zh-CN', name: 'Chinese (Simplified)', native: '简体中文', flag: '🇨🇳', popular: true },
   { code: 'ko', name: 'Korean', native: '한국어', flag: '🇰🇷', popular: true },
   { code: 'hi', name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳', popular: false },
   { code: 'th', name: 'Thai', native: 'ไทย', flag: '🇹🇭', popular: false },
 
-  // Shona
   { code: 'sn', name: 'Shona', native: 'chiShona', flag: '🇿🇼', popular: false },
 ];
 
@@ -106,7 +85,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           <NavigationMenu className="relative z-10">
             <NavigationMenuList className="flex space-x-6">
               {navItems.map(({ href, key, label, Icon }) => (
@@ -125,13 +104,8 @@ export default function Header() {
 
           <div className="w-px h-6 bg-white/20"></div>
 
-          <div className="relative z-50">
+          <div className="flex items-center gap-4">
             <GoogleTranslate isMobile={false} languages={languages} />
-          </div>
-
-          <div className="w-px h-6 bg-white/20"></div>
-
-          <div className="flex items-center space-x-2">
             <AuthButtons />
           </div>
         </div>

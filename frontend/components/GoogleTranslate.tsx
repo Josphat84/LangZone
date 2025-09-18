@@ -246,7 +246,6 @@ function GoogleTranslate({ isMobile = false, languages }: GoogleTranslateProps) 
       <Button
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        // The button is no longer disabled
         className={`
           relative group transition-all duration-300 px-4 py-2 rounded-xl border-2
           ${
@@ -460,7 +459,7 @@ function GoogleTranslate({ isMobile = false, languages }: GoogleTranslateProps) 
                               onClick={() => handleLanguageSelect(language?.code || 'en')}
                               fullWidth
                               variant="recent"
-                              isReady={isReady} // Pass isReady prop
+                              isReady={isReady}
                             />
                           ))}
                         </div>
@@ -483,7 +482,7 @@ function GoogleTranslate({ isMobile = false, languages }: GoogleTranslateProps) 
                               isSelected={currentLang === language.code}
                               onClick={() => handleLanguageSelect(language.code)}
                               fullWidth
-                              isReady={isReady} // Pass isReady prop
+                              isReady={isReady}
                             />
                           ))}
                         </div>
@@ -501,7 +500,7 @@ function GoogleTranslate({ isMobile = false, languages }: GoogleTranslateProps) 
                               isSelected={currentLang === language.code}
                               onClick={() => handleLanguageSelect(language.code)}
                               fullWidth
-                              isReady={isReady} // Pass isReady prop
+                              isReady={isReady}
                             />
                           ))}
                         </div>
@@ -547,7 +546,7 @@ interface LanguageItemProps {
   onClick: () => void;
   fullWidth?: boolean;
   variant?: 'default' | 'recent';
-  isReady: boolean; // Added prop for status indicator
+  isReady: boolean;
 }
 
 function LanguageItem({ language, isSelected, onClick, fullWidth = false, variant = 'default', isReady }: LanguageItemProps) {
@@ -566,8 +565,9 @@ function LanguageItem({ language, isSelected, onClick, fullWidth = false, varian
             ? 'hover:bg-teal-50 dark:hover:bg-teal-900 text-gray-700 dark:text-gray-300 hover:shadow-sm border border-teal-200/50 dark:border-teal-700/50'
             : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-sm'
         }
+        ${!isReady && 'opacity-60 cursor-not-allowed'}
       `}
-      disabled={!isReady} // Button is now disabled only if the script is not ready
+      disabled={!isReady}
     >
       <div className="flex items-center gap-3">
         <span className="text-xl flex-shrink-0">{language.flag}</span>
