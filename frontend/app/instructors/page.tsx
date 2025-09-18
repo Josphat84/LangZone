@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, MapPin, Play, User, BookOpen, Languages } from 'lucide-react';
+import { Clock, MapPin, Play, User, BookOpen, Languages, Maximize2, Volume2, VolumeX } from 'lucide-react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { FaPaypal } from 'react-icons/fa';
 import { SiZoom, SiWise } from 'react-icons/si';
@@ -44,6 +44,9 @@ export default function TutorsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openDemoVideo, setOpenDemoVideo] = useState<string | null>(null);
+  const [currentTutorName, setCurrentTutorName] = useState<string>('');
+  const [videoMuted, setVideoMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [languageFilter, setLanguageFilter] = useState('all');
@@ -151,6 +154,29 @@ export default function TutorsList() {
   const uniqueLanguages = Array.from(new Set(instructors.map(i => i.language).filter(Boolean)));
   const uniqueCountries = Array.from(new Set(instructors.map(i => i.country).filter(Boolean)));
 
+  // Enhanced video modal open handler
+  const handleOpenDemoVideo = (videoUrl: string, tutorName: string) => {
+    setOpenDemoVideo(videoUrl);
+    setCurrentTutorName(tutorName);
+    setVideoMuted(false); // Start unmuted since user clicked to play
+  };
+
+  // Video control handlers
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setVideoMuted(videoRef.current.muted);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (videoRef.current.requestFullscreen) {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+
   if (loading)
     return (
       <div className="min-h-screen bg-cover bg-center py-8 px-4 sm:px-6 md:px-8" style={{ backgroundImage: `url(${HOMEPAGE_BG})` }}>
@@ -204,75 +230,86 @@ export default function TutorsList() {
       <AnimatePresence>
         <div className="max-w-5xl mx-auto space-y-6">
           {sorted.map((tutor, index) => (
-            <TutorCard key={tutor.id} tutor={tutor} setOpenDemoVideo={setOpenDemoVideo} delay={index * 0.2} />
+            <TutorCard key={tutor.id} tutor={tutor} onOpenDemoVideo={handleOpenDemoVideo} delay={index * 0.2} />
           ))}
         </div>
       </AnimatePresence>
 
-      {/* Demo Video Modal */}
+      {/* Enhanced Demo Video Modal */}
       <Dialog open={!!openDemoVideo} onOpenChange={() => setOpenDemoVideo(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden relative">
-          <DialogTitle className="sr-only">Demo Video</DialogTitle>
-          <DialogClose className="absolute top-2 right-2 text-white bg-red-500 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 z-50 text-sm">×</DialogClose>
+        <DialogContent className="max-w-6xl w-[95vw] h-[85vh] p-4 bg-black">
+          <DialogTitle className="sr-only">Demo Video - {currentTutorName}</DialogTitle>
+          
+          {/* Enhanced Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-white">
+              <h3 className="text-lg font-semibold">{currentTutorName}</h3>
+              <p className="text-sm text-gray-300">Demo Video</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Custom Controls */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMute}
+                className="text-white hover:bg-white/20 p-2"
+              >
+                {videoMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleFullscreen}
+                className="text-white hover:bg-white/20 p-2"
+              >
+                <Maximize2 className="w-5 h-5" />
+              </Button>
+              <DialogClose className="text-white bg-red-500 hover:bg-red-600 rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">
+                ×
+              </DialogClose>
+            </div>
+          </div>
+
+          {/* Simplified Video Container */}
           {openDemoVideo && (
-            <div className="relative">
+            <div className="w-full flex-1 bg-black rounded-lg overflow-hidden">
               <video
+                ref={videoRef}
                 key={`modal-${openDemoVideo}-${Date.now()}`}
-                src={`${openDemoVideo}?v=${Date.now()}`}
+                src={openDemoVideo}
                 controls
                 autoPlay
-                muted={false} // Start unmuted since user clicked to play
-                preload="auto" // Changed back to 'auto' for streaming
+                muted={false}
                 playsInline
-                webkit-playsinline="true"
-                width="100%"
-                height="auto"
-                className="w-full h-auto rounded-lg bg-black"
+                className="w-full h-full"
                 style={{ 
-                  aspectRatio: '16/9',
-                  maxHeight: '70vh',
+                  minHeight: '400px',
+                  maxHeight: 'calc(85vh - 100px)',
                   objectFit: 'contain'
                 }}
-                onLoadStart={() => {
-                  console.log('🎬 Video loading started - streaming mode');
-                }}
-                onProgress={(e) => {
-                  const video = e.target as HTMLVideoElement;
-                  if (video.buffered.length > 0) {
-                    const bufferedEnd = video.buffered.end(0);
-                    const duration = video.duration || 0;
-                    const percentBuffered = duration > 0 ? (bufferedEnd / duration * 100).toFixed(1) : 0;
-                    console.log(`📊 Buffering: ${percentBuffered}% (${bufferedEnd.toFixed(1)}s of ${duration.toFixed(1)}s)`);
+                onLoadedMetadata={() => {
+                  console.log('📝 Video metadata loaded, attempting play');
+                  if (videoRef.current) {
+                    videoRef.current.play().then(() => {
+                      console.log('✅ Video started playing');
+                    }).catch(e => {
+                      console.log('❌ Auto-play failed:', e);
+                      // If autoplay fails, user will need to click play
+                    });
                   }
                 }}
                 onCanPlay={() => {
-                  console.log('▶️ Video can start playing (streaming)');
-                  const video = document.querySelector('video') as HTMLVideoElement;
-                  if (video && video.paused) {
-                    video.play().catch(e => console.log('Auto-play prevented:', e));
-                  }
+                  console.log('▶️ Video ready to play');
                 }}
-                onCanPlayThrough={() => console.log('✅ Video fully buffered')}
-                onWaiting={() => console.log('⏳ Buffering more data...')}
-                onPlaying={() => console.log('🎥 Video playing while streaming')}
-                onLoadedData={() => {
-                  console.log('📥 Initial data loaded - should start playing');
+                onPlaying={() => {
+                  console.log('🎥 Video is now playing');
                 }}
-                onSuspend={() => console.log('⏸️ Download suspended (normal for streaming)')}
-                onStalled={() => console.log('🚧 Download stalled - network issue?')}
                 onError={(e) => {
                   const video = e.target as HTMLVideoElement;
-                  console.error('❌ Video error:', video.error?.code, video.error?.message);
+                  console.error('❌ Video error:', video.error);
+                  console.error('❌ Video source:', openDemoVideo);
                 }}
-                onDoubleClick={(e) => e.preventDefault()}
               />
-              <div className="absolute top-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
-                {openDemoVideo.split('/').pop()}
-              </div>
-              {/* Fallback message if video doesn't render properly */}
-              <div className="absolute bottom-4 right-4 bg-yellow-600/80 text-white px-2 py-1 rounded text-xs">
-                If video doesn't show, try: Right-click → "Show controls" or download file
-              </div>
             </div>
           )}
         </DialogContent>
@@ -283,11 +320,11 @@ export default function TutorsList() {
 
 interface TutorCardProps {
   tutor: Instructor;
-  setOpenDemoVideo: (url: string) => void;
+  onOpenDemoVideo: (url: string, name: string) => void;
   delay?: number;
 }
 
-function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
+function TutorCard({ tutor, onOpenDemoVideo, delay = 0 }: TutorCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
@@ -379,7 +416,7 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
               className="md:w-44 lg:w-52 bg-gradient-to-br from-purple-50 via-yellow-50 to-pink-50 p-3 rounded-lg flex flex-col justify-between cursor-pointer"
               onClick={() => {
                 if (tutor.demo_video_url) {
-                  setOpenDemoVideo(tutor.demo_video_url);
+                  onOpenDemoVideo(tutor.demo_video_url, tutor.name);
                 } else {
                   console.log('Demo video coming soon for:', tutor.name);
                   // You could show a "Coming Soon" modal here
@@ -395,7 +432,7 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
                       key={`${tutor.name}-${tutor.demo_video_url}`}
                       src={`${tutor.demo_video_url}?v=${Date.now()}`}
                       className="absolute inset-0 w-full h-full object-cover"
-                      preload="metadata" // Changed from 'auto' to 'metadata' for faster loading
+                      preload="metadata"
                       muted
                       playsInline
                       onLoadedData={() => console.log('Thumbnail video loaded for:', tutor.name, tutor.demo_video_url)}
@@ -405,8 +442,8 @@ function TutorCard({ tutor, setOpenDemoVideo, delay = 0 }: TutorCardProps) {
                       }}
                     />
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center hover:bg-black/10 transition-colors">
-                      <div className="bg-white/90 rounded-full p-2 shadow-lg">
-                        <Play className="w-6 h-6 text-blue-600" />
+                      <div className="bg-white/90 rounded-full p-3 shadow-lg hover:bg-white transition-colors">
+                        <Play className="w-8 h-8 text-blue-600" />
                       </div>
                     </div>
                     {/* Debug overlay */}
