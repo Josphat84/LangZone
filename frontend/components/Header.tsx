@@ -57,8 +57,8 @@ export default function Header() {
           <Separator orientation="vertical" className="h-6 bg-white/20" />
 
           <div className="flex items-center gap-4">
-            {/* Google Translate Widget - fully inline styled */}
-            <div className="flex-shrink-0 w-48">
+            {/* Google Translate Widget - polished, integrated */}
+            <div className="flex-shrink-0">
               <GoogleTranslate isMobile={false} />
             </div>
 
