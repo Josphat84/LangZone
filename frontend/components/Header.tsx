@@ -9,15 +9,16 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/com
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from '@/components/ui/navigation-menu';
 import { AuthButtons } from '@/components/AuthButtons';
 import { useTranslation } from '@/app/context/TranslationContext';
-import GoogleTranslate from './GoogleTranslate';
+import StyledGoogleTranslate from '@/components/StyledGoogleTranslate'; // Import our styled component
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation() || { t: (key: string) => key };
 
+  // Nav items with English-only for specific links
   const navItems = [
-    { href: '/instructors', key: 'findInstructors', label: t('findInstructors'), Icon: Users },
-    { href: '/create-new-profile', key: 'becomeInstructor', label: t('becomeInstructor'), Icon: UserPlus },
+    { href: '/instructors', key: 'findInstructors', label: 'Find Instructors', Icon: Users },
+    { href: '/create-new-profile', key: 'becomeInstructor', label: 'Become an Instructor', Icon: UserPlus },
     { href: '/blog', key: 'blog', label: t('blog'), Icon: FileText },
   ];
 
@@ -57,9 +58,9 @@ export default function Header() {
           <Separator orientation="vertical" className="h-6 bg-white/20" />
 
           <div className="flex items-center gap-4">
-            {/* Google Translate Widget - polished, integrated */}
+            {/* Styled Google Translate Widget */}
             <div className="flex-shrink-0">
-              <GoogleTranslate isMobile={false} />
+              <StyledGoogleTranslate isMobile={false} />
             </div>
 
             <AuthButtons />
@@ -68,9 +69,6 @@ export default function Header() {
 
         {/* Mobile Navigation */}
         <div className="md:hidden flex items-center gap-4">
-          <div className="flex-shrink-0 w-40">
-            <GoogleTranslate isMobile={true} />
-          </div>
           <AuthButtons />
 
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -116,10 +114,10 @@ export default function Header() {
                   <Separator className="bg-white/20" />
 
                   <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">Translate</h3>
-                    <div className="w-full">
-                      <GoogleTranslate isMobile={true} />
-                    </div>
+                    <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
+                      🌍 Translate Page
+                    </h3>
+                    <StyledGoogleTranslate isMobile={true} />
                   </div>
                 </nav>
 

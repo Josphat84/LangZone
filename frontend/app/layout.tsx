@@ -5,9 +5,8 @@ import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-// Remove this import since Header already includes LanguageSwitcher
-// import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { TranslationProvider } from "./context/TranslationContext";
+import FeedbackWidget from "@/components/FeedbackWidget";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,14 +28,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800`}>
-        {/* Wrap everything in TranslationProvider first */}
+      <body
+        className={`${inter.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800`}
+      >
         <TranslationProvider>
           <GoogleOAuthProvider clientId={googleClientId}>
-            {/* Remove the duplicate LanguageSwitcher div wrapper */}
             <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
+            <FeedbackWidget /> {/* Floating feedback button on all pages */}
           </GoogleOAuthProvider>
         </TranslationProvider>
       </body>

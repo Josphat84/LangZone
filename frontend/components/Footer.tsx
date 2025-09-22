@@ -11,6 +11,7 @@ import {
   FaYoutube,
   FaWhatsapp,
   FaLinkedinIn,
+  FaUserShield,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { SiZoom } from 'react-icons/si';
@@ -95,6 +96,8 @@ export default function Footer() {
               <li><Link href="/courses" className="hover:text-white transition-colors">Courses</Link></li>
               <li><Link href="/resources" className="hover:text-white transition-colors">Resources</Link></li>
               <li><Link href="/practice" className="hover:text-white transition-colors">Practice Exercises</Link></li>
+              <li><Link href="/kids" className="hover:text-white transition-colors">Kids Activities</Link></li>
+              <li><Link href='/community' className="hover:text-white transition-colors">Community</Link></li>
             </ul>
           </div>
 
@@ -106,6 +109,15 @@ export default function Footer() {
               <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/sitemap" className="hover:text-white transition-colors">Sitemap</Link></li>
+              <li>
+                <Link
+                  href="/admin/feedback"
+                  className="flex items-center gap-1 text-orange-400 font-bold text-2xl hover:text-orange-300 transition-colors"
+                >
+                  <FaUserShield className="h-5 w-5" />
+                  Admin
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -155,7 +167,7 @@ export default function Footer() {
 
           <Separator className="bg-white/20 mb-6" />
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-teal-200 leading-relaxed gap-2 md:gap-0 text-center md:text-left">
-            <p>&copy; {new Date().getFullYear()} LangZone. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Software Inc. All rights reserved.</p>
             <p>Use the translate button in the header to view this page in other languages</p>
           </div>
         </div>

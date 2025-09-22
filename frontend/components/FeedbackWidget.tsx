@@ -1,0 +1,127 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+
+export default function FeedbackWidget() {
+  const [form, setForm] = useState({ name: "", email: "", type: "", message: "" });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const feedbackTypes = ["Complaint", "Suggestion", "Experience"];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccess("");
+    setErrorMsg("");
+
+    if (!form.type || !form.message) {
+      setErrorMsg("Please provide feedback type and message.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("feedback")
+        .insert([{ ...form, resolved: false }])
+        .select();
+
+      if (error) {
+        setErrorMsg(error.message || "Error submitting feedback.");
+      } else if (!data || data.length === 0) {
+        setErrorMsg("No data returned from Supabase.");
+      } else {
+        setSuccess("✅ Feedback submitted successfully!");
+        setForm({ name: "", email: "", type: "", message: "" });
+        setTimeout(() => setSuccess(""), 4000);
+      }
+    } catch (err) {
+      setErrorMsg("Unexpected error. Check console.");
+      console.error(err);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className="bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-xl px-6 py-3 transition-transform hover:scale-105"
+          >
+            💬 Feedback
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-lg animate-slide-up p-6 rounded-lg shadow-2xl border border-gray-200 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">We value your feedback</DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            <Input
+              name="name"
+              placeholder="Your Name (optional)"
+              value={form.name}
+              onChange={handleChange}
+            />
+            <Input
+              type="email"
+              name="email"
+              placeholder="Your Email (optional)"
+              value={form.email}
+              onChange={handleChange}
+            />
+
+            {/* Dropdown for feedback type */}
+            <Select value={form.type} onValueChange={(val) => setForm({ ...form, type: val })}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select feedback type" />
+              </SelectTrigger>
+              <SelectContent>
+                {feedbackTypes.map((type) => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Textarea
+              name="message"
+              placeholder="Share your feedback..."
+              value={form.message}
+              onChange={handleChange}
+              rows={4}
+              required
+            />
+
+            {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
+            {success && <p className="text-green-600 text-sm">{success}</p>}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Submitting..." : "Submit Feedback"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
