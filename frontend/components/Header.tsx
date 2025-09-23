@@ -51,7 +51,7 @@ export default function Header() {
 
           <Separator orientation="vertical" className="h-8 mx-8 bg-white/20" />
 
-          {/* Google Translate + Auth */}
+          {/* Google Translate + Auth Buttons Group */}
           <div className="flex items-center gap-4 flex-shrink-0">
             <StyledGoogleTranslate isMobile={false} />
             <AuthButtons />
