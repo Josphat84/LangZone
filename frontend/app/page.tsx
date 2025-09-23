@@ -1,3 +1,5 @@
+// File Name: page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -23,6 +25,7 @@ import {
   QuestionMarkCircleIcon,
   NewspaperIcon,
   ChevronRightIcon,
+  ChevronLeftIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 
@@ -55,7 +58,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
-// Type definitions
+// Type definitions (omitted for brevity)
 interface Instructor {
   id: string;
   name: string;
@@ -253,10 +256,11 @@ function WhyLangZoneSection() {
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ 
           backgroundImage: `url(${HOMEPAGE_BG})`,
-          clipPath: 'polygon(0 0, 100% 0, 100% 60%, 0 80%)'
         }}
         aria-hidden="true"
       />
+      {/* Semi-transparent overlay for readability */}
+      <div className="absolute inset-0 -z-10 bg-black/20" aria-hidden="true"></div>
       
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between gap-10">
@@ -265,7 +269,7 @@ function WhyLangZoneSection() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-teal-700 drop-shadow-sm mb-4"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-sm mb-4"
             >
               Master New Languages
             </motion.h1>
@@ -278,7 +282,7 @@ function WhyLangZoneSection() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.8 }}
-                  className="text-lg sm:text-xl text-gray-700 max-w-xl mb-4"
+                  className="text-lg sm:text-xl text-white max-w-xl mb-4"
                 >
                   {heroTexts[heroTextIndex].text}
                 </motion.p>
@@ -357,7 +361,7 @@ function WhyLangZoneSection() {
 
 const Sidebar = () => {
   return (
-    <aside className="w-48 p-3 rounded-lg bg-gray-50 text-gray-800 h-fit sticky top-20 hidden lg:block">
+    <aside className="w-48 p-3 rounded-lg bg-white/70 text-gray-800 h-fit sticky top-20 hidden lg:block backdrop-blur-sm">
       <h3 className="font-bold text-base mb-3">Quick Navigation</h3>
       <nav>
         <ul className="space-y-1">
@@ -395,8 +399,11 @@ const MainContent = () => {
   const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
+  const [packageIndex, setPackageIndex] = useState(0);
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+
+  const blogColors = ['bg-cyan-100', 'bg-purple-100', 'bg-orange-100'];
 
   const blogs: BlogPost[] = [
     { 
@@ -510,15 +517,49 @@ const MainContent = () => {
   ];
 
   useEffect(() => {
+    // Info and steps slider interval
     const infoAndStepsInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
       setStepIndex(prev => (prev + 1) % stepsSlides.length);
-    }, 60000);
+    }, 50000); 
     
+    // Packages slider interval
+    const packagesInterval = setInterval(() => {
+      setPackageIndex(prev => (prev + 1) % packages.length);
+    }, 50000);
+
     return () => {
       clearInterval(infoAndStepsInterval);
+      clearInterval(packagesInterval);
     };
-  }, [infoSlides.length, stepsSlides.length]);
+  }, [infoSlides.length, stepsSlides.length, packages.length]);
+  
+  // Handlers for package slider
+  const handleNextPackage = () => {
+    setPackageIndex(prev => (prev + 1) % packages.length);
+  };
+
+  const handlePrevPackage = () => {
+    setPackageIndex(prev => (prev - 1 + packages.length) % packages.length);
+  };
+
+  // Handlers for info slider
+  const handleNextInfo = () => {
+    setInfoIndex(prev => (prev + 1) % infoSlides.length);
+  };
+
+  const handlePrevInfo = () => {
+    setInfoIndex(prev => (prev - 1 + infoSlides.length) % infoSlides.length);
+  };
+
+  // Handlers for steps slider
+  const handleNextStep = () => {
+    setStepIndex(prev => (prev + 1) % stepsSlides.length);
+  };
+
+  const handlePrevStep = () => {
+    setStepIndex(prev => (prev - 1 + stepsSlides.length) % stepsSlides.length);
+  };
 
   const slideVariants = {
     enter: { x: 400, opacity: 0, scale: 0.9 },
@@ -526,26 +567,12 @@ const MainContent = () => {
     exit: { x: -400, opacity: 0, scale: 0.85 },
   };
 
-  const draggableSlide = (children: React.ReactNode, index: number) => (
-    <motion.div
-      key={index}
-      variants={slideVariants}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      transition={{ duration: 1.5, ease: 'easeInOut' }}
-      className="w-full flex flex-col md:flex-row items-center justify-center relative"
-    >
-      {children}
-    </motion.div>
-  );
-
   return (
-    <div className="flex-1 space-y-14 rounded-lg p-4 md:p-8">
+    <div className="flex-1 space-y-14 rounded-lg p-4 md:p-8 bg-transparent">
       <section id="courses" className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Our Courses</h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-gray-100">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-white/80 backdrop-blur-sm">
             <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm">
               Packages
             </TabsTrigger>
@@ -558,13 +585,68 @@ const MainContent = () => {
           </TabsList>
 
           <TabsContent value="packages" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              {packages.map((pkg) => (
-                <PackageCard 
-                  key={pkg.id} 
-                  pkg={pkg} 
-                  selected={selectedPackage === pkg.id}
-                  onSelect={() => setSelectedPackage(pkg.id)}
+            <div className="relative flex items-center justify-center">
+              {/* Prev Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePrevPackage}
+                className="absolute left-0 z-10 hidden md:block text-gray-700 hover:text-teal-600"
+                aria-label="Previous package"
+              >
+                <ChevronLeftIcon className="h-8 w-8" />
+              </Button>
+              <div className="relative w-full max-w-3xl mx-auto overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={packages[packageIndex].id}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.8, ease: 'easeInOut' }}
+                    className="w-full"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragEnd={(event, info) => {
+                      if (info.velocity.x > 500) {
+                        handlePrevPackage();
+                      } else if (info.velocity.x < -500) {
+                        handleNextPackage();
+                      }
+                    }}
+                  >
+                    <PackageCard 
+                      pkg={packages[packageIndex]} 
+                      selected={selectedPackage === packages[packageIndex].id}
+                      onSelect={() => setSelectedPackage(packages[packageIndex].id)}
+                    />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              {/* Next Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNextPackage}
+                className="absolute right-0 z-10 hidden md:block text-gray-700 hover:text-teal-600"
+                aria-label="Next package"
+              >
+                <ChevronRightIcon className="h-8 w-8" />
+              </Button>
+            </div>
+            {/* Dot Indicators */}
+            <div className="flex justify-center gap-3 mt-4">
+              {packages.map((_, idx) => (
+                <Button
+                  key={idx}
+                  onClick={() => setPackageIndex(idx)}
+                  variant={packageIndex === idx ? "default" : "outline"}
+                  size="sm"
+                  className={`w-3 h-3 p-0 rounded-full ${
+                    packageIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                  }`}
+                  aria-label={`Go to package ${idx + 1}`}
                 />
               ))}
             </div>
@@ -573,7 +655,26 @@ const MainContent = () => {
           <TabsContent value="info" className="space-y-6">
             <div className="relative max-w-4xl mx-auto">
               <AnimatePresence mode="wait">
-                {draggableSlide(<InfoSlideComponent slide={infoSlides[infoIndex]} />, infoIndex)}
+                <motion.div
+                  key={infoIndex}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 1.5, ease: 'easeInOut' }}
+                  className="w-full flex flex-col md:flex-row items-center justify-center relative"
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={(event, info) => {
+                    if (info.velocity.x > 500) {
+                      handlePrevInfo();
+                    } else if (info.velocity.x < -500) {
+                      handleNextInfo();
+                    }
+                  }}
+                >
+                  <InfoSlideComponent slide={infoSlides[infoIndex]} />
+                </motion.div>
               </AnimatePresence>
               <div className="flex justify-center gap-3 mt-4">
                 {infoSlides.map((_, idx) => (
@@ -595,7 +696,26 @@ const MainContent = () => {
           <TabsContent value="steps" className="space-y-6">
             <div className="relative max-w-4xl mx-auto">
               <AnimatePresence mode="wait">
-                {draggableSlide(<StepSlideComponent slide={stepsSlides[stepIndex]} />, stepIndex)}
+                <motion.div
+                  key={stepIndex}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 1.5, ease: 'easeInOut' }}
+                  className="w-full flex flex-col md:flex-row items-center justify-center relative"
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  onDragEnd={(event, info) => {
+                    if (info.velocity.x > 500) {
+                      handlePrevStep();
+                    } else if (info.velocity.x < -500) {
+                      handleNextStep();
+                    }
+                  }}
+                >
+                  <StepSlideComponent slide={stepsSlides[stepIndex]} />
+                </motion.div>
               </AnimatePresence>
               <div className="flex justify-center gap-3 mt-4">
                 {stepsSlides.map((_, idx) => (
@@ -616,31 +736,31 @@ const MainContent = () => {
         </Tabs>
       </section>
 
-      <section id="faq" className="space-y-6">
+      ---
+
+      <section id="faq" className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h2>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-3">
           {faqItems.map((item, idx) => (
             <Collapsible key={idx} open={openFAQIndex === idx} onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
-              <Card className={`cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-r from-teal-500 to-teal-600 text-white border-0`}>
+              <Card className="bg-white/80 backdrop-blur-sm transition-all duration-200 hover:shadow-lg border border-transparent hover:border-teal-500">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="py-3 px-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-white">
-                        {item.question}
-                      </CardTitle>
-                      <div className="ml-4 flex-shrink-0">
-                        {openFAQIndex === idx ? (
-                          <MinusIcon className="h-5 w-5 text-white" />
-                        ) : (
-                          <PlusIcon className="h-5 w-5 text-white" />
-                        )}
-                      </div>
+                  <CardHeader className="py-3 px-4 flex flex-row items-center justify-between bg-teal-50">
+                    <CardTitle className="text-sm font-semibold text-gray-800">
+                      {item.question}
+                    </CardTitle>
+                    <div className="ml-4 flex-shrink-0">
+                      {openFAQIndex === idx ? (
+                        <MinusIcon className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <PlusIcon className="h-5 w-5 text-gray-500" />
+                      )}
                     </div>
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <CardContent className="px-4 pb-4 pt-0">
-                    <p className="text-white/90 text-sm">{item.answer}</p>
+                  <CardContent className="px-4 pb-4 pt-4">
+                    <p className="text-gray-600 text-sm">{item.answer}</p>
                   </CardContent>
                 </CollapsibleContent>
               </Card>
@@ -648,6 +768,8 @@ const MainContent = () => {
           ))}
         </div>
       </section>
+
+      ---
 
       <section id="blog" className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Latest from Our Blog</h2>
@@ -659,8 +781,8 @@ const MainContent = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.1 }}
             >
-              <Card className="h-full hover:shadow-lg hover:scale-[1.02] transition-all duration-300 bg-white border-0 flex flex-col">
-                <div className="p-4 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-t-lg">
+              <Card className="h-full hover:shadow-lg hover:scale-[1.02] transition-all duration-300 bg-white/80 backdrop-blur-sm border-0 flex flex-col">
+                <div className={`p-4 flex-shrink-0 flex items-center justify-center rounded-t-lg ${blogColors[idx % blogColors.length]}`}>
                   {post.icon}
                 </div>
                 <CardHeader className="flex-grow p-4">
@@ -674,32 +796,6 @@ const MainContent = () => {
           ))}
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg">
-        <div className="max-w-3xl mx-auto text-center px-4">
-          <h2 className="text-2xl font-bold mb-4">Ready to start your language journey?</h2>
-          <p className="text-teal-100 mb-6">
-            Join thousands of students learning with our expert tutors. Get started today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="Your email address"
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/70"
-            />
-            <Button 
-              size="lg"
-              className="bg-white text-teal-600 hover:bg-teal-50 font-semibold"
-            >
-              Get Started <ArrowRightIcon className="ml-2 w-5 h-5" />
-            </Button>
-          </div>
-          <p className="text-sm text-teal-200 mt-4">
-            No credit card required. Start learning in minutes.
-          </p>
-        </div>
-      </section>
     </div>
   );
 };
@@ -707,7 +803,7 @@ const MainContent = () => {
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
 
   useEffect(() => {
@@ -726,18 +822,18 @@ export default function Home() {
   }, []);
 
   return (
-    <div id="top" className="min-h-screen bg-white">
+    <div id="top" className="min-h-screen bg-transparent">
       <WhyLangZoneSection />
       
-      <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-8 py-12 bg-white">
+      <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-8 py-12">
         <Sidebar />
         <MainContent />
       </div>
 
       <AuthModal
         isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        setIsOpen={setIsAuthModalOpen}
+        onClose={() => setIsAuthModal(false)}
+        setIsOpen={setIsAuthModal}
         mode={authMode}
       />
     </div>
@@ -750,11 +846,11 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className={`relative h-full flex flex-col transition-all duration-300 ${selected ? 'scale-105' : 'hover:scale-105'}`}
+      className={`relative h-full flex flex-col transition-all duration-300 w-full max-w-sm mx-auto`} 
       onClick={onSelect}
     >
       <Card className={`h-full overflow-hidden cursor-pointer transition-all border-0 ${
-        selected ? 'ring-2 ring-teal-500 shadow-lg' : 'hover:shadow-lg'
+        selected ? 'ring-2 ring-teal-500 shadow-lg' : 'hover:shadow-lg hover:scale-105'
       }`}>
         {pkg.popular && (
           <Badge className="absolute top-3 right-3 z-10 bg-teal-600 hover:bg-teal-600 text-white text-xs">
@@ -779,7 +875,7 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: bool
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="p-4 flex-grow flex flex-col">
+        <CardContent className="p-4 flex-grow flex flex-col bg-white/80 backdrop-blur-sm">
           <ul className="space-y-2 mb-4 flex-grow">
             {pkg.features.map((feature, index) => (
               <li key={index} className="flex items-start">
@@ -823,7 +919,7 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
 
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
-    <Card className="shadow-lg border-0 bg-white">
+    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
       <CardContent className="flex flex-col md:flex-row items-center justify-center gap-4 p-6">
         <div className="w-12 h-12 flex items-center justify-center rounded-full bg-teal-600 text-white text-lg font-bold flex-shrink-0">
           {slide.step}
