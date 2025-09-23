@@ -19,12 +19,16 @@ import { SiZoom } from 'react-icons/si';
 export default function Footer() {
   const newsletterRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [glowVisible, setGlowVisible] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setVisible(true);
+          if (entry.isIntersecting) {
+            setVisible(true);
+            if (!glowVisible) setGlowVisible(true);
+          }
         });
       },
       { threshold: 0.3 }
@@ -32,58 +36,100 @@ export default function Footer() {
 
     if (newsletterRef.current) observer.observe(newsletterRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [glowVisible]);
 
   const socialLinks = [
-    { href: 'https://facebook.com', icon: <FaFacebookF />, bg: '#1877F2', label: 'Facebook' },
-    { href: 'https://youtube.com', icon: <FaYoutube />, bg: '#FF0000', label: 'YouTube' },
-    { href: 'https://wa.me/1234567890', icon: <FaWhatsapp />, bg: '#25D366', label: 'WhatsApp' },
-    { href: 'https://linkedin.com', icon: <FaLinkedinIn />, bg: '#0A66C2', label: 'LinkedIn' },
-    { href: 'https://instagram.com', icon: <FaInstagram />, bg: 'gradient', label: 'Instagram' },
-    { href: 'https://x.com', icon: <FaXTwitter />, bg: 'black', label: 'X' },
-    { href: 'zoomus://zoom.us', icon: <SiZoom />, bg: '#2D8CFF', label: 'Zoom', isZoom: true },
+    { href: 'https://facebook.com', icon: <FaFacebookF />, label: 'Facebook', color: '#1877F2' },
+    { href: 'https://youtube.com', icon: <FaYoutube />, label: 'YouTube', color: '#FF0000' },
+    { href: 'https://wa.me/1234567890', icon: <FaWhatsapp />, label: 'WhatsApp', color: '#25D366' },
+    { href: 'https://linkedin.com', icon: <FaLinkedinIn />, label: 'LinkedIn', color: '#0A66C2' },
+    {
+      href: 'https://instagram.com',
+      icon: <FaInstagram />,
+      label: 'Instagram',
+      color: 'conic-gradient(from 45deg at 50% 50%, #F58529, #DD2A7B, #8134AF, #515BD4, #F58529)',
+    },
+    { href: 'https://x.com', icon: <FaXTwitter />, label: 'X', color: '#000000' },
+    { href: 'zoomus://zoom.us', icon: <SiZoom />, label: 'Zoom', color: '#2D8CFF', isZoom: true },
   ];
 
   return (
-    <footer className="bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white antialiased">
-      <div className="container mx-auto px-6 pt-20 pb-12 max-w-7xl">
-        {/* Footer Grid */}
+    <footer className="relative bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white antialiased overflow-hidden">
+      <div className="container mx-auto px-6 pt-20 pb-12 max-w-7xl relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 sm:gap-16">
-          
           {/* Brand & Socials */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 relative z-20">
             <h6 className="font-light text-3xl mb-4 tracking-tight leading-tight">LangZone</h6>
             <p className="text-teal-200 text-sm mb-6 max-w-xs leading-relaxed">
               Connect with language instructors worldwide and master new languages through personalized learning experiences.
             </p>
 
-            <div className="flex flex-wrap gap-3 mb-8">
-              {socialLinks.map(({ href, icon, bg, label, isZoom }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  onClick={(e) => {
-                    if (isZoom) {
-                      e.preventDefault();
-                      window.location.href = 'zoomus://zoom.us';
-                      setTimeout(() => {
-                        window.open('https://zoom.us', '_blank');
-                      }, 500);
-                    }
-                  }}
-                  className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
-                    bg === 'gradient'
-                      ? 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600'
-                      : bg === 'black'
-                      ? 'bg-black'
-                      : `bg-[${bg}]`
-                  }`}
-                >
-                  <span className="text-white text-sm sm:text-base">{icon}</span>
-                </a>
+            <div className="flex flex-wrap gap-3 mb-8 relative z-20">
+              {socialLinks.map(({ href, icon, label, color, isZoom }) => (
+                <div key={label} className="relative group">
+                  {glowVisible && (
+                    <span
+                      className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{
+                        background: color,
+                        filter: 'blur(14px)',
+                        opacity: 0.25,
+                        transition: 'opacity 1.5s ease-out',
+                        zIndex: -1,
+                      }}
+                    />
+                  )}
+
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    onClick={(e) => {
+                      if (isZoom) {
+                        e.preventDefault();
+                        window.location.href = 'zoomus://zoom.us';
+                        setTimeout(() => {
+                          window.open('https://zoom.us', '_blank');
+                        }, 500);
+                      }
+                    }}
+                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full
+                               transform transition-all duration-500 hover:scale-110"
+                    style={{
+                      background: label === 'Instagram' ? color : undefined,
+                      backgroundColor: label !== 'Instagram' ? color : undefined,
+                      border: 'none',
+                      boxShadow: `
+                        0 4px 6px rgba(0,0,0,0.3),
+                        0 8px 15px rgba(0,0,0,0.25),
+                        0 12px 25px rgba(0,0,0,0.2),
+                        0 18px 40px rgba(0,0,0,0.15)
+                      `,
+                    }}
+                  >
+                    <span
+                      className="text-white text-sm sm:text-base relative z-10"
+                      style={{
+                        textShadow: '0 0 1px rgba(0,0,0,0.2)',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale',
+                      }}
+                    >
+                      {icon}
+                    </span>
+                  </a>
+
+                  {/* Parallax hover shadow */}
+                  <span
+                    className="absolute inset-0 rounded-full pointer-events-none opacity-0 group-hover:opacity-40 transition-all duration-500"
+                    style={{
+                      boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
+                      transform: 'translateY(2px)',
+                      zIndex: -1,
+                    }}
+                  />
+                </div>
               ))}
             </div>
           </div>
