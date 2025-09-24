@@ -141,7 +141,7 @@ export default function Footer() {
               <li><Link href="/learning-guides" className="hover:text-white transition-colors">Learning Guides</Link></li>
               <li><Link href="/courses" className="hover:text-white transition-colors">Courses</Link></li>
               <li><Link href="/resources" className="hover:text-white transition-colors">Resources</Link></li>
-              <li><Link href="/practice" className="hover:text-white transition-colors">Practice Exercises</Link></li>
+              <li><Link href="/ai-practice-tools" className="hover:text-white transition-colors">Practice Exercises</Link></li>
               <li><Link href="/kids" className="hover:text-white transition-colors">Kids Activities</Link></li>
               <li><Link href='/community' className="hover:text-white transition-colors">Community</Link></li>
             </ul>
