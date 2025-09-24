@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import {
   Dialog,
@@ -19,6 +19,9 @@ export default function FeedbackWidget() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // For realtime notifications
+  const [newFeedback, setNewFeedback] = useState<any>(null);
 
   const feedbackTypes = ["Complaint", "Suggestion", "Experience"];
 
@@ -61,8 +64,55 @@ export default function FeedbackWidget() {
     setLoading(false);
   };
 
+  // Request browser notification permission
+  useEffect(() => {
+    if (typeof window !== "undefined" && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Realtime feedback listener
+  useEffect(() => {
+    const channel = supabase
+      .channel("feedback_notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "feedback" },
+        (payload) => {
+          const newFb = payload.new;
+          setNewFeedback(newFb);
+
+          // Play sound
+          const audio = new Audio("/notification.mp3");
+          audio.play().catch(() => console.log("Audio play blocked"));
+
+          // Browser notification
+          if (typeof window !== "undefined" && Notification.permission === "granted") {
+            new Notification("New Feedback", {
+              body: `${newFb.name || "Anonymous"}: ${newFb.message}`,
+            });
+          }
+
+          // Hide UI banner after 5 seconds
+          setTimeout(() => setNewFeedback(null), 5000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating UI banner for new feedback */}
+      {newFeedback && (
+        <div className="fixed bottom-24 right-6 z-50 bg-blue-500 text-white p-3 rounded-lg shadow-lg animate-bounce">
+          New feedback from {newFeedback.name || "Anonymous"}: {newFeedback.message}
+        </div>
+      )}
+
       <Dialog>
         <DialogTrigger asChild>
           <Button
