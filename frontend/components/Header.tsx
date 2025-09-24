@@ -311,16 +311,7 @@ export default function Header() {
 
           {/* Mobile Menu Button & Auth */}
           <div className="md:hidden flex items-center gap-3">
-            {/* Mobile Notification Dropdown */}
-            <NotificationDropdown
-              unreadCount={unreadCount}
-              hasHighPriority={hasHighPriority}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
-              notifications={notifications}
-              setNotifications={setNotifications}
-              isDarkMode={isDarkMode}
-            />
+            {/* 🔴 Duplicate NotificationDropdown removed */}
 
             {/* Mobile Auth */}
             <AuthButtons />
@@ -474,65 +465,37 @@ export default function Header() {
                         <div className="bg-white/10 rounded-xl p-4">
                           <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
                             <MessageSquare className="w-4 h-4" />
-                            Notifications (<span className="text-red-400 font-bold">{unreadCount}</span>)
+                            Notifications
                           </h3>
-                          <div className="space-y-2 max-h-32 overflow-y-auto">
-                            {notifications
-                              .filter((n) => !n.resolved && !n.archived)
-                              .slice(0, 3)
-                              .map((n) => (
-                                <div key={n.id} className="text-sm">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className={cn("px-2 py-1 text-xs rounded", TYPE_COLORS[n.type] || 'bg-gray-600 text-white')}>
-                                      {n.type}
-                                    </span>
-                                    {n.priority === 'high' && (
-                                      <span className="text-red-300 text-xs">HIGH</span>
-                                    )}
-                                  </div>
-                                  <p className="text-white/80 break-words">
-                                    {n.message.length > 60 ? `${n.message.substring(0, 60)}...` : n.message}
-                                  </p>
-                                  <p className="text-white/60 text-xs mt-1">
-                                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                                  </p>
+                          <ul className="space-y-2 max-h-60 overflow-y-auto">
+                            {notifications.slice(0, 5).map(n => (
+                              <li
+                                key={n.id}
+                                className={cn(
+                                  "p-3 rounded-lg flex justify-between items-center cursor-pointer hover:bg-white/20 transition-all duration-200",
+                                  !n.resolved && !n.archived ? 'bg-white/20' : 'bg-white/10'
+                                )}
+                              >
+                                <div className="flex-1 pr-2">
+                                  <p className="text-sm text-white line-clamp-1">{n.message}</p>
+                                  <span className="text-xs text-white/60">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</span>
                                 </div>
-                              ))}
-                          </div>
+                                {n.priority === 'high' && <span className="text-red-400 font-bold ml-2">!</span>}
+                              </li>
+                            ))}
+                          </ul>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="w-full mt-3 text-white/80 hover:text-white hover:bg-white/10"
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              setIsDropdownOpen(true);
-                            }}
+                            className="mt-2 w-full text-white/80 hover:text-white hover:bg-white/10"
+                            onClick={() => setIsDropdownOpen(true)}
                           >
                             View All Notifications
-                            <ChevronDown className="w-4 h-4 ml-1 rotate-[-90deg]" />
                           </Button>
                         </div>
                       )}
                     </div>
                   </nav>
-
-                  {/* Mobile Footer */}
-                  <div className="p-4 border-t border-teal-600/50 bg-white/5">
-                    <div className="text-center text-white/60 text-xs">
-                      <p>© 2025 Home Platform. All rights reserved.</p>
-                      <div className="flex justify-center gap-4 mt-2">
-                        <Link href="/privacy" className="hover:text-white transition-colors">
-                          Privacy
-                        </Link>
-                        <Link href="/terms" className="hover:text-white transition-colors">
-                          Terms
-                        </Link>
-                        <Link href="/support" className="hover:text-white transition-colors">
-                          Support
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
