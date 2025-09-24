@@ -64,15 +64,85 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        {/* Add CSS for safe area support */}
+        <style jsx global>{`
+          :root {
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-right: env(safe-area-inset-right);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+            --safe-area-inset-left: env(safe-area-inset-left);
+          }
+          
+          .feedback-widget-positioned {
+            /* Desktop positioning */
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 50;
+            
+            /* Mobile optimizations */
+            @media (max-width: 768px) {
+              bottom: calc(1rem + var(--safe-area-inset-bottom, 0px));
+              right: calc(1rem + var(--safe-area-inset-right, 0px));
+              max-width: calc(100vw - 2rem - var(--safe-area-inset-left, 0px) - var(--safe-area-inset-right, 0px));
+            }
+            
+            /* Extra small screens */
+            @media (max-width: 480px) {
+              bottom: calc(0.75rem + var(--safe-area-inset-bottom, 0px));
+              right: calc(0.75rem + var(--safe-area-inset-right, 0px));
+              max-width: calc(100vw - 1.5rem - var(--safe-area-inset-left, 0px) - var(--safe-area-inset-right, 0px));
+            }
+          }
+          
+          /* Ensure toasts don't interfere with safe areas */
+          .feedback-toast-container {
+            padding-top: var(--safe-area-inset-top, 0px);
+            padding-right: var(--safe-area-inset-right, 0px);
+          }
+          
+          /* Body adjustments for safe areas */
+          body {
+            padding-top: var(--safe-area-inset-top, 0px);
+            padding-bottom: var(--safe-area-inset-bottom, 0px);
+            padding-left: var(--safe-area-inset-left, 0px);
+            padding-right: var(--safe-area-inset-right, 0px);
+          }
+        `}</style>
       </head>
       <body className={`${inter.className} min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800`}>
         <TranslationProvider>
           <GoogleOAuthProvider clientId={googleClientId}>
+            {/* Header with proper containment */}
             <Header unreadCount={unreadCount} setUnreadCount={setUnreadCount} />
-            <main className="flex-grow">{children}</main>
+            
+            {/* Main content with proper spacing */}
+            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              {children}
+            </main>
+            
+            {/* Footer */}
             <Footer />
-            <FeedbackWidget className="fixed bottom-4 right-4 z-50" />
-            <Toaster position="top-right" reverseOrder />
+            
+            {/* Feedback Widget with proper responsive positioning */}
+            <div className="feedback-widget-positioned">
+              <FeedbackWidget />
+            </div>
+            
+            {/* Toast notifications with safe area support */}
+            <div className="feedback-toast-container">
+              <Toaster 
+                position="top-right" 
+                reverseOrder 
+                toastOptions={{
+                  style: {
+                    marginRight: 'calc(0.5rem + var(--safe-area-inset-right, 0px))',
+                    marginTop: 'calc(0.5rem + var(--safe-area-inset-top, 0px))',
+                  },
+                  duration: 4000,
+                }}
+              />
+            </div>
           </GoogleOAuthProvider>
         </TranslationProvider>
       </body>
