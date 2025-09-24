@@ -232,7 +232,7 @@ export default function Header() {
 
   // --- JSX ---
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-teal-600/95 to-teal-700/95 dark:from-teal-800/95 dark:to-teal-900/95 backdrop-blur-lg border-b border-teal-700/50 dark:border-teal-900/50 shadow-lg">
+    <header className="sticky top-0 z-50 bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 backdrop-blur-lg border-b border-teal-700/50 dark:border-teal-900/50 shadow-lg">
       {/* Top Layer - Utilities */}
       <div className="border-b border-teal-600/30 dark:border-teal-800/30">
         <div className="container mx-auto px-6 py-2">
@@ -330,7 +330,7 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="w-[320px] sm:w-[380px] bg-gradient-to-b from-teal-700/95 to-teal-800/95 dark:from-teal-900/95 dark:to-teal-950/95 backdrop-blur-lg p-0 border-l border-teal-600/50"
+                className="w-[320px] sm:w-[380px] bg-gradient-to-b from-teal-900/95 to-teal-950/95 backdrop-blur-lg p-0 border-l border-teal-600/50"
               >
                 <SheetTitle className="sr-only">Main Menu</SheetTitle>
                 <div className="flex flex-col h-full">
