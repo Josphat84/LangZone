@@ -341,8 +341,8 @@ export default function NotificationDropdown({
       }
 
       toast.success(`${action === 'delete' ? 'Deleted' : 
-                    action === 'resolve' ? 'Resolved' : 
-                    action === 'archive' ? 'Archived' : 'Starred'} ${ids.length} notifications`);
+                          action === 'resolve' ? 'Resolved' : 
+                          action === 'archive' ? 'Archived' : 'Starred'} ${ids.length} notifications`);
 
       setSelectedNotifications(new Set());
       await fetchNotifications();
@@ -618,7 +618,9 @@ export default function NotificationDropdown({
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="absolute right-0 mt-3 w-96 max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-50 p-4 flex flex-col gap-4"
+            className="absolute right-0 mt-3 max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-50 p-4 flex flex-col gap-4
+            
+            w-96 md:w-full max-w-sm sm:max-w-md"
             role="dialog"
             aria-label="Notifications"
           >
