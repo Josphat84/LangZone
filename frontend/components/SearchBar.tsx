@@ -41,7 +41,7 @@ interface SearchData {
   results: SearchResult[];
 }
 
-// --- Enhanced SWR fetcher (WITH INDEX NOT FOUND HANDLING) ---
+// --- Enhanced SWR fetcher ---
 const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> => {
   const query = queryKey[1]; 
   if (!query || query.length < 2) return { results: [] };
@@ -49,7 +49,7 @@ const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> =>
   try {
     const index = meiliClient.index("pages");
 
-    // The actual search API call
+    // Corrected MeiliSearch parameters for compatibility
     const searchRes = await index.search<SearchResult>(query, { 
       limit: 10,
       attributesToHighlight: ['title', 'description'],
@@ -60,14 +60,6 @@ const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> =>
       results: searchRes.hits,
     } as SearchData;
   } catch (error) {
-    // 💡 FIX: Catch MeiliSearch API errors, specifically the "Index not found" error.
-    if (error instanceof Error && (error.message.includes("Index `pages` not found") || error.message.includes("not found"))) {
-      console.warn("MeiliSearch Warning: Index 'pages' not found. Returning empty results.");
-      // Return an empty result set instead of throwing, allowing the component to render.
-      return { results: [] };
-    }
-    
-    // Log other errors and return empty data
     console.error('Search error:', error);
     return { results: [] }; 
   }
