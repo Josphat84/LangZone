@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
@@ -21,6 +22,7 @@ import {
   Globe,
   Zap,
   MessageSquare,
+  Search,
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet';
 import { AuthButtons } from '@/components/AuthButtons';
@@ -30,6 +32,8 @@ import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import NotificationDropdown from '@/components/NotificationDropdown';
+import SearchBar from '@/components/SearchBar';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 // --- Type Definitions ---
 interface Notification {
@@ -282,7 +286,7 @@ export default function Header() {
 
       {/* Bottom Layer - Main Navigation */}
       <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-6">
           {/* Logo */}
           <Link 
             href="/" 
@@ -296,7 +300,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex flex-1 items-center space-x-1">
             {NAV_ITEMS.map(({ href, label, Icon }) => (
               <Link
                 key={href}
@@ -307,12 +311,14 @@ export default function Header() {
                 {label}
               </Link>
             ))}
+            {/* Search Bar - Positioned here */}
+            <div className="flex-1 min-w-[200px] ml-4">
+              <SearchBar />
+            </div>
           </nav>
 
           {/* Mobile Menu Button & Auth */}
           <div className="md:hidden flex items-center gap-3">
-            {/* 🔴 Duplicate NotificationDropdown removed */}
-
             {/* Mobile Auth */}
             <AuthButtons />
             
@@ -360,6 +366,11 @@ export default function Header() {
                   {/* Mobile Navigation */}
                   <nav className="flex-1 overflow-y-auto p-4 space-y-2">
                     <div className="space-y-1">
+                      {/* Search Bar for Mobile */}
+                      <div className="p-4 rounded-xl bg-white/10">
+                        <SearchBar />
+                      </div>
+                      
                       {NAV_ITEMS.map(({ href, label, Icon }) => (
                         <SheetClose asChild key={href}>
                           <Link
