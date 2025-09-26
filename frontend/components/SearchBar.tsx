@@ -41,15 +41,19 @@ interface SearchData {
   results: SearchResult[];
 }
 
-// --- Enhanced SWR fetcher ---
+// --- SWR fetcher (Index Not Found Handled) ---
 const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> => {
   const query = queryKey[1]; 
   if (!query || query.length < 2) return { results: [] };
   
+  if (!process.env.NEXT_PUBLIC_MEILISEARCH_HOST) {
+    console.error("MeiliSearch client is missing NEXT_PUBLIC_MEILISEARCH_HOST.");
+    return { results: [] };
+  }
+
   try {
     const index = meiliClient.index("pages");
 
-    // Corrected MeiliSearch parameters for compatibility
     const searchRes = await index.search<SearchResult>(query, { 
       limit: 10,
       attributesToHighlight: ['title', 'description'],
@@ -60,6 +64,11 @@ const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> =>
       results: searchRes.hits,
     } as SearchData;
   } catch (error) {
+    if (error instanceof Error && (error.message.includes("Index `pages` not found") || error.message.includes("not found"))) {
+      console.warn("MeiliSearch Warning: Index 'pages' not found. Returning empty results.");
+      return { results: [] };
+    }
+    
     console.error('Search error:', error);
     return { results: [] }; 
   }
@@ -69,10 +78,17 @@ export default function EnhancedSearchBar() {
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  // 💡 HYDRATION FIX: State to track if the component has mounted on the client
+  const [mounted, setMounted] = useState(false); 
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Utility Handlers - defined here to be stable dependencies
+  // 💡 HYDRATION FIX: Set mounted to true only after the first render (client-side)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleCollapse = useCallback(() => {
     setExpanded(false);
     setQuery("");
@@ -115,18 +131,15 @@ export default function EnhancedSearchBar() {
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          // Cycle through all results
           setSelectedIndex(prev => (prev + 1) % totalItems); 
           break;
         case 'ArrowUp':
           e.preventDefault();
-          // Cycle backwards
           setSelectedIndex(prev => (prev - 1 + totalItems) % totalItems);
           break;
         case 'Enter':
           e.preventDefault();
           if (selectedIndex >= 0 && selectedIndex < results.length) {
-            // Navigate to selected result
             window.location.href = resolveUrl(results[selectedIndex]);
             handleCollapse();
           }
@@ -141,7 +154,6 @@ export default function EnhancedSearchBar() {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  // Fixed dependency array: including totalItems (size) and results/handlers for closure access.
   }, [expanded, totalItems, selectedIndex, resolveUrl, handleCollapse, results]);
 
   // Click outside to close
@@ -200,6 +212,23 @@ export default function EnhancedSearchBar() {
   const showResults = expanded && query.length >= 2 && results.length > 0;
   const showEmpty = expanded && query.length >= 2 && !isLoading && results.length === 0;
 
+  // 💡 HYDRATION FIX: If not mounted, render a stable, non-animated placeholder
+  if (!mounted) {
+    return (
+      <div className="relative flex items-center gap-2 min-w-[200px]">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 text-gray-600 shadow-sm"
+          aria-label="Open search"
+        >
+          <Search className="w-5 h-5" />
+        </Button>
+      </div>
+    );
+  }
+
+  // --- Main Render (Only runs after client-side mount/hydration) ---
   return (
     <div className="relative flex items-center gap-2 min-w-[200px]" ref={resultsRef}>
       <AnimatePresence mode="wait" initial={false}>
@@ -295,7 +324,6 @@ export default function EnhancedSearchBar() {
                                 />
                                 <ChevronRight className="w-4 h-4 text-gray-400 ml-2 flex-shrink-0" />
                               </div>
-                              {/* Use _formatted for description if available and safe */}
                               {item.description && (
                                 <p 
                                   className="text-xs text-gray-600 mt-1 line-clamp-2"
