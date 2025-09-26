@@ -11,7 +11,7 @@ import {
   FileText, 
   User, 
   Globe,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
@@ -23,36 +23,6 @@ const meiliClient = new MeiliSearch({
   apiKey: process.env.NEXT_PUBLIC_MEILISEARCH_API_KEY || "",
 });
 
-// --- Enhanced SWR fetcher ---
-const searchFetcher = async (query: string) => {
-  if (!query || query.length < 2) return { results: [], suggestions: [] };
-  
-  try {
-    const searchPromise = meiliClient.index("pages").search(query, { 
-      limit: 8,
-      attributesToHighlight: ['title', 'description'],
-      attributesToSnippet: ['description:20'],
-      attributesToRetrieve: ['id', 'title', 'slug', 'type', 'description', 'lastModified']
-    });
-    
-    // Simulated suggestions - in real app, these could come from a separate index
-    const suggestionsPromise = meiliClient.index("pages").search(query, {
-      limit: 3,
-      attributesToRetrieve: ['title']
-    });
-
-    const [searchRes, suggestionsRes] = await Promise.all([searchPromise, suggestionsPromise]);
-    
-    return {
-      results: searchRes.hits,
-      suggestions: suggestionsRes.hits.map(hit => hit.title).slice(0, 3)
-    };
-  } catch (error) {
-    console.error('Search error:', error);
-    return { results: [], suggestions: [] };
-  }
-};
-
 // --- Enhanced Types ---
 interface SearchResult {
   id: string;
@@ -62,64 +32,111 @@ interface SearchResult {
   description?: string;
   lastModified?: string;
   _formatted?: {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
   };
 }
 
 interface SearchData {
   results: SearchResult[];
-  suggestions: string[];
 }
 
+// --- Enhanced SWR fetcher (WITH INDEX NOT FOUND HANDLING) ---
+const searchFetcher = async (queryKey: [string, string]): Promise<SearchData> => {
+  const query = queryKey[1]; 
+  if (!query || query.length < 2) return { results: [] };
+  
+  try {
+    const index = meiliClient.index("pages");
 
+    // The actual search API call
+    const searchRes = await index.search<SearchResult>(query, { 
+      limit: 10,
+      attributesToHighlight: ['title', 'description'],
+      attributesToRetrieve: ['id', 'title', 'slug', 'type', 'description', 'lastModified']
+    });
+    
+    return {
+      results: searchRes.hits,
+    } as SearchData;
+  } catch (error) {
+    // 💡 FIX: Catch MeiliSearch API errors, specifically the "Index not found" error.
+    if (error instanceof Error && (error.message.includes("Index `pages` not found") || error.message.includes("not found"))) {
+      console.warn("MeiliSearch Warning: Index 'pages' not found. Returning empty results.");
+      // Return an empty result set instead of throwing, allowing the component to render.
+      return { results: [] };
+    }
+    
+    // Log other errors and return empty data
+    console.error('Search error:', error);
+    return { results: [] }; 
+  }
+};
 
 export default function EnhancedSearchBar() {
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
+  // Utility Handlers - defined here to be stable dependencies
+  const handleCollapse = useCallback(() => {
+    setExpanded(false);
+    setQuery("");
+    setSelectedIndex(-1);
+  }, []);
+
+  const resolveUrl = useCallback((item: SearchResult) => {
+    switch (item.type) {
+      case "tutor":
+        return `/tutors/${item.slug}/AvailabilityCalendar`;
+      case "blog":
+        return `/blog/${item.slug}`;
+      case "page":
+        return `/${item.slug}`;
+      default:
+        return "/";
+    }
+  }, []);
+
   const { data, isLoading } = useSWR<SearchData>(
-    query, 
+    ['meilisearch', query], 
     searchFetcher, 
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 300,
+      debounce: 300, 
     }
   );
 
   const results = data?.results || [];
-  const suggestions = data?.suggestions || [];
+  const totalItems = results.length;
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!expanded) return;
 
-      const totalItems = results.length + suggestions.length;
-      
+      if (totalItems === 0) return;
+
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => (prev + 1) % Math.max(1, totalItems));
+          // Cycle through all results
+          setSelectedIndex(prev => (prev + 1) % totalItems); 
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => prev <= 0 ? totalItems - 1 : prev - 1);
+          // Cycle backwards
+          setSelectedIndex(prev => (prev - 1 + totalItems) % totalItems);
           break;
         case 'Enter':
           e.preventDefault();
           if (selectedIndex >= 0 && selectedIndex < results.length) {
             // Navigate to selected result
             window.location.href = resolveUrl(results[selectedIndex]);
-          } else if (selectedIndex >= results.length && selectedIndex < totalItems) {
-            // Use suggestion
-            const suggestionIndex = selectedIndex - results.length;
-            setQuery(suggestions[suggestionIndex]);
+            handleCollapse();
           }
           break;
         case 'Escape':
@@ -132,7 +149,8 @@ export default function EnhancedSearchBar() {
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [expanded, results, suggestions, selectedIndex]);
+  // Fixed dependency array: including totalItems (size) and results/handlers for closure access.
+  }, [expanded, totalItems, selectedIndex, resolveUrl, handleCollapse, results]);
 
   // Click outside to close
   useEffect(() => {
@@ -146,7 +164,7 @@ export default function EnhancedSearchBar() {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [expanded]);
+  }, [expanded, handleCollapse]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
@@ -159,34 +177,10 @@ export default function EnhancedSearchBar() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const handleCollapse = () => {
-    setExpanded(false);
-    setQuery("");
-    setSelectedIndex(-1);
-  };
-
   const handleClearQuery = () => {
     setQuery("");
     setSelectedIndex(-1);
     inputRef.current?.focus();
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    inputRef.current?.focus();
-  };
-
-  const resolveUrl = (item: SearchResult) => {
-    switch (item.type) {
-      case "tutor":
-        return `/tutors/${item.slug}/AvailabilityCalendar`;
-      case "blog":
-        return `/blog/${item.slug}`;
-      case "page":
-        return `/${item.slug}`;
-      default:
-        return "/";
-    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -202,7 +196,7 @@ export default function EnhancedSearchBar() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', { 
       month: 'short', 
@@ -210,8 +204,8 @@ export default function EnhancedSearchBar() {
     });
   };
 
+  // Visibility conditions
   const showResults = expanded && query.length >= 2 && results.length > 0;
-  const showSuggestions = expanded && query.length >= 2 && suggestions.length > 0;
   const showEmpty = expanded && query.length >= 2 && !isLoading && results.length === 0;
 
   return (
@@ -271,7 +265,7 @@ export default function EnhancedSearchBar() {
 
             {/* Search Dropdown */}
             <AnimatePresence>
-              {(showResults || showSuggestions || showEmpty) && (
+              {(showResults || showEmpty) && (
                 <motion.div
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -279,31 +273,12 @@ export default function EnhancedSearchBar() {
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="absolute top-full left-0 w-full bg-white rounded-2xl shadow-2xl mt-2 z-50 overflow-hidden border border-gray-100 backdrop-blur-sm"
                 >
-                  {showSuggestions && (
-                    <div className="p-2 border-b border-gray-100">
-                      <div className="text-xs font-medium text-gray-500 px-3 py-2">Suggestions</div>
-                      {suggestions.map((suggestion, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSuggestionClick(suggestion)}
-                          className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center gap-3 ${
-                            selectedIndex === results.length + index
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'hover:bg-gray-50 text-gray-700'
-                          }`}
-                        >
-                          <Search className="w-4 h-4 text-gray-400" />
-                          <span className="truncate">{suggestion}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
+                
                   {/* Search Results */}
                   {showResults && (
-                    <div className="max-h-80 overflow-y-auto">
-                      <div className="text-xs font-medium text-gray-500 px-3 py-2 bg-gray-50">
-                        {results.length} result{results.length !== 1 ? 's' : ''}
+                    <div className="max-h-96 overflow-y-auto">
+                      <div className="text-xs font-medium text-gray-500 px-4 py-2 bg-gray-50">
+                        {results.length} result{results.length !== 1 ? 's' : ''} for "{query}"
                       </div>
                       {results.map((item, index) => (
                         <Link
@@ -328,6 +303,7 @@ export default function EnhancedSearchBar() {
                                 />
                                 <ChevronRight className="w-4 h-4 text-gray-400 ml-2 flex-shrink-0" />
                               </div>
+                              {/* Use _formatted for description if available and safe */}
                               {item.description && (
                                 <p 
                                   className="text-xs text-gray-600 mt-1 line-clamp-2"
@@ -357,8 +333,8 @@ export default function EnhancedSearchBar() {
                   {showEmpty && (
                     <div className="p-8 text-center">
                       <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500 text-sm mb-2">No results found for "{query}"</p>
-                      <p className="text-gray-400 text-xs">Try adjusting your search terms</p>
+                      <p className="text-gray-500 text-sm mb-2">No results found for **"{query}"**</p>
+                      <p className="text-gray-400 text-xs">Try adjusting your search terms or checking your spelling.</p>
                     </div>
                   )}
                 </motion.div>
