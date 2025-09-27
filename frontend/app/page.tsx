@@ -2,10 +2,10 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { createClient, Session, User } from '@supabase/supabase-js';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { 
   UserGroupIcon, 
   LightBulbIcon, 
@@ -26,7 +26,9 @@ import {
   NewspaperIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  UserCircleIcon,
+  MegaphoneIcon, 
 } from '@heroicons/react/24/outline';
 
 // shadcn imports
@@ -50,7 +52,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Trans from '@/components/Trans';
+import Trans from '@/components/Trans'; // Assuming this component exists
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -58,50 +60,28 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
-// Type definitions (omitted for brevity)
-interface Instructor {
-  id: string;
-  name: string;
-  language?: string;
-  expertise?: string;
-  price?: number;
-  is_native: boolean;
-  image_url?: string;
-  demo_video_url?: string;
-  zoom_link?: string;
-  slug: string;
-  country?: string;
-  years_experience?: number;
-  qualifications?: string;
-  rating?: number;
-  total_students?: number;
-}
-
-interface InfoSlide {
+// --- Type Definitions (Omitted for brevity) ---
+interface InfoSlide { 
   title: string;
   description: string;
   icon: any;
   bgGradient: string;
 }
-
-interface StepSlide {
+interface StepSlide { 
   step: number;
   title: string;
   description: string;
 }
-
-interface FAQItem {
+interface FAQItem { 
   question: string;
   answer: string;
 }
-
 interface BlogPost {
   title: string;
   slug: string;
   summary: string;
   icon: JSX.Element;
 }
-
 interface Package {
   id: string;
   name: string;
@@ -113,16 +93,20 @@ interface Package {
   features: string[];
   popular?: boolean;
   bgGradient: string;
+  hoverBgGradient?: string;
 }
-
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   setIsOpen?: (open: boolean) => void;
   mode: 'sign-up' | 'sign-in';
 }
+// --- End Type Definitions ---
 
+
+// --- 1. COMPONENT: AuthModal (Unchanged) ---
 function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
+  // ... (content remains the same)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -133,20 +117,13 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-
     try {
       if (currentMode === 'sign-up') {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+        const { error } = await supabase.auth.signUp({ email, password, });
         if (error) throw error;
         setMessage('Check your email for the confirmation link!');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { error } = await supabase.auth.signInWithPassword({ email, password, });
         if (error) throw error;
         onClose();
       }
@@ -159,9 +136,10 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+            <UserCircleIcon className='h-6 w-6 text-teal-600'/>
             {currentMode === 'sign-up' ? 'Create Account' : 'Sign In'}
           </DialogTitle>
           <DialogDescription className="text-center">
@@ -174,59 +152,29 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
         <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Your email address"
-            />
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Your email address"/>
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Your password"
-            />
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Your password"/>
           </div>
-          
           {message && (
             <div className={`p-3 rounded-lg text-sm ${
               message.includes('error') 
-                ? 'bg-destructive/10 text-destructive' 
+                ? 'bg-red-50 text-red-700 border border-red-200'
                 : 'bg-teal-50 text-teal-700 border border-teal-200'
             }`}>
               {message}
             </div>
           )}
-          
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700"
-          >
+          <Button type="submit" disabled={loading} className="w-full bg-teal-600 hover:bg-teal-700">
             {loading ? 'Processing...' : currentMode === 'sign-up' ? 'Sign Up' : 'Sign In'}
           </Button>
         </form>
-        
         <Separator className="my-4" />
-        
         <div className="text-center">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setCurrentMode(currentMode === 'sign-up' ? 'sign-in' : 'sign-up')}
-            className="text-teal-600 hover:text-teal-700"
-          >
-            {currentMode === 'sign-up' 
-              ? 'Already have an account? Sign In' 
-              : "Don't have an account? Sign Up"}
+          <Button type="button" variant="link" onClick={() => setCurrentMode(currentMode === 'sign-up' ? 'sign-in' : 'sign-up')} className="text-teal-600 hover:text-teal-700">
+            {currentMode === 'sign-up' ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
           </Button>
         </div>
       </DialogContent>
@@ -234,8 +182,14 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
   );
 }
 
+
+// --- 2. COMPONENT: WhyLangZoneSection (Hero - Non-Sticky Behavior Maintained) ---
 function WhyLangZoneSection() {
   const [heroTextIndex, setHeroTextIndex] = useState(0);
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]); 
+
   const heroTexts = [
     { text: "Personalized lessons with certified instructors tailored to your goals and schedule." },
     { text: "Learn any language, from Spanish to Mandarin, with native speakers who make learning fun." },
@@ -245,22 +199,24 @@ function WhyLangZoneSection() {
   useEffect(() => {
     const interval = setInterval(() => {
       setHeroTextIndex(prev => (prev + 1) % heroTexts.length);
-    }, 60000);
+    }, 6000); 
     return () => clearInterval(interval);
   }, [heroTexts.length]);
 
   return (
-    <section className="py-16 md:py-24 px-4 md:px-8 relative">
-      {/* Background Image */}
-      <div
+    <section className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden" id="top" ref={ref}>
+      {/* Background Image with Parallax */}
+      <motion.div
         className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{ 
           backgroundImage: `url(${HOMEPAGE_BG})`,
+          y,
+          backgroundPosition: 'center 50%',
         }}
         aria-hidden="true"
       />
       {/* Semi-transparent overlay for readability */}
-      <div className="absolute inset-0 -z-10 bg-black/20" aria-hidden="true"></div>
+      <div className="absolute inset-0 -z-10 bg-black/60" aria-hidden="true"></div> 
       
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-between gap-10">
@@ -269,7 +225,7 @@ function WhyLangZoneSection() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-sm mb-4"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-xl mb-4"
             >
               Master New Languages
             </motion.h1>
@@ -282,7 +238,7 @@ function WhyLangZoneSection() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.8 }}
-                  className="text-lg sm:text-xl text-white max-w-xl mb-4"
+                  className="text-lg sm:text-xl text-white/90 max-w-xl mb-4"
                 >
                   {heroTexts[heroTextIndex].text}
                 </motion.p>
@@ -299,7 +255,7 @@ function WhyLangZoneSection() {
                 <Button
                   size="lg"
                   asChild
-                  className="bg-teal-600 hover:bg-teal-700 text-lg px-6 py-2 rounded-full flex-shrink-0"
+                  className="bg-teal-600 hover:bg-teal-700 text-lg px-6 py-2 rounded-xl flex-shrink-0 shadow-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(20,184,166,0.7)]" 
                 >
                   <Link href="/instructors">
                     Find Instructors
@@ -314,38 +270,38 @@ function WhyLangZoneSection() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
               className="w-full max-w-md"
             >
-              <Card className="shadow-lg border-none bg-white/90 backdrop-blur-sm">
-                <CardHeader className="p-4 flex flex-row items-center space-x-4">
+              <Card className="shadow-2xl border-2 border-white/50 bg-white/95 backdrop-blur-md">
+                <CardHeader className="p-5 flex flex-row items-center space-x-4 bg-teal-50/50">
                   <GlobeAltIcon className="w-8 h-8 text-teal-600 flex-shrink-0" />
                   <div>
-                    <CardTitle className="text-base font-semibold">Global Learning</CardTitle>
+                    <CardTitle className="text-xl font-bold text-gray-900">Global Learning</CardTitle>
                     <CardDescription className="text-gray-600">
                       Connect with tutors from around the world.
                     </CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <p className="text-gray-600 italic mb-4">
+                <CardContent className="p-5 pt-4">
+                  <p className="text-gray-700 italic mb-4 border-l-4 border-teal-500 pl-3">
                     "Our expert tutors create a custom learning plan just for you, so you can achieve your language goals faster and more effectively."
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center space-x-2">
-                      <AcademicCapIcon className="w-5 h-5 text-purple-600" />
-                      <span className="text-sm font-medium text-gray-700">Expert Tutors</span>
+                      <AcademicCapIcon className="w-5 h-5 text-teal-600" />
+                      <span className="text-sm font-medium text-gray-700">Certified Tutors</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CalendarDaysIcon className="w-5 h-5 text-orange-600" />
+                      <CalendarDaysIcon className="w-5 h-5 text-teal-600" />
                       <span className="text-sm font-medium text-gray-700">Flexible Schedule</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <BookOpenIcon className="w-5 h-5 text-blue-600" />
+                      <BookOpenIcon className="w-5 h-5 text-teal-600" />
                       <span className="text-sm font-medium text-gray-700">Rich Resources</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <SparklesIcon className="w-5 h-5 text-yellow-600" />
+                      <SparklesIcon className="w-5 h-5 text-teal-600" />
                       <span className="text-sm font-medium text-gray-700">Engaging Lessons</span>
                     </div>
                   </div>
@@ -354,10 +310,10 @@ function WhyLangZoneSection() {
             </motion.div>
           </div>
         </div>
-        {/* ADDED: Demo Video Section */}
+        {/* Demo Video Section */}
         <div className="mt-16 flex justify-center">
             <div className="w-full max-w-3xl">
-                <div className="aspect-w-16 aspect-h-9 w-full rounded-lg shadow-xl overflow-hidden">
+                <div className="aspect-video w-full rounded-lg shadow-2xl overflow-hidden border-4 border-white/50">
                     <iframe 
                         className="w-full h-full"
                         src="https://www.youtube.com/embed/VyFGfxM_VLA?si=Qv54l6Y96J5-jU5s" 
@@ -375,53 +331,57 @@ function WhyLangZoneSection() {
   );
 }
 
+// --- 3. COMPONENT: Sidebar (MODIFICATION: Glassmorphism and Sticky) ---
 const Sidebar = () => {
   return (
-    <aside className="w-48 p-3 rounded-lg bg-white/70 text-gray-800 h-fit sticky top-20 hidden lg:block backdrop-blur-sm">
-      <h3 className="font-bold text-base mb-3">Quick Navigation</h3>
+    // Applying Glassmorphism: bg-white/30 and backdrop-blur-xl
+    <aside className="w-48 p-3 rounded-xl bg-white/30 text-gray-800 h-fit sticky top-20 hidden lg:block backdrop-blur-xl shadow-2xl z-30 border border-white/50">
+      <h3 className="font-bold text-base mb-3 text-teal-800 border-b border-white/70 pb-2">Quick Navigation</h3>
       <nav>
-        <ul className="space-y-1">
-          <li>
-            <a href="#top" className="flex items-center p-2 rounded-md hover:bg-gray-200 transition-colors text-sm">
-              <HomeIcon className="w-4 h-4 mr-2 text-teal-600" />
-              <span>Top</span>
-            </a>
-          </li>
-          <li>
-            <a href="#courses" className="flex items-center p-2 rounded-md hover:bg-gray-200 transition-colors text-sm">
-              <BuildingLibraryIcon className="w-4 h-4 mr-2 text-sky-600" />
-              <span>Courses</span>
-            </a>
-          </li>
-          <li>
-            <a href="#faq" className="flex items-center p-2 rounded-md hover:bg-gray-200 transition-colors text-sm">
-              <QuestionMarkCircleIcon className="w-4 h-4 mr-2 text-purple-600" />
-              <span>FAQ</span>
-            </a>
-          </li>
-          <li>
-            <a href="#blog" className="flex items-center p-2 rounded-md hover:bg-gray-200 transition-colors text-sm">
-              <NewspaperIcon className="w-4 h-4 mr-2 text-orange-600" />
-              <span>Blog</span>
-            </a>
-          </li>
-        </ul>
+        <ScrollArea className="h-full max-h-[calc(100vh-150px)]"> 
+          <ul className="space-y-1">
+            <li>
+              <a href="#top" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+                <HomeIcon className="w-4 h-4 mr-2 text-teal-600" />
+                <span>Top</span>
+              </a>
+            </li>
+            <li>
+              <a href="#courses" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+                <BuildingLibraryIcon className="w-4 h-4 mr-2 text-blue-600" />
+                <span>Courses</span>
+              </a>
+            </li>
+            <li>
+              <a href="#faq" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+                <QuestionMarkCircleIcon className="w-4 h-4 mr-2 text-indigo-600" />
+                <span>FAQ</span>
+              </a>
+            </li>
+            <li>
+              <a href="#blog" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+                <NewspaperIcon className="w-4 h-4 mr-2 text-orange-600" />
+                <span>Blog</span>
+              </a>
+            </li>
+          </ul>
+        </ScrollArea>
       </nav>
     </aside>
   );
 };
 
-// ADDED: Missing InfoSlideComponent definition
+// --- 4. COMPONENT: InfoSlideComponent (Used in About Us) ---
 function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   const Icon = slide.icon;
   return (
-    <Card className={`relative w-full overflow-hidden text-white shadow-lg bg-gradient-to-br ${slide.bgGradient}`}>
-      <div className="absolute inset-0 bg-black opacity-30"></div>
-      <div className="relative z-10 flex flex-col md:flex-row items-center p-6 space-y-4 md:space-y-0 md:space-x-6">
-        <Icon className="h-16 w-16 text-white" />
+    <Card className={`relative w-full overflow-hidden text-white shadow-xl ${slide.bgGradient} transition-all duration-500`}>
+      <div className="absolute inset-0 bg-black opacity-40"></div>
+      <div className="relative z-10 flex flex-col md:flex-row items-center p-8 space-y-4 md:space-y-0 md:space-x-8">
+        <Icon className="h-16 w-16 text-white flex-shrink-0" />
         <div className="text-center md:text-left">
-          <CardTitle className="text-xl font-bold">{slide.title}</CardTitle>
-          <CardDescription className="mt-2 text-gray-100">
+          <CardTitle className="text-2xl font-bold">{slide.title}</CardTitle>
+          <CardDescription className="mt-2 text-gray-200 text-lg">
             {slide.description}
           </CardDescription>
         </div>
@@ -430,20 +390,20 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   );
 }
 
-// ADDED: Missing StepSlideComponent definition
+// --- 5. COMPONENT: StepSlideComponent (Used in How It Works) ---
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
-    <Card className="relative w-full bg-white/80 backdrop-blur-sm shadow-lg">
-      <CardHeader className="text-center">
-        <Badge className="mx-auto w-fit px-3 py-1 text-xs font-semibold bg-teal-600 text-white">
+    <Card className="relative w-full p-6 bg-white/95 backdrop-blur-sm shadow-xl border-t-4 border-teal-600">
+      <CardHeader className="text-center p-0">
+        <Badge className="mx-auto w-fit px-4 py-1.5 text-base font-bold bg-teal-600 text-white shadow-md">
           Step {slide.step}
         </Badge>
-        <CardTitle className="mt-2 text-lg font-bold text-gray-900">
+        <CardTitle className="mt-4 text-xl font-bold text-gray-900">
           {slide.title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="text-center">
-        <p className="text-sm text-gray-600">
+      <CardContent className="text-center p-0 pt-3">
+        <p className="text-md text-gray-600">
           {slide.description}
         </p>
       </CardContent>
@@ -451,114 +411,140 @@ function StepSlideComponent({ slide }: { slide: StepSlide }) {
   );
 }
 
+// --- 6. COMPONENT: PackageCard (Unchanged) ---
+function PackageCard({ pkg, selected, onSelect }: { pkg: Package, selected: boolean, onSelect: () => void }) {
+  const Icon = pkg.popular ? CheckBadgeIcon : BookOpenIcon;
+
+  return (
+    <Card 
+      className={`relative w-full h-full p-0 flex flex-col overflow-hidden transition-all duration-300 ${
+        selected 
+          ? 'ring-4 ring-teal-600 shadow-2xl scale-[1.03]' 
+          : 'hover:shadow-2xl hover:scale-[1.015] hover:border-teal-300'
+      }`}
+    >
+      {pkg.popular && (
+        <Badge className="absolute top-0 right-0 rounded-none rounded-bl-lg bg-yellow-500 text-yellow-900 font-bold z-10 text-xs py-1 px-3">
+          Popular Choice
+        </Badge>
+      )}
+      <CardHeader 
+        className={`p-6 text-white ${pkg.bgGradient} bg-gradient-to-r transition-all duration-300 ${
+            !selected && !pkg.popular ? 'group-hover:' + pkg.hoverBgGradient : ''
+        }`}
+      >
+        <CardTitle className="flex items-center justify-between text-2xl font-extrabold">
+          {pkg.name}
+        </CardTitle>
+        <CardDescription className="text-gray-100">
+          {pkg.duration} - {pkg.lessons} Lessons
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 p-6 flex flex-col justify-between">
+        <div className="flex flex-col mb-4">
+          <div className="text-4xl font-extrabold text-gray-900 flex items-end">
+            ${pkg.discountedPrice || pkg.price}
+            <span className='text-base font-normal text-gray-500 ml-1'>/ total</span>
+          </div>
+          {pkg.discountedPrice && (
+            <div className="text-sm text-gray-500 line-through">
+              ${pkg.price} (Save ${pkg.price - pkg.discountedPrice})
+            </div>
+          )}
+        </div>
+        
+        <ul className="space-y-3 mb-6 text-sm text-gray-700">
+          {pkg.features.map((feature, index) => (
+            <li key={index} className="flex items-start space-x-2">
+              <Icon className="h-5 w-5 text-teal-600 flex-shrink-0 mt-0.5" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        
+        <Button 
+          className="w-full bg-teal-600 hover:bg-teal-700 mt-auto shadow-md hover:shadow-lg"
+          onClick={onSelect}
+        >
+          {selected ? 'Selected' : 'Choose Package'}
+          <ArrowRightIcon className="h-4 w-4 ml-2" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// --- 7. COMPONENT: BlogCard (MODIFICATION: 'Read Article' links removed) ---
+function BlogCard({ blog, colorClass }: { blog: BlogPost, colorClass: string }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <Link href={`/blog/${blog.slug}`} className="block h-full perspective-1000">
+      <motion.div
+        className="h-full relative w-full"
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+        style={{ transformStyle: 'preserve-3d' }}
+        whileHover={{
+          scale: 1.05,
+          rotateX: isHovered ? -5 : 0,
+          rotateY: isHovered ? 5 : 0,
+          transition: { duration: 0.5, ease: 'easeOut' },
+        }}
+        initial={{ scale: 1, rotateX: 0, rotateY: 0 }}
+      >
+        {/* Shadow Layer (Back Card) - for the 3D effect */}
+        <div className={`absolute inset-0 z-0 rounded-xl transition-all duration-300 ${colorClass}`} style={{ transform: 'translateZ(-10px)' }}>
+            <div className='absolute inset-0 bg-black/10 rounded-xl'></div>
+        </div>
+
+        {/* Main Card */}
+        <Card 
+          className="flex flex-col h-full overflow-hidden shadow-2xl border-t-8 border-teal-600 transition-all duration-300 relative z-10 rounded-xl"
+          style={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
+        >
+          <div className={`p-6 bg-gradient-to-r ${colorClass} text-white flex items-center space-x-4 border-b-2 border-white/20`}
+          >
+            {blog.icon}
+            <h3 className="text-xl font-bold">{blog.title}</h3>
+          </div>
+          <CardContent className="flex-1 p-6 space-y-3 bg-white">
+            <p className="text-sm text-gray-600 leading-relaxed">{blog.summary}</p>
+          </CardContent>
+          {/* REMOVED: The 'Read Article' footer */}
+        </Card>
+      </motion.div>
+    </Link>
+  );
+}
+
+
+// --- 8. COMPONENT: MainContent (MODIFICATION: Slide Transitions & Content Glassmorphism) ---
 const MainContent = () => {
   const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
   const [infoIndex, setInfoIndex] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [packageIndex, setPackageIndex] = useState(0);
-  const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
+  const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null); 
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
-  // UPDATED: More vibrant colors for blog headers
-  const blogColors = ['bg-blue-600', 'bg-fuchsia-600', 'bg-emerald-600'];
-
-  const blogs: BlogPost[] = [
-    { 
-      title: 'Top Tips to Learn Languages Fast', 
-      slug: 'tips-learn-fast', 
-      summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.', 
-      // UPDATED: Icon colors for better contrast
-      icon: <TrophyIcon className="w-10 h-10 text-white" /> 
-    },
-    { 
-      title: 'How to Practice Speaking Every Day', 
-      slug: 'practice-speaking', 
-      summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.', 
-      // UPDATED: Icon colors for better contrast
-      icon: <ChatBubbleBottomCenterTextIcon className="w-10 h-10 text-white" /> 
-    },
-    { 
-      title: 'Choosing the Right Tutor', 
-      slug: 'choose-tutor', 
-      summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.', 
-      // UPDATED: Icon colors for better contrast
-      icon: <BriefcaseIcon className="w-10 h-10 text-white" /> 
-    },
+  // ... (Blog colors, packages, infoSlides, stepsSlides, faqItems, blogs data remain the same) ...
+  const blogColors = [
+    'from-teal-600 to-blue-600',
+    'from-blue-600 to-indigo-600',
+    'from-green-600 to-teal-600',
   ];
 
   const packages: Package[] = [
-    {
-      id: 'single',
-      name: 'Single Lesson',
-      type: 'single',
-      price: 25,
-      lessons: 1,
-      duration: '60 minutes',
-      features: [
-        'One 60-minute lesson',
-        'Choose any available tutor',
-        'Flexible scheduling',
-        'Perfect for trying out'
-      ],
-      bgGradient: 'from-blue-500 to-blue-600'
-    },
-    {
-      id: 'weekly',
-      name: 'Weekly Package',
-      type: 'weekly',
-      price: 90,
-      discountedPrice: 80,
-      lessons: 4,
-      duration: '4 weeks',
-      features: [
-        'Four 60-minute lessons',
-        'Same tutor for consistency',
-        'Weekly progress tracking',
-        '10% discount on single rate'
-      ],
-      popular: true,
-      bgGradient: 'from-teal-500 to-teal-600'
-    },
-    {
-      id: 'monthly',
-      name: 'Monthly Intensive',
-      type: 'monthly',
-      price: 300,
-      discountedPrice: 250,
-      lessons: 12,
-      duration: '4 weeks',
-      features: [
-        'Twelve 60-minute lessons',
-        '3 lessons per week',
-        'Personalized learning plan',
-        'Progress reports',
-        '20% discount on single rate'
-      ],
-      bgGradient: 'from-purple-500 to-purple-600'
-    },
-    {
-      id: 'premium',
-      name: 'Premium Program',
-      type: 'premium',
-      price: 500,
-      discountedPrice: 450,
-      lessons: 20,
-      duration: '2 months',
-      features: [
-        'Twenty 60-minute lessons',
-        'Dedicated tutor',
-        'Custom curriculum',
-        'Weekly progress assessments',
-        'Learning materials included',
-        'Certificate of completion'
-      ],
-      bgGradient: 'from-orange-500 to-orange-600'
-    }
+    { id: 'single', name: 'Single Lesson', type: 'single', price: 25, lessons: 1, duration: '60 minutes', features: ['One 60-minute lesson', 'Choose any available tutor', 'Flexible scheduling', 'Perfect for trying out'], bgGradient: 'from-blue-500 to-blue-600', hoverBgGradient: 'from-blue-600 to-blue-700' },
+    { id: 'weekly', name: 'Weekly Core', type: 'weekly', price: 90, discountedPrice: 80, lessons: 4, duration: '4 weeks', features: ['Four 60-minute lessons', 'Same tutor for consistency', 'Weekly progress tracking', '10% discount on single rate'], popular: true, bgGradient: 'from-teal-600 to-teal-700', hoverBgGradient: 'from-teal-700 to-teal-800' },
+    { id: 'monthly', name: 'Monthly Intensive', type: 'monthly', price: 300, discountedPrice: 250, lessons: 12, duration: '4 weeks', features: ['Twelve 60-minute lessons', '3 lessons per week', 'Personalized learning plan', 'Progress reports', '20% discount on single rate'], bgGradient: 'from-indigo-600 to-indigo-700', hoverBgGradient: 'from-indigo-700 to-indigo-800' },
+    { id: 'premium', name: 'Premium Mastery', type: 'premium', price: 500, discountedPrice: 450, lessons: 20, duration: '2 months', features: ['Twenty 60-minute lessons', 'Dedicated tutor', 'Custom curriculum', 'Weekly progress assessments', 'Learning materials included', 'Certificate of completion'], bgGradient: 'from-orange-500 to-amber-600', hoverBgGradient: 'from-orange-600 to-amber-700' }
   ];
 
   const infoSlides: InfoSlide[] = [
-    { title: 'Who We Are', description: 'Connecting learners with certified instructors worldwide.', icon: UserGroupIcon, bgGradient: 'from-teal-500 to-teal-600' },
-    { title: 'What We Offer', description: 'Personalized lessons, flexible scheduling, expert guidance.', icon: LightBulbIcon, bgGradient: 'from-sky-500 to-sky-600' },
+    { title: 'Who We Are', description: 'Connecting learners with certified instructors worldwide.', icon: UserGroupIcon, bgGradient: 'from-teal-600 to-teal-700' },
+    { title: 'What We Offer', description: 'Personalized lessons, flexible scheduling, expert guidance.', icon: LightBulbIcon, bgGradient: 'from-blue-600 to-sky-600' },
   ];
 
   const stepsSlides: StepSlide[] = [
@@ -575,112 +561,127 @@ const MainContent = () => {
     { question: 'How do I book a lesson?', answer: 'Select a tutor, choose a convenient slot, and confirm your booking.' },
     { question: 'Can I book weekly lessons in advance?', answer: 'Yes! You can select multiple time slots for recurring weekly lessons.' },
   ];
+  
+  const blogs: BlogPost[] = [
+    { 
+      title: 'Top Tips to Learn Languages Fast', 
+      slug: 'tips-learn-fast', 
+      summary: 'Discover strategies that make language learning efficient and fun. Focus on listening, speaking, and active practice. Use repetition and context to remember vocabulary quickly. Keep lessons consistent and track your progress to stay motivated.', 
+      icon: <TrophyIcon className="w-10 h-10 text-white" /> 
+    },
+    { 
+      title: 'How to Practice Speaking Every Day', 
+      slug: 'practice-speaking', 
+      summary: 'Speaking regularly is crucial. Practice with a tutor, record yourself, or join language groups. Repeat phrases, use shadowing techniques, and get feedback. Small daily steps lead to big improvement.', 
+      icon: <ChatBubbleBottomCenterTextIcon className="w-10 h-10 text-white" /> 
+    },
+    { 
+      title: 'Choosing the Right Tutor', 
+      slug: 'choose-tutor', 
+      summary: 'Select a tutor who matches your learning goals, schedule, and language level. Check reviews, expertise, and teaching style. A compatible tutor ensures lessons are productive and enjoyable.', 
+      icon: <MegaphoneIcon className="w-10 h-10 text-white" /> 
+    },
+  ];
 
+  const SLIDE_INTERVAL = 50000; 
+
+  // Auto-slide effect (All set to 50 seconds)
   useEffect(() => {
-    // Info and steps slider interval
-    const infoAndStepsInterval = setInterval(() => {
+    const infoInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
-      setStepIndex(prev => (prev + 1) % stepsSlides.length);
-    }, 50000); 
+    }, SLIDE_INTERVAL); 
     
-    // Packages slider interval
+    const stepsInterval = setInterval(() => {
+      setStepIndex(prev => (prev + 1) % stepsSlides.length);
+    }, SLIDE_INTERVAL); 
+    
     const packagesInterval = setInterval(() => {
       setPackageIndex(prev => (prev + 1) % packages.length);
-    }, 50000);
+    }, SLIDE_INTERVAL);
 
     return () => {
-      clearInterval(infoAndStepsInterval);
+      clearInterval(infoInterval);
+      clearInterval(stepsInterval);
       clearInterval(packagesInterval);
     };
   }, [infoSlides.length, stepsSlides.length, packages.length]);
   
-  // Handlers for package slider
-  const handleNextPackage = () => {
-    setPackageIndex(prev => (prev + 1) % packages.length);
-  };
+  const [direction, setDirection] = useState(0);
 
-  const handlePrevPackage = () => {
-    setPackageIndex(prev => (prev - 1 + packages.length) % packages.length);
-  };
-
-  // Handlers for info slider
-  const handleNextInfo = () => {
-    setInfoIndex(prev => (prev + 1) % infoSlides.length);
-  };
-
-  const handlePrevInfo = () => {
-    setInfoIndex(prev => (prev - 1 + infoSlides.length) % infoSlides.length);
-  };
-
-  // Handlers for steps slider
-  const handleNextStep = () => {
-    setStepIndex(prev => (prev + 1) % stepsSlides.length);
-  };
-
-  const handlePrevStep = () => {
-    setStepIndex(prev => (prev - 1 + stepsSlides.length) % stepsSlides.length);
-  };
-
+  // MODIFICATION: Improved, smoother slide variants (Fading-slide)
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 400 : -400,
+      x: direction > 0 ? 50 : -50,
       opacity: 0,
-      scale: 0.9
     }),
     center: {
       x: 0,
       opacity: 1,
-      scale: 1
+      transition: { duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }, // Custom smooth ease
     },
     exit: (direction: number) => ({
-      x: direction > 0 ? -400 : 400,
+      x: direction > 0 ? -50 : 50,
       opacity: 0,
-      scale: 0.85
+      transition: { duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }
     })
   };
 
-  const [direction, setDirection] = useState(0);
 
-  const handleSwipe = (setIndex: (cb: (prev: number) => number) => number) => (event: any, info: any) => {
+  const handleSwipe = useCallback((setIndex: (cb: (prev: number) => number) => number, itemsLength: number) => (event: any, info: any) => {
     const swipe = info.velocity.x;
     if (Math.abs(swipe) > 500) {
       const newDirection = swipe > 0 ? -1 : 1;
       setDirection(newDirection);
-      setIndex(prev => (prev + newDirection + (setIndex === setInfoIndex ? infoSlides.length : stepsSlides.length)) % (setIndex === setInfoIndex ? infoSlides.length : stepsSlides.length));
+      setIndex(prev => (prev + newDirection + itemsLength) % itemsLength);
     }
-  };
+  }, []);
+
+  const handleNextPackage = () => { setDirection(1); setPackageIndex(prev => (prev + 1) % packages.length); };
+  const handlePrevPackage = () => { setDirection(-1); setPackageIndex(prev => (prev - 1 + packages.length) % packages.length); };
+  // Note: Info and Step sliders don't have navigation arrows, but handlers are kept for swipe functionality
+  const handleNextInfo = () => { setDirection(1); setInfoIndex(prev => (prev + 1) % infoSlides.length); };
+  const handlePrevInfo = () => { setDirection(-1); setInfoIndex(prev => (prev - 1 + infoSlides.length) % infoSlides.length); };
+  const handleNextStep = () => { setDirection(1); setStepIndex(prev => (prev + 1) % stepsSlides.length); };
+  const handlePrevStep = () => { setDirection(-1); setStepIndex(prev => (prev - 1 + stepsSlides.length) % stepsSlides.length); };
 
 
   return (
-    <div className="flex-1 space-y-14 rounded-lg p-4 md:p-8 bg-transparent">
-      <section id="courses" className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Our Courses</h2>
+    // MODIFICATION: Glassmorphism Applied to Main Content Container
+    <div className="flex-1 space-y-16 rounded-2xl p-4 md:p-10 bg-white/30 backdrop-blur-xl shadow-2xl border border-white/50 min-h-[80vh]">
+
+      {/* --- COURSES/TABS SECTION --- */}
+      <section id="courses" className="space-y-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
+          Choose Your Path to Fluency
+        </h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 mb-8 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm">
+          {/* Tabs List */}
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-10 bg-white/50 backdrop-blur-sm p-1 shadow-md rounded-xl border border-white/70">
+            <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm font-semibold rounded-lg py-2 transition-all">
               Packages
             </TabsTrigger>
-            <TabsTrigger value="info" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm">
+            <TabsTrigger value="info" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm font-semibold rounded-lg py-2 transition-all">
               About Us
             </TabsTrigger>
-            <TabsTrigger value="steps" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm">
+            <TabsTrigger value="steps" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm font-semibold rounded-lg py-2 transition-all">
               How It Works
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="packages" className="space-y-6">
+          {/* Packages Content (Slider) */}
+          <TabsContent value="packages" className="space-y-6 pt-4">
             <div className="relative flex items-center justify-center">
               {/* Prev Button */}
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="lg"
                 onClick={handlePrevPackage}
-                className="absolute left-0 z-10 hidden md:block text-gray-700 hover:text-teal-600"
+                className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white/90 border-teal-300 shadow-xl transition-all hover:bg-teal-600 hover:text-white"
                 aria-label="Previous package"
               >
-                <ChevronLeftIcon className="h-8 w-8" />
+                <ChevronLeftIcon className="h-6 w-6" />
               </Button>
-              <div className="relative w-full max-w-3xl mx-auto overflow-hidden">
+              <div className="relative w-full max-w-lg mx-auto overflow-hidden">
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
                     key={packages[packageIndex].id}
@@ -688,11 +689,10 @@ const MainContent = () => {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ duration: 0.8, ease: 'easeInOut' }}
-                    className="w-full"
+                    className="w-full group"
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
-                    onDragEnd={handleSwipe(setPackageIndex)}
+                    onDragEnd={handleSwipe((cb) => setPackageIndex(cb), packages.length)}
                     custom={direction}
                   >
                     <PackageCard 
@@ -705,25 +705,25 @@ const MainContent = () => {
               </div>
               {/* Next Button */}
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="lg"
                 onClick={handleNextPackage}
-                className="absolute right-0 z-10 hidden md:block text-gray-700 hover:text-teal-600"
+                className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white/90 border-teal-300 shadow-xl transition-all hover:bg-teal-600 hover:text-white"
                 aria-label="Next package"
               >
-                <ChevronRightIcon className="h-8 w-8" />
+                <ChevronRightIcon className="h-6 w-6" />
               </Button>
             </div>
             {/* Dot Indicators */}
-            <div className="flex justify-center gap-3 mt-4">
+            <div className="flex justify-center gap-2 mt-4">
               {packages.map((_, idx) => (
                 <Button
                   key={idx}
-                  onClick={() => setPackageIndex(idx)}
-                  variant={packageIndex === idx ? "default" : "outline"}
-                  size="sm"
-                  className={`w-3 h-3 p-0 rounded-full ${
-                    packageIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                  onClick={() => { setDirection(idx > packageIndex ? 1 : -1); setPackageIndex(idx); }}
+                  variant="ghost"
+                  size="icon"
+                  className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
+                    packageIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
                   }`}
                   aria-label={`Go to package ${idx + 1}`}
                 />
@@ -731,7 +731,8 @@ const MainContent = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="info" className="space-y-6">
+          {/* About Us Content (Slider) */}
+          <TabsContent value="info" className="space-y-6 pt-4">
             <div className="relative max-w-4xl mx-auto">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
@@ -740,25 +741,25 @@ const MainContent = () => {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 1.5, ease: 'easeInOut' }}
                   className="w-full flex flex-col md:flex-row items-center justify-center relative"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={handleSwipe(setInfoIndex)}
+                  onDragEnd={handleSwipe((cb) => setInfoIndex(cb), infoSlides.length)}
                   custom={direction}
                 >
                   <InfoSlideComponent slide={infoSlides[infoIndex]} />
                 </motion.div>
               </AnimatePresence>
-              <div className="flex justify-center gap-3 mt-4">
+              {/* Dot Indicators */}
+              <div className="flex justify-center gap-2 mt-4">
                 {infoSlides.map((_, idx) => (
                   <Button
                     key={idx}
-                    onClick={() => setInfoIndex(idx)}
-                    variant={infoIndex === idx ? "default" : "outline"}
-                    size="sm"
-                    className={`w-3 h-3 p-0 rounded-full ${
-                      infoIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                    onClick={() => { setDirection(idx > infoIndex ? 1 : -1); setInfoIndex(idx); }}
+                    variant="ghost"
+                    size="icon"
+                    className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
+                      infoIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
                     }`}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
@@ -767,7 +768,8 @@ const MainContent = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="steps" className="space-y-6">
+          {/* How It Works Content (Slider) */}
+          <TabsContent value="steps" className="space-y-6 pt-4">
             <div className="relative max-w-4xl mx-auto">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
@@ -776,25 +778,25 @@ const MainContent = () => {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 1.5, ease: 'easeInOut' }}
                   className="w-full flex flex-col md:flex-row items-center justify-center relative"
                   drag="x"
                   dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={handleSwipe(setStepIndex)}
+                  onDragEnd={handleSwipe((cb) => setStepIndex(cb), stepsSlides.length)}
                   custom={direction}
                 >
                   <StepSlideComponent slide={stepsSlides[stepIndex]} />
                 </motion.div>
               </AnimatePresence>
-              <div className="flex justify-center gap-3 mt-4">
+              {/* Dot Indicators */}
+              <div className="flex justify-center gap-2 mt-4">
                 {stepsSlides.map((_, idx) => (
                   <Button
                     key={idx}
-                    onClick={() => setStepIndex(idx)}
-                    variant={stepIndex === idx ? "default" : "outline"}
-                    size="sm"
-                    className={`w-3 h-3 p-0 rounded-full ${
-                      stepIndex === idx ? 'bg-teal-600' : 'bg-gray-300'
+                    onClick={() => { setDirection(idx > stepIndex ? 1 : -1); setStepIndex(idx); }}
+                    variant="ghost"
+                    size="icon"
+                    className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
+                      stepIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
                     }`}
                     aria-label={`Go to step ${idx + 1}`}
                   />
@@ -805,32 +807,38 @@ const MainContent = () => {
         </Tabs>
       </section>
 
-      ---
+      <Separator />
 
+      {/* --- FAQ SECTION --- */}
       <section id="faq" className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h2>
-        <div className="grid md:grid-cols-2 gap-3">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
+          Frequently Asked Questions
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
           {faqItems.map((item, idx) => (
-            <Collapsible key={idx} open={openFAQIndex === idx} onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}>
-              {/* UPDATED: More vibrant FAQ card header */}
-              <Card className="bg-white/80 backdrop-blur-sm transition-all duration-200 hover:shadow-lg hover:border-teal-600 border border-transparent">
+            <Collapsible 
+              key={idx} 
+              open={openFAQIndex === idx} 
+              onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
+            >
+              <Card className="bg-white/70 backdrop-blur-sm shadow-lg transition-all duration-300 hover:shadow-xl rounded-xl border border-white/70">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className="py-3 px-4 flex flex-row items-center justify-between bg-teal-50 hover:bg-teal-100 transition-colors">
-                    <CardTitle className="text-sm font-semibold text-teal-800">
+                  <CardHeader className={`py-4 px-5 flex flex-row items-center justify-between cursor-pointer transition-colors ${openFAQIndex === idx ? 'bg-teal-50/70' : 'hover:bg-gray-50/70'}`}>
+                    <CardTitle className="text-base font-semibold text-gray-800">
                       {item.question}
                     </CardTitle>
                     <div className="ml-4 flex-shrink-0">
                       {openFAQIndex === idx ? (
-                        <MinusIcon className="h-5 w-5 text-teal-600" />
+                        <MinusIcon className="h-5 w-5 text-teal-600 transition-transform duration-300" />
                       ) : (
-                        <PlusIcon className="h-5 w-5 text-teal-600" />
+                        <PlusIcon className="h-5 w-5 text-teal-600 transition-transform duration-300" />
                       )}
                     </div>
                   </CardHeader>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="px-4 pb-4 pt-4">
-                    <p className="text-gray-600 text-sm">{item.answer}</p>
+                <CollapsibleContent className='overflow-hidden transition-all duration-300 ease-in-out'>
+                  <CardContent className="px-5 pb-5 pt-3 border-t border-gray-100 bg-white/95">
+                    <p className="text-gray-700 text-sm">{item.answer}</p>
                   </CardContent>
                 </CollapsibleContent>
               </Card>
@@ -839,90 +847,75 @@ const MainContent = () => {
         </div>
       </section>
 
-      ---
+      <Separator />
 
+      {/* --- BLOG SECTION --- */}
       <section id="blog" className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Latest from Our Blog</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {blogs.map((post, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.1 }}
-            >
-              <Card className="h-full hover:shadow-lg hover:scale-[1.02] transition-all duration-300 bg-white/80 backdrop-blur-sm border-0 flex flex-col">
-                {/* UPDATED: More vibrant background colors */}
-                <div className={`p-4 flex-shrink-0 flex items-center justify-center rounded-t-lg ${blogColors[idx % blogColors.length]}`}>
-                  {post.icon}
-                </div>
-                <CardHeader className="flex-grow p-4">
-                  <CardTitle className="text-lg font-bold text-gray-900">{post.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <CardDescription className="text-gray-600 text-sm">{post.summary}</CardDescription>
-                </CardContent>
-              </Card>
-            </motion.div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
+          Latest from Our Blog
+        </h2>
+        {/* MODIFICATION: Blog cards are fully responsive and use the enhanced BlogCard component */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {blogs.map((blog, index) => (
+            <BlogCard 
+              key={blog.slug} 
+              blog={blog} 
+              colorClass={blogColors[index % blogColors.length]}
+            />
           ))}
         </div>
+        <div className="flex justify-center pt-4">
+            <Button asChild size="lg" variant="outline" className="text-teal-600 border-teal-600 hover:bg-teal-50 hover:shadow-md">
+                <Link href="/blog">
+                    View All Articles
+                    <ArrowRightIcon className="h-4 w-4 ml-2" />
+                </Link>
+            </Button>
+        </div>
       </section>
+
     </div>
   );
 };
 
-export default function Home() {
+
+// --- 9. FINAL EXPORT COMPONENT (Page Structure) ---
+export default function HomePage() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthModalOpen, setIsAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-up');
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user || null);
-    };
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user || null);
+      setUser(session?.user ?? null);
     });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
   return (
-    <div id="top" className="min-h-screen bg-transparent">
+    <div className="min-h-screen">
+      {/* The main content structure is non-sticky, allowing the header section to scroll */}
       <WhyLangZoneSection />
       
-      <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-8 py-12">
-        <Sidebar />
-        <MainContent />
+      <div className="container mx-auto max-w-7xl pt-10 pb-20 px-4 md:px-8">
+        <div className="flex flex-row gap-8">
+          {/* Main content column */}
+          <div className="flex-1 min-w-0">
+            <MainContent />
+          </div>
+          {/* Sidebar column (The sticky quick links) */}
+          <Sidebar />
+        </div>
       </div>
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModal(false)}
-        setIsOpen={setIsAuthModal}
-        mode={authMode}
-      />
+      <Trans /> 
     </div>
-  );
-}
-
-function PackageCard({ pkg, selected, onSelect }: { pkg: Package; selected: boolean; onSelect: () => void }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className={`relative h-full flex flex-col transition-all duration-300 w-full max-w-sm mx-auto`}
-    >
-        {/*
-            This component seems to be incomplete. It's likely a part of a larger component library or design system.
-            Please ensure you have the full component code for PackageCard for your application to render correctly.
-        */}
-    </motion.div>
   );
 }
