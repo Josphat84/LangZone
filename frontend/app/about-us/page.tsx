@@ -1,166 +1,259 @@
 // frontend/app/about-us/page.tsx
-import Image from 'next/image';
-import Link from 'next/link';
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Framer motion fade-in animation
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 1) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.5 },
+  }),
+};
 
 export default function AboutUsPage() {
-  // Common Tailwind CSS classes for consistency
-  const sectionTitleClasses = "text-4xl font-extrabold text-gray-900 mb-6 text-center";
-  const sectionParagraphClasses = "text-lg text-gray-700 mb-8 text-center max-w-3xl mx-auto";
-  const cardClasses = "bg-white p-8 rounded-xl shadow-lg border border-gray-100 h-full flex flex-col";
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans text-gray-800">
-     
 
-      <main className="container mx-auto px-6 py-12">
-        {/* Hero Section for About Us */}
-        <section className="text-center mb-16">
-          <h1 className="text-5xl font-extrabold text-teal-700 mb-4 animate-fadeInDown">
-            About LangZone
-          </h1>
-          <p className="text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed animate-fadeInUp">
-            At LangZone, we believe that learning a new language should be an empowering, accessible, and enjoyable journey for everyone. We connect passionate language learners with expert instructors from around the globe, fostering a vibrant community dedicated to linguistic and cultural exchange.
-          </p>
-        </section>
+      {/* Hero Section with Gradient Shimmer */}
+      <main className="container mx-auto px-6 py-12 space-y-16">
+        <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
+          <Card className="bg-white shadow-lg rounded-xl p-10 text-center">
+            <CardContent className="space-y-6">
+              {/* Shimmering Gradient Heading */}
+              <h1 className="text-5xl font-extrabold bg-gradient-to-r from-teal-400 via-cyan-500 to-purple-500 bg-clip-text text-transparent animate-gradient-shimmer">
+                About LangZone
+              </h1>
+              <p className="text-xl text-gray-700 max-w-4xl mx-auto leading-relaxed">
+                At LangZone, we believe that learning a new language should be an
+                empowering, accessible, and enjoyable journey for everyone. We
+                connect passionate language learners with expert instructors from
+                around the globe, fostering a vibrant community dedicated to
+                linguistic and cultural exchange.
+              </p>
+              <Button variant="default" size="lg">
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Our Mission Section */}
-        <section className="bg-white p-10 rounded-xl shadow-lg border border-gray-100 mb-16 animate-fadeIn">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Our Mission</h2>
+        {/* Mission Section */}
+        <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
+          <Card className="bg-white shadow-lg rounded-xl p-10 text-center">
+            <CardHeader>
+              <CardTitle className="text-4xl font-bold text-gray-900">
+                Our Mission
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+                Our mission is to break down language barriers and build bridges
+                between cultures by providing personalized, high-quality language
+                education. We strive to make authentic language learning accessible
+                to anyone, anywhere, empowering them to communicate confidently and
+                explore the world with new eyes.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Values Section */}
+        <section className="space-y-6">
+          <h2 className="text-4xl font-extrabold text-gray-900 text-center">
+            Our Core Values
+          </h2>
           <p className="text-lg text-gray-700 text-center max-w-3xl mx-auto">
-            Our mission is to break down language barriers and build bridges between cultures by providing personalized, high-quality language education. We strive to make authentic language learning accessible to anyone, anywhere, empowering them to communicate confidently and explore the world with new eyes.
+            These principles guide everything we do, from designing our platform to
+            supporting our community.
           </p>
+          <ScrollArea className="max-h-[650px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Accessibility",
+                  description:
+                    "Everyone, regardless of location or background, should have the opportunity to learn. We keep our platform affordable and user-friendly.",
+                  icon: "🌐",
+                  gradient: "from-teal-400 to-cyan-500",
+                },
+                {
+                  title: "Community",
+                  description:
+                    "We foster a supportive and engaging global community of learners and instructors.",
+                  icon: "👥",
+                  gradient: "from-purple-500 to-pink-500",
+                },
+                {
+                  title: "Effectiveness",
+                  description:
+                    "We provide effective learning tools and experienced instructors who deliver tangible progress.",
+                  icon: "🎯",
+                  gradient: "from-orange-400 to-rose-500",
+                },
+                {
+                  title: "Innovation",
+                  description:
+                    "We integrate the latest educational technologies to enhance the learning experience.",
+                  icon: "💡",
+                  gradient: "from-lime-400 to-emerald-500",
+                },
+                {
+                  title: "Passion",
+                  description:
+                    "We are passionate about languages, cultures, and empowering individuals to connect with the world.",
+                  icon: "❤️",
+                  gradient: "from-pink-400 to-red-500",
+                },
+              ].map((value, i) => (
+                <motion.div
+                  key={value.title}
+                  custom={i}
+                  initial="hidden"
+                  animate="visible"
+                  variants={fadeInUp}
+                  whileHover={{ scale: 1.05, boxShadow: "0 15px 30px rgba(0,0,0,0.15)" }}
+                  className="cursor-pointer"
+                >
+                  <Card className="p-8 rounded-xl flex flex-col h-full border border-gray-100">
+                    <div
+                      className={`text-5xl mb-4 w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-r ${value.gradient} text-white shadow-lg transition-transform duration-300 hover:scale-110`}
+                    >
+                      {value.icon}
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center">
+                      {value.title}
+                    </h3>
+                    <p className="text-gray-700 text-center flex-grow">
+                      {value.description}
+                    </p>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </ScrollArea>
         </section>
 
-        {/* Our Values Section */}
-        <section className="mb-16">
-          <h2 className={sectionTitleClasses}>Our Core Values</h2>
-          <p className="text-lg text-gray-700 mb-10 text-center max-w-3xl mx-auto">
-            These principles guide everything we do, from designing our platform to supporting our community.
+        {/* Team Section */}
+        <section className="space-y-6">
+          <h2 className="text-4xl font-extrabold text-gray-900 text-center">
+            Meet Our Team
+          </h2>
+          <p className="text-lg text-gray-700 text-center max-w-3xl mx-auto">
+            We're a dedicated group of language enthusiasts, educators, and
+            technologists committed to transforming how the world learns languages.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className={cardClasses + " animate-fadeInUp delay-100"}>
-              <div className="text-teal-600 mb-4">
-                <svg className="w-12 h-12 mx-auto md:mx-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM14.71 14.71l-2.71-2.71c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l2 2c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41zM13 7h-2v5c0 .55.45 1 1 1s1-.45 1-1V7z"></path></svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center md:text-left">Accessibility</h3>
-              <p className="text-gray-700 text-center md:text-left flex-grow">
-                We believe everyone, regardless of their location or background, should have the opportunity to learn a new language. We strive to keep our platform affordable and user-friendly.
-              </p>
-            </div>
-
-            <div className={cardClasses + " animate-fadeInUp delay-200"}>
-              <div className="text-teal-600 mb-4">
-                <svg className="w-12 h-12 mx-auto md:mx-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"></path></svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center md:text-left">Community</h3>
-              <p className="text-gray-700 text-center md:text-left flex-grow">
-                Language learning thrives in connection. We foster a supportive and engaging global community of learners and instructors.
-              </p>
-            </div>
-
-            <div className={cardClasses + " animate-fadeInUp delay-300"}>
-              <div className="text-teal-600 mb-4">
-                <svg className="w-12 h-12 mx-auto md:mx-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM17.71 10.29l-4.5 4.5c-.39.39-1.02.39-1.41 0L6.29 9.71c-.39-.39-.39-1.02 0-1.41s1.02-.39 1.41 0L12 12.59l4.5-4.5c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41z"></path></svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center md:text-left">Effectiveness</h3>
-              <p className="text-gray-700 text-center md:text-left flex-grow">
-                We are committed to providing effective learning tools and experienced instructors who deliver tangible results and progress.
-              </p>
-            </div>
-
-            <div className={cardClasses + " animate-fadeInUp delay-400"}>
-              <div className="text-teal-600 mb-4">
-                <svg className="w-12 h-12 mx-auto md:mx-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM15.5 8h-7c-.83 0-1.5-.67-1.5-1.5S7.67 5 8.5 5h7c.83 0 1.5.67 1.5 1.5S16.33 8 15.5 8zm-8 4h7c.83 0 1.5-.67 1.5-1.5S16.33 9 15.5 9h-7c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5z"></path></svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center md:text-left">Innovation</h3>
-              <p className="text-gray-700 text-center md:text-left flex-grow">
-                We continuously evolve, integrating the latest educational technologies and teaching methodologies to enhance the learning experience.
-              </p>
-            </div>
-
-            <div className={cardClasses + " animate-fadeInUp delay-500"}>
-              <div className="text-teal-600 mb-4">
-                <svg className="w-12 h-12 mx-auto md:mx-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 17.5c-2.49 0-4.5-2.01-4.5-4.5S9.51 8.5 12 8.5s4.5 2.01 4.5 4.5-2.01 4.5-4.5 4.5zm0-7c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z"></path></svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 text-center md:text-left">Passion</h3>
-              <p className="text-gray-700 text-center md:text-left flex-grow">
-                We are passionate about languages, cultures, and empowering individuals to connect with the world through communication.
-              </p>
-            </div>
+            {[
+              {
+                name: "Jane Doe",
+                role: "Co-founder & CEO",
+                bio: "With a background in linguistics and a passion for education, Jane envisioned LangZone as a global classroom.",
+                image: "/images/image_299f1c.png",
+              },
+              {
+                name: "John Smith",
+                role: "Head of Product",
+                bio: "John leverages his expertise in software development to build intuitive and effective learning tools.",
+                image: "/images/image_299397.jpg",
+              },
+              {
+                name: "Emily White",
+                role: "Lead Educator",
+                bio: "Emily ensures our curriculum is engaging and aligned with the best language acquisition practices.",
+                image: "/images/default-avatar.jpg",
+              },
+            ].map((member, i) => (
+              <motion.div
+                key={member.name}
+                custom={i}
+                initial="hidden"
+                animate="visible"
+                variants={fadeInUp}
+                whileHover={{ scale: 1.03, boxShadow: "0 12px 25px rgba(0,0,0,0.15)" }}
+                className="cursor-pointer"
+              >
+                <Card className="p-6 rounded-xl shadow-lg border border-gray-100 text-center">
+                  <Avatar className="mx-auto mb-4 w-32 h-32">
+                    <AvatarImage src={member.image} alt={member.name} />
+                    <AvatarFallback>
+                      {member.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    {member.name}
+                  </h3>
+                  <Badge className="mb-2">{member.role}</Badge>
+                  <p className="text-gray-700 text-sm">{member.bio}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* Our Team Section (Placeholder) */}
-        <section className="mb-16">
-          <h2 className={sectionTitleClasses}>Meet Our Team</h2>
-          <p className={sectionParagraphClasses}>
-            We're a dedicated group of language enthusiasts, educators, and technologists committed to transforming how the world learns languages.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Example Team Member Card 1 */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 text-center animate-fadeInUp delay-600">
-              <Image
-                src="/images/image_299f1c.png" // Use one of your uploaded images
-                alt="Team Member 1"
-                width={150}
-                height={150}
-                className="rounded-full mx-auto mb-4 object-cover w-32 h-32"
-              />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Jane Doe</h3>
-              <p className="text-teal-600 font-semibold mb-2">Co-founder & CEO</p>
-              <p className="text-gray-700 text-sm">
-                With a background in linguistics and a passion for education, Jane envisioned LangZone as a global classroom.
+        {/* Call to Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: 1.02, boxShadow: "0 12px 25px rgba(0,0,0,0.2)" }}
+        >
+          <Card className="bg-teal-700 text-white rounded-xl shadow-lg text-center p-12">
+            <CardContent className="space-y-6">
+              <h2 className="text-3xl font-bold">
+                Ready to Start Your Language Journey?
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto">
+                Explore our diverse range of instructors and find the perfect match
+                to help you achieve your linguistic goals.
               </p>
-            </div>
-
-            {/* Example Team Member Card 2 */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 text-center animate-fadeInUp delay-700">
-              <Image
-                src="/images/image_299397.jpg" // Use another one of your uploaded images
-                alt="Team Member 2"
-                width={150}
-                height={150}
-                className="rounded-full mx-auto mb-4 object-cover w-32 h-32"
-              />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">John Smith</h3>
-              <p className="text-teal-600 font-semibold mb-2">Head of Product</p>
-              <p className="text-gray-700 text-sm">
-                John leverages his expertise in software development to build intuitive and effective learning tools.
-              </p>
-            </div>
-
-            {/* Example Team Member Card 3 */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 text-center animate-fadeInUp delay-800">
-              <Image
-                src="/images/default-avatar.jpg" // Placeholder if you don't have another specific image
-                alt="Team Member 3"
-                width={150}
-                height={150}
-                className="rounded-full mx-auto mb-4 object-cover w-32 h-32"
-              />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Emily White</h3>
-              <p className="text-teal-600 font-semibold mb-2">Lead Educator</p>
-              <p className="text-gray-700 text-sm">
-                Emily ensures our curriculum is engaging and aligned with the best language acquisition practices.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Call to Action Section */}
-        <section className="bg-teal-700 text-white p-12 rounded-xl shadow-lg text-center animate-fadeIn">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Your Language Journey?</h2>
-          <p className="text-lg mb-8 max-w-2xl mx-auto">
-            Explore our diverse range of instructors and find the perfect match to help you achieve your linguistic goals.
-          </p>
-          <Link href="/" className="bg-white text-teal-700 py-3 px-8 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors shadow-md">
-            Find Your Instructor
-          </Link>
-        </section>
+              <Link href="/" passHref>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white text-teal-700 hover:bg-gray-100 shadow-md"
+                >
+                  Find Your Instructor
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
 
-      {/* Footer - Reusing your existing footer structure */}
-      
+      <style jsx global>{`
+        @keyframes gradient-shimmer {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        .animate-gradient-shimmer {
+          background-size: 200% 200%;
+          animation: gradient-shimmer 3s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }

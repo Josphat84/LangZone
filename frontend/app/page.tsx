@@ -31,7 +31,7 @@ import {
   MegaphoneIcon, 
 } from '@heroicons/react/24/outline';
 
-// shadcn imports
+// shadcn imports (Assuming these components are configured)
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,7 +52,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Trans from '@/components/Trans'; // Assuming this component exists
+import Trans from '@/components/Trans'; // Assuming this component exists for translation/footer, etc.
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -60,7 +60,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const HOMEPAGE_BG = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
 
-// --- Type Definitions (Omitted for brevity) ---
+// --- Type Definitions (Kept for component clarity) ---
 interface InfoSlide { 
   title: string;
   description: string;
@@ -106,7 +106,6 @@ interface AuthModalProps {
 
 // --- 1. COMPONENT: AuthModal (Unchanged) ---
 function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
-  // ... (content remains the same)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -183,7 +182,7 @@ function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
 }
 
 
-// --- 2. COMPONENT: WhyLangZoneSection (Hero - Non-Sticky Behavior Maintained) ---
+// --- 2. COMPONENT: WhyLangZoneSection (Hero - Header Scrolls with Page) ---
 function WhyLangZoneSection() {
   const [heroTextIndex, setHeroTextIndex] = useState(0);
   const ref = useRef(null);
@@ -331,35 +330,35 @@ function WhyLangZoneSection() {
   );
 }
 
-// --- 3. COMPONENT: Sidebar (MODIFICATION: Glassmorphism and Sticky) ---
+// --- 3. COMPONENT: Sidebar (Sticky Quick Navigation - Glassmorphism REMOVED) ---
 const Sidebar = () => {
   return (
-    // Applying Glassmorphism: bg-white/30 and backdrop-blur-xl
-    <aside className="w-48 p-3 rounded-xl bg-white/30 text-gray-800 h-fit sticky top-20 hidden lg:block backdrop-blur-xl shadow-2xl z-30 border border-white/50">
-      <h3 className="font-bold text-base mb-3 text-teal-800 border-b border-white/70 pb-2">Quick Navigation</h3>
+    // Replaced Glassmorphism with a clean, solid background
+    <aside className="w-48 p-3 rounded-xl **bg-gray-50** text-gray-800 h-fit sticky top-20 hidden lg:block shadow-xl z-30 border border-gray-200">
+      <h3 className="font-bold text-base mb-3 text-teal-800 border-b border-gray-200 pb-2">Quick Navigation</h3>
       <nav>
         <ScrollArea className="h-full max-h-[calc(100vh-150px)]"> 
           <ul className="space-y-1">
             <li>
-              <a href="#top" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+              <a href="#top" className="flex items-center p-2 rounded-lg hover:bg-teal-100 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
                 <HomeIcon className="w-4 h-4 mr-2 text-teal-600" />
                 <span>Top</span>
               </a>
             </li>
             <li>
-              <a href="#courses" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+              <a href="#courses" className="flex items-center p-2 rounded-lg hover:bg-teal-100 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
                 <BuildingLibraryIcon className="w-4 h-4 mr-2 text-blue-600" />
                 <span>Courses</span>
               </a>
             </li>
             <li>
-              <a href="#faq" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+              <a href="#faq" className="flex items-center p-2 rounded-lg hover:bg-teal-100 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
                 <QuestionMarkCircleIcon className="w-4 h-4 mr-2 text-indigo-600" />
                 <span>FAQ</span>
               </a>
             </li>
             <li>
-              <a href="#blog" className="flex items-center p-2 rounded-lg hover:bg-teal-50 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
+              <a href="#blog" className="flex items-center p-2 rounded-lg hover:bg-teal-100 transition-colors text-sm font-medium text-gray-700 hover:text-teal-700">
                 <NewspaperIcon className="w-4 h-4 mr-2 text-orange-600" />
                 <span>Blog</span>
               </a>
@@ -371,7 +370,7 @@ const Sidebar = () => {
   );
 };
 
-// --- 4. COMPONENT: InfoSlideComponent (Used in About Us) ---
+// --- 4. COMPONENT: InfoSlideComponent (About Us) ---
 function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   const Icon = slide.icon;
   return (
@@ -390,10 +389,10 @@ function InfoSlideComponent({ slide }: { slide: InfoSlide }) {
   );
 }
 
-// --- 5. COMPONENT: StepSlideComponent (Used in How It Works) ---
+// --- 5. COMPONENT: StepSlideComponent (How It Works) ---
 function StepSlideComponent({ slide }: { slide: StepSlide }) {
   return (
-    <Card className="relative w-full p-6 bg-white/95 backdrop-blur-sm shadow-xl border-t-4 border-teal-600">
+    <Card className="relative w-full p-6 bg-white shadow-xl border-t-4 border-teal-600">
       <CardHeader className="text-center p-0">
         <Badge className="mx-auto w-fit px-4 py-1.5 text-base font-bold bg-teal-600 text-white shadow-md">
           Step {slide.step}
@@ -474,14 +473,18 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package, selected: bool
   );
 }
 
-// --- 7. COMPONENT: BlogCard (MODIFICATION: 'Read Article' links removed) ---
+// --- 7. COMPONENT: BlogCard (Top Edge Improved & 'Click to Explore' Removed) ---
 function BlogCard({ blog, colorClass }: { blog: BlogPost, colorClass: string }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/blog/${blog.slug}`} className="block h-full perspective-1000">
+    <Link 
+      href={`/blog/${blog.slug}`} 
+      className="block h-full perspective-1000"
+      aria-label={`Read blog post: ${blog.title}`}
+    >
       <motion.div
-        className="h-full relative w-full"
+        className="h-full relative w-full rounded-xl"
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         style={{ transformStyle: 'preserve-3d' }}
@@ -490,28 +493,38 @@ function BlogCard({ blog, colorClass }: { blog: BlogPost, colorClass: string }) 
           rotateX: isHovered ? -5 : 0,
           rotateY: isHovered ? 5 : 0,
           transition: { duration: 0.5, ease: 'easeOut' },
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(20, 184, 166, 0.5)",
         }}
-        initial={{ scale: 1, rotateX: 0, rotateY: 0 }}
+        initial={{ scale: 1, rotateX: 0, rotateY: 0, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.2)" }}
       >
-        {/* Shadow Layer (Back Card) - for the 3D effect */}
-        <div className={`absolute inset-0 z-0 rounded-xl transition-all duration-300 ${colorClass}`} style={{ transform: 'translateZ(-10px)' }}>
+        {/* Shadow Layer (Back Card) - for the 3D depth effect */}
+        <div 
+            className={`absolute inset-0 z-0 rounded-xl transition-all duration-300 ${colorClass}`} 
+            style={{ transform: 'translateZ(-10px)' }}
+        >
             <div className='absolute inset-0 bg-black/10 rounded-xl'></div>
         </div>
 
-        {/* Main Card */}
+        {/* Main Card (The visible surface) */}
         <Card 
-          className="flex flex-col h-full overflow-hidden shadow-2xl border-t-8 border-teal-600 transition-all duration-300 relative z-10 rounded-xl"
+          // Improved top edge by making the border-t-8 thicker and removing the subtle footer
+          className="flex flex-col h-full overflow-hidden shadow-none border-t-12 **border-t-teal-600** transition-all duration-300 relative z-10 rounded-xl"
           style={{ transformStyle: 'preserve-3d', backfaceVisibility: 'hidden' }}
         >
-          <div className={`p-6 bg-gradient-to-r ${colorClass} text-white flex items-center space-x-4 border-b-2 border-white/20`}
+          {/* Header Section */}
+          <div 
+            className={`p-6 bg-gradient-to-r ${colorClass} text-white flex items-start space-x-4 border-b border-white/20`}
           >
             {blog.icon}
-            <h3 className="text-xl font-bold">{blog.title}</h3>
+            <h3 className="text-xl font-bold leading-snug">{blog.title}</h3>
           </div>
+          
+          {/* Content Section */}
           <CardContent className="flex-1 p-6 space-y-3 bg-white">
             <p className="text-sm text-gray-600 leading-relaxed">{blog.summary}</p>
           </CardContent>
-          {/* REMOVED: The 'Read Article' footer */}
+          
+          {/* REMOVED: The subtle action footer ('Click to Explore') */}
         </Card>
       </motion.div>
     </Link>
@@ -519,7 +532,7 @@ function BlogCard({ blog, colorClass }: { blog: BlogPost, colorClass: string }) 
 }
 
 
-// --- 8. COMPONENT: MainContent (MODIFICATION: Slide Transitions & Content Glassmorphism) ---
+// --- 8. COMPONENT: MainContent (Glassmorphism REMOVED) ---
 const MainContent = () => {
   const [activeTab, setActiveTab] = useState<'packages' | 'info' | 'steps'>('packages');
   const [infoIndex, setInfoIndex] = useState(0);
@@ -528,7 +541,6 @@ const MainContent = () => {
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null); 
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
-  // ... (Blog colors, packages, infoSlides, stepsSlides, faqItems, blogs data remain the same) ...
   const blogColors = [
     'from-teal-600 to-blue-600',
     'from-blue-600 to-indigo-600',
@@ -583,9 +595,10 @@ const MainContent = () => {
     },
   ];
 
+  // Set all carousel intervals to 50 seconds
   const SLIDE_INTERVAL = 50000; 
 
-  // Auto-slide effect (All set to 50 seconds)
+  // Auto-slide effect 
   useEffect(() => {
     const infoInterval = setInterval(() => {
       setInfoIndex(prev => (prev + 1) % infoSlides.length);
@@ -608,7 +621,7 @@ const MainContent = () => {
   
   const [direction, setDirection] = useState(0);
 
-  // MODIFICATION: Improved, smoother slide variants (Fading-slide)
+  // Smooth slide variants (Fading-slide)
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 50 : -50,
@@ -617,7 +630,7 @@ const MainContent = () => {
     center: {
       x: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }, // Custom smooth ease
+      transition: { duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }, 
     },
     exit: (direction: number) => ({
       x: direction > 0 ? -50 : 50,
@@ -638,16 +651,11 @@ const MainContent = () => {
 
   const handleNextPackage = () => { setDirection(1); setPackageIndex(prev => (prev + 1) % packages.length); };
   const handlePrevPackage = () => { setDirection(-1); setPackageIndex(prev => (prev - 1 + packages.length) % packages.length); };
-  // Note: Info and Step sliders don't have navigation arrows, but handlers are kept for swipe functionality
-  const handleNextInfo = () => { setDirection(1); setInfoIndex(prev => (prev + 1) % infoSlides.length); };
-  const handlePrevInfo = () => { setDirection(-1); setInfoIndex(prev => (prev - 1 + infoSlides.length) % infoSlides.length); };
-  const handleNextStep = () => { setDirection(1); setStepIndex(prev => (prev + 1) % stepsSlides.length); };
-  const handlePrevStep = () => { setDirection(-1); setStepIndex(prev => (prev - 1 + stepsSlides.length) % stepsSlides.length); };
 
 
   return (
-    // MODIFICATION: Glassmorphism Applied to Main Content Container
-    <div className="flex-1 space-y-16 rounded-2xl p-4 md:p-10 bg-white/30 backdrop-blur-xl shadow-2xl border border-white/50 min-h-[80vh]">
+    // Replaced Glassmorphism with a clean, solid background
+    <div className="flex-1 space-y-16 rounded-2xl p-4 md:p-10 **bg-white shadow-2xl border border-gray-100** min-h-[80vh]">
 
       {/* --- COURSES/TABS SECTION --- */}
       <section id="courses" className="space-y-8">
@@ -656,7 +664,7 @@ const MainContent = () => {
         </h2>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
           {/* Tabs List */}
-          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-10 bg-white/50 backdrop-blur-sm p-1 shadow-md rounded-xl border border-white/70">
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-10 **bg-gray-100** p-1 shadow-md rounded-xl border border-gray-200">
             <TabsTrigger value="packages" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white text-sm font-semibold rounded-lg py-2 transition-all">
               Packages
             </TabsTrigger>
@@ -676,7 +684,7 @@ const MainContent = () => {
                 variant="outline"
                 size="lg"
                 onClick={handlePrevPackage}
-                className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white/90 border-teal-300 shadow-xl transition-all hover:bg-teal-600 hover:text-white"
+                className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
                 aria-label="Previous package"
               >
                 <ChevronLeftIcon className="h-6 w-6" />
@@ -708,7 +716,7 @@ const MainContent = () => {
                 variant="outline"
                 size="lg"
                 onClick={handleNextPackage}
-                className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white/90 border-teal-300 shadow-xl transition-all hover:bg-teal-600 hover:text-white"
+                className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
                 aria-label="Next package"
               >
                 <ChevronRightIcon className="h-6 w-6" />
@@ -821,9 +829,9 @@ const MainContent = () => {
               open={openFAQIndex === idx} 
               onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
             >
-              <Card className="bg-white/70 backdrop-blur-sm shadow-lg transition-all duration-300 hover:shadow-xl rounded-xl border border-white/70">
+              <Card className="**bg-white** shadow-lg transition-all duration-300 hover:shadow-xl rounded-xl border border-gray-200">
                 <CollapsibleTrigger asChild>
-                  <CardHeader className={`py-4 px-5 flex flex-row items-center justify-between cursor-pointer transition-colors ${openFAQIndex === idx ? 'bg-teal-50/70' : 'hover:bg-gray-50/70'}`}>
+                  <CardHeader className={`py-4 px-5 flex flex-row items-center justify-between cursor-pointer transition-colors ${openFAQIndex === idx ? 'bg-teal-50' : 'hover:bg-gray-50'}`}>
                     <CardTitle className="text-base font-semibold text-gray-800">
                       {item.question}
                     </CardTitle>
@@ -837,7 +845,7 @@ const MainContent = () => {
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent className='overflow-hidden transition-all duration-300 ease-in-out'>
-                  <CardContent className="px-5 pb-5 pt-3 border-t border-gray-100 bg-white/95">
+                  <CardContent className="px-5 pb-5 pt-3 border-t border-gray-100 bg-white">
                     <p className="text-gray-700 text-sm">{item.answer}</p>
                   </CardContent>
                 </CollapsibleContent>
@@ -854,7 +862,6 @@ const MainContent = () => {
         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
           Latest from Our Blog
         </h2>
-        {/* MODIFICATION: Blog cards are fully responsive and use the enhanced BlogCard component */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogs.map((blog, index) => (
             <BlogCard 
@@ -902,16 +909,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* The main content structure is non-sticky, allowing the header section to scroll */}
       <WhyLangZoneSection />
       
       <div className="container mx-auto max-w-7xl pt-10 pb-20 px-4 md:px-8">
-        <div className="flex flex-row gap-8">
-          {/* Main content column */}
+        <div className="flex flex-col lg:flex-row gap-8"> 
           <div className="flex-1 min-w-0">
             <MainContent />
           </div>
-          {/* Sidebar column (The sticky quick links) */}
           <Sidebar />
         </div>
       </div>
