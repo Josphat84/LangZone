@@ -1,13 +1,9 @@
 // app/api/chat/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-// ✅ Updated model for better chatbot responses
+// Optional: model URL (fallback to dummy response if API fails)
 const API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct";
 const API_TOKEN = process.env.HUGGING_FACE_API_TOKEN;
-
-if (!API_TOKEN) {
-  throw new Error("HUGGING_FACE_API_TOKEN is not defined in your environment.");
-}
 
 // Optional timeout in milliseconds
 const REQUEST_TIMEOUT = 20000;
@@ -22,6 +18,14 @@ export async function POST(req: NextRequest) {
 
     const inputPrompt = message.trim();
 
+    // If API token is missing, return a safe fallback response
+    if (!API_TOKEN) {
+      console.warn("HUGGING_FACE_API_TOKEN not defined. Returning fallback response.");
+      return NextResponse.json({
+        response: "Chatbot is temporarily unavailable. Please try again later.",
+      });
+    }
+
     // AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -35,7 +39,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         inputs: inputPrompt,
         parameters: {
-          max_new_tokens: 50, // Keep small for speed
+          max_new_tokens: 50,
           temperature: 0.8,
           do_sample: true,
         },
@@ -46,38 +50,34 @@ export async function POST(req: NextRequest) {
 
     clearTimeout(timeoutId);
 
-    // Log raw response for debugging
-    const rawText = await response.text();
-    console.log("HF API raw response:", rawText);
-
+    // If the API fails, return fallback response
     if (!response.ok) {
-      throw new Error(`Hugging Face API error: ${response.statusText}. Details: ${rawText}`);
+      console.warn("Hugging Face API request failed. Returning fallback response.");
+      return NextResponse.json({
+        response: "Chatbot is temporarily unavailable. Please try again later.",
+      });
     }
 
+    const rawText = await response.text();
     const data = JSON.parse(rawText);
 
-    // Extract generated text safely
     let generatedText = data[0]?.generated_text?.trim() || "No response generated.";
 
-    // Remove original prompt from output
     if (generatedText.startsWith(inputPrompt)) {
       generatedText = generatedText.substring(inputPrompt.length).trim();
     }
 
     if (generatedText.length === 0) {
-      generatedText =
-        "I generated a response, but it was too similar to your input. Please try rephrasing.";
+      generatedText = "I generated a response, but it was too similar to your input. Please try rephrasing.";
     }
 
     return NextResponse.json({ response: generatedText });
   } catch (error: any) {
     console.error("Error in /api/chat:", error);
 
-    const isTimeout = error.name === "AbortError";
-    const clientMessage = isTimeout
-      ? "The request timed out. Please try again."
-      : "Failed to generate response. Please check your API token or model endpoint.";
-
-    return NextResponse.json({ error: clientMessage }, { status: 500 });
+    // Always return a fallback response instead of crashing
+    return NextResponse.json({
+      response: "Chatbot is temporarily unavailable. Please try again later.",
+    });
   }
 }
