@@ -52,7 +52,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import Trans from '@/components/Trans'; // Assuming this component exists for translation/footer, etc.
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -104,7 +103,7 @@ interface AuthModalProps {
 // --- End Type Definitions ---
 
 
-// --- 1. COMPONENT: AuthModal (Unchanged) ---
+// --- 1. COMPONENT: AuthModal (Kept for sign-in/up functionality) ---
 function AuthModal({ isOpen, onClose, setIsOpen, mode }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -308,22 +307,22 @@ function WhyLangZoneSection() {
               </Card>
             </motion.div>
           </div>
-        </div>
-        {/* Demo Video Section */}
-        <div className="mt-16 flex justify-center">
-            <div className="w-full max-w-3xl">
+          {/* Demo Video Section */}
+          <div className="mt-16 flex justify-center">
+              <div className="w-full max-w-3xl">
                 <div className="aspect-video w-full rounded-lg shadow-2xl overflow-hidden border-4 border-white/50">
-                    <iframe 
-                        className="w-full h-full"
-                        src="https://www.youtube.com/embed/VyFGfxM_VLA?si=Qv54l6Y96J5-jU5s" 
-                        title="YouTube video player" 
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen>
-                    </iframe>
+                  <iframe 
+                      className="w-full h-full"
+                      src="https://www.youtube.com/embed/VyFGfxM_VLA?si=Qv54l6Y96J5-jU5s" 
+                      title="YouTube video player" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen>
+                  </iframe>
                 </div>
-            </div>
+              </div>
+          </div>
         </div>
       </div>
     </section>
@@ -447,7 +446,7 @@ function PackageCard({ pkg, selected, onSelect }: { pkg: Package, selected: bool
           </div>
           {pkg.discountedPrice && (
             <div className="text-sm text-gray-500 line-through">
-              ${pkg.price} (Save ${pkg.price - pkg.discountedPrice})
+              ${pkg.price} (Save {pkg.price - pkg.discountedPrice})
             </div>
           )}
         </div>
@@ -502,7 +501,7 @@ function BlogCard({ blog, colorClass }: { blog: BlogPost, colorClass: string }) 
             className={`absolute inset-0 z-0 rounded-xl transition-all duration-300 ${colorClass}`} 
             style={{ transform: 'translateZ(-10px)' }}
         >
-            <div className='absolute inset-0 bg-black/10 rounded-xl'></div>
+          <div className='absolute inset-0 bg-black/10 rounded-xl'></div>
         </div>
 
         {/* Main Card (The visible surface) */}
@@ -722,204 +721,231 @@ const MainContent = () => {
                 <ChevronRightIcon className="h-6 w-6" />
               </Button>
             </div>
-            {/* Dot Indicators */}
-            <div className="flex justify-center gap-2 mt-4">
-              {packages.map((_, idx) => (
-                <Button
-                  key={idx}
-                  onClick={() => { setDirection(idx > packageIndex ? 1 : -1); setPackageIndex(idx); }}
-                  variant="ghost"
-                  size="icon"
-                  className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
-                    packageIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
-                  }`}
-                  aria-label={`Go to package ${idx + 1}`}
-                />
-              ))}
-            </div>
           </TabsContent>
 
           {/* About Us Content (Slider) */}
           <TabsContent value="info" className="space-y-6 pt-4">
-            <div className="relative max-w-4xl mx-auto">
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={infoIndex}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="w-full flex flex-col md:flex-row items-center justify-center relative"
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={handleSwipe((cb) => setInfoIndex(cb), infoSlides.length)}
-                  custom={direction}
-                >
-                  <InfoSlideComponent slide={infoSlides[infoIndex]} />
-                </motion.div>
-              </AnimatePresence>
-              {/* Dot Indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {infoSlides.map((_, idx) => (
-                  <Button
-                    key={idx}
-                    onClick={() => { setDirection(idx > infoIndex ? 1 : -1); setInfoIndex(idx); }}
-                    variant="ghost"
-                    size="icon"
-                    className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
-                      infoIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
-                    }`}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
+            <div className="relative flex items-center justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => { setDirection(-1); setInfoIndex(prev => (prev - 1 + infoSlides.length) % infoSlides.length); }}
+                className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
+                aria-label="Previous info slide"
+              >
+                <ChevronLeftIcon className="h-6 w-6" />
+              </Button>
+              <div className="relative w-full max-w-2xl mx-auto overflow-hidden">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={infoSlides[infoIndex].title}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="w-full"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragEnd={handleSwipe((cb) => setInfoIndex(cb), infoSlides.length)}
+                    custom={direction}
+                  >
+                    <InfoSlideComponent slide={infoSlides[infoIndex]} />
+                  </motion.div>
+                </AnimatePresence>
               </div>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => { setDirection(1); setInfoIndex(prev => (prev + 1) % infoSlides.length); }}
+                className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
+                aria-label="Next info slide"
+              >
+                <ChevronRightIcon className="h-6 w-6" />
+              </Button>
             </div>
           </TabsContent>
 
           {/* How It Works Content (Slider) */}
           <TabsContent value="steps" className="space-y-6 pt-4">
-            <div className="relative max-w-4xl mx-auto">
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={stepIndex}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="w-full flex flex-col md:flex-row items-center justify-center relative"
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  onDragEnd={handleSwipe((cb) => setStepIndex(cb), stepsSlides.length)}
-                  custom={direction}
-                >
-                  <StepSlideComponent slide={stepsSlides[stepIndex]} />
-                </motion.div>
-              </AnimatePresence>
-              {/* Dot Indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {stepsSlides.map((_, idx) => (
-                  <Button
-                    key={idx}
-                    onClick={() => { setDirection(idx > stepIndex ? 1 : -1); setStepIndex(idx); }}
-                    variant="ghost"
-                    size="icon"
-                    className={`w-3 h-3 p-0 rounded-full transition-all duration-300 ${
-                      stepIndex === idx ? 'bg-teal-600 w-6' : 'bg-gray-300 hover:bg-teal-300'
-                    }`}
-                    aria-label={`Go to step ${idx + 1}`}
-                  />
-                ))}
+            <div className="relative flex items-center justify-center">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => { setDirection(-1); setStepIndex(prev => (prev - 1 + stepsSlides.length) % stepsSlides.length); }}
+                className="absolute -left-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
+                aria-label="Previous step"
+              >
+                <ChevronLeftIcon className="h-6 w-6" />
+              </Button>
+              <div className="relative w-full max-w-xl mx-auto overflow-hidden">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={stepsSlides[stepIndex].step}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="w-full"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    onDragEnd={handleSwipe((cb) => setStepIndex(cb), stepsSlides.length)}
+                    custom={direction}
+                  >
+                    <StepSlideComponent slide={stepsSlides[stepIndex]} />
+                  </motion.div>
+                </AnimatePresence>
               </div>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => { setDirection(1); setStepIndex(prev => (prev + 1) % stepsSlides.length); }}
+                className="absolute -right-16 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full text-teal-600 bg-white shadow-xl transition-all hover:bg-teal-600 hover:text-white border-teal-300"
+                aria-label="Next step"
+              >
+                <ChevronRightIcon className="h-6 w-6" />
+              </Button>
             </div>
           </TabsContent>
         </Tabs>
       </section>
 
-      <Separator />
-
+      <Separator className="my-16 bg-gray-200" />
+      
       {/* --- FAQ SECTION --- */}
-      <section id="faq" className="space-y-4">
+      <section id="faq" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
           Frequently Asked Questions
         </h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          {faqItems.map((item, idx) => (
-            <Collapsible 
-              key={idx} 
-              open={openFAQIndex === idx} 
-              onOpenChange={() => setOpenFAQIndex(openFAQIndex === idx ? null : idx)}
+        <div className="space-y-4 max-w-3xl mx-auto">
+          {faqItems.map((item, index) => (
+            <Collapsible
+              key={index}
+              open={openFAQIndex === index}
+              onOpenChange={() => setOpenFAQIndex(openFAQIndex === index ? null : index)}
+              className="border border-gray-200 rounded-xl shadow-md bg-white hover:shadow-lg transition-shadow duration-300"
             >
-              <Card className="**bg-white** shadow-lg transition-all duration-300 hover:shadow-xl rounded-xl border border-gray-200">
-                <CollapsibleTrigger asChild>
-                  <CardHeader className={`py-4 px-5 flex flex-row items-center justify-between cursor-pointer transition-colors ${openFAQIndex === idx ? 'bg-teal-50' : 'hover:bg-gray-50'}`}>
-                    <CardTitle className="text-base font-semibold text-gray-800">
-                      {item.question}
-                    </CardTitle>
-                    <div className="ml-4 flex-shrink-0">
-                      {openFAQIndex === idx ? (
-                        <MinusIcon className="h-5 w-5 text-teal-600 transition-transform duration-300" />
-                      ) : (
-                        <PlusIcon className="h-5 w-5 text-teal-600 transition-transform duration-300" />
-                      )}
-                    </div>
-                  </CardHeader>
-                </CollapsibleTrigger>
-                <CollapsibleContent className='overflow-hidden transition-all duration-300 ease-in-out'>
-                  <CardContent className="px-5 pb-5 pt-3 border-t border-gray-100 bg-white">
-                    <p className="text-gray-700 text-sm">{item.answer}</p>
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full flex justify-between items-center text-left text-lg font-semibold py-4 px-6 hover:bg-teal-50"
+                >
+                  {item.question}
+                  {openFAQIndex === index ? (
+                    <MinusIcon className="h-5 w-5 text-teal-600 ml-4 flex-shrink-0" />
+                  ) : (
+                    <PlusIcon className="h-5 w-5 text-teal-600 ml-4 flex-shrink-0" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="p-6 pt-0 text-gray-700">
+                <p className="mt-2">{item.answer}</p>
+              </CollapsibleContent>
             </Collapsible>
           ))}
         </div>
+        <div className="text-center pt-8">
+          <Link href="/help-center" passHref>
+            <Button variant="outline" className="text-teal-600 border-teal-600 hover:bg-teal-50">
+              Visit Our Full Help Center
+              <ChevronRightIcon className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </section>
 
-      <Separator />
-
+      <Separator className="my-16 bg-gray-200" />
+      
       {/* --- BLOG SECTION --- */}
       <section id="blog" className="space-y-6">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center border-b pb-2">
-          Latest from Our Blog
+          Latest Insights & Tips
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {blogs.map((blog, index) => (
             <BlogCard 
               key={blog.slug} 
               blog={blog} 
-              colorClass={blogColors[index % blogColors.length]}
+              colorClass={blogColors[index % blogColors.length]} 
             />
           ))}
         </div>
-        <div className="flex justify-center pt-4">
-            <Button asChild size="lg" variant="outline" className="text-teal-600 border-teal-600 hover:bg-teal-50 hover:shadow-md">
-                <Link href="/blog">
-                    View All Articles
-                    <ArrowRightIcon className="h-4 w-4 ml-2" />
-                </Link>
+      </section>
+      
+      {/* --- CTA SECTION --- */}
+      <section className="bg-gradient-to-r from-teal-600 to-blue-600 p-10 rounded-xl shadow-2xl text-center text-white space-y-4 mt-16">
+        <h3 className="text-3xl font-bold">Ready to Start Your Language Journey?</h3>
+        <p className="text-lg text-white/90 max-w-2xl mx-auto">
+          Join thousands of successful students and achieve fluency with personalized one-on-one lessons.
+        </p>
+        <div className="pt-4 flex justify-center space-x-4">
+          <Link href="/instructors" passHref>
+            <Button size="lg" className="bg-white text-teal-600 hover:bg-gray-100 text-lg font-bold shadow-xl">
+              Find My Tutor
             </Button>
+          </Link>
+          <Link href="/pricing" passHref>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg font-bold">
+              View Pricing
+            </Button>
+          </Link>
         </div>
       </section>
-
+      
     </div>
   );
 };
 
 
-// --- 9. FINAL EXPORT COMPONENT (Page Structure) ---
-export default function HomePage() {
+// --- 9. FINAL EXPORT: Home Page (Cleaned) ---
+export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'sign-up' | 'sign-in'>('sign-in');
 
+  // Kept Auth logic in case AuthModal is triggered by your custom header/footer
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session) setIsAuthModalOpen(false); // Close modal on successful sign-in
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Removed handleSignOut and handleAuthClick since they belong to the custom header now, 
+  // but kept AuthModal state and rendering.
+
   return (
-    <div className="min-h-screen">
-      <WhyLangZoneSection />
-      
-      <div className="container mx-auto max-w-7xl pt-10 pb-20 px-4 md:px-8">
-        <div className="flex flex-col lg:flex-row gap-8"> 
-          <div className="flex-1 min-w-0">
-            <MainContent />
-          </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* REMOVED: <header> component
+        Your custom header component will be rendered here via your layout file. 
+      */}
+
+      {/* --- Main Content Layout --- */}
+      <main className="flex-1">
+        <WhyLangZoneSection />
+        
+        <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col lg:flex-row gap-8 lg:gap-10">
           <Sidebar />
+          <MainContent />
         </div>
-      </div>
-      <Trans /> 
+      </main>
+
+      {/* REMOVED: <footer> component
+        Your custom footer component will be rendered here via your layout file.
+      */}
+
+      {/* NOTE: AuthModal is kept in the page component to handle authentication flow 
+                 if triggered by your custom header components. */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)}
+        mode={authMode}
+      />
     </div>
   );
 }
