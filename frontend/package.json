@@ -82,6 +82,7 @@
     "react-day-picker": "^9.9.0",
     "react-dom": "^19.0.0",
     "react-draggable": "^4.5.0",
+    "react-highlight-words": "^0.21.0",
     "react-hook-form": "^7.62.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^15.7.3",

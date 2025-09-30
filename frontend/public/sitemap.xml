@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://yourdomain.com/about-us</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/admin/feedback</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/ai-practice-tools</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/blog</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/careers</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/chat</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/community</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/contact-us</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/courses</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/create-new-profile</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/dashboard/tutor</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/faq</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/help-center</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/instructors</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/instructors/[id]</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/josphat_full_profile</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/kids</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/learning-guides</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/privacy-policy</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/resources</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/sign-up-in</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/sitemap</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/terms-of-service</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/test-supabase</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/translate-demo</loc>
+  </url>
+
+  <url>
+    <loc>https://yourdomain.com/tutors/[slug]</loc>
+  </url>
+</urlset>
