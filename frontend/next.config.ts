@@ -7,32 +7,25 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   // Output configuration for Vercel
-  output: 'standalone', // This can help with deployment issues
-  
-  // Modern settings to prevent deprecated API issues
-  experimental: {
-    // Remove any deprecated experimental features
-  },
-  
-  // Enable modern performance features
+  output: 'standalone',
+
+  // Modern performance features
   productionBrowserSourceMaps: false,
-  
-  // Transpile packages if needed
-  transpilePackages: [],
-  
-  // Enable React strict mode
   reactStrictMode: true,
-  
-  // Add trailingSlash to handle routing better
   trailingSlash: false,
-  
-  // Ensure proper asset optimization
+
   images: {
-    unoptimized: false, // Set to true if having image optimization issues
+    unoptimized: false,
   },
-  
-  // Add headers for better caching and security
+
+  // === Ensure Next.js treats this folder as the project root ===
+  turbopack: {
+    root: __dirname, // <-- frontend folder is now explicitly the root
+  },
+
+  // Headers for security
   async headers() {
     return [
       {
