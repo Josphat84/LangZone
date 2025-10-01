@@ -309,7 +309,7 @@ export default function SearchBar() {
                     <div className="flex items-center justify-between px-3 py-2">
                       <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5" />
-                        Recent Searches
+                        Your recent Searches
                       </span>
                       <button
                         onClick={clearRecent}
