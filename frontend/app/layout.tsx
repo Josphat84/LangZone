@@ -8,10 +8,11 @@ import FeedbackWidget from "@/components/FeedbackWidget";
 import Chatbot from "@/components/Chatbot";
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Enhanced Shadcn components
+// ✅ Removed direct supabase import
+// import { supabase } from "@/lib/supabase/client";
+
 import { 
   Sheet, 
   SheetContent, 
@@ -25,24 +26,18 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 
-// Enhanced Icons
 import { 
   MessageSquare, 
   Sparkles, 
-  Bell, 
   Wifi, 
   WifiOff, 
   AlertTriangle,
-  Loader2,
   Bot,
   Zap,
-  Heart,
-  Star,
-  Headphones
+  Heart
 } from "lucide-react";
 
 const inter = Inter({ 
@@ -51,7 +46,6 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-// Enhanced loading progress states
 const LOADING_STEPS = [
   { step: 1, label: "Initializing..." },
   { step: 2, label: "Loading components..." },
@@ -68,9 +62,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
-  // Enhanced feedback count fetcher with retry logic
+  // ✅ Supabase lazy import
   const fetchFeedbackCount = useCallback(async (retries = 3) => {
     try {
+      const { supabase } = await import("@/lib/supabase/client");
       const { count, error: countError } = await supabase
         .from("feedback")
         .select("*", { count: "exact", head: true });
@@ -81,7 +76,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       setError(null);
     } catch (err) {
       console.error("Error fetching feedback:", err);
-      
       if (retries > 0) {
         setTimeout(() => fetchFeedbackCount(retries - 1), 2000);
       } else {
@@ -92,17 +86,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
-  // Enhanced initialization with loading steps
   useEffect(() => {
     let mounted = true;
     let stepTimer: NodeJS.Timeout;
+    let subscription: any = null;
 
     const initialize = async () => {
       try {
-        // Simulate loading steps for better UX
         for (let i = 0; i <= LOADING_STEPS.length; i++) {
           if (!mounted) return;
-          
           setLoadingStep(i);
           
           if (i === 1) setIsHydrated(true);
@@ -114,7 +106,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             });
           }
         }
-        
+
+        // ✅ Import supabase only after hydration
+        const { supabase } = await import("@/lib/supabase/client");
+        subscription = supabase
+          .channel("feedback-updates")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "feedback" },
+            () => {
+              if (mounted) fetchFeedbackCount();
+            }
+          )
+          .subscribe();
+
         if (mounted) setIsLoading(false);
       } catch (err) {
         console.error("Initialization error:", err);
@@ -127,67 +132,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     initialize();
 
-    // Online/Offline detection
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
-      setIsOnline(navigator.onLine);
-    }
 
-    // Real-time subscription with enhanced error handling
-    let subscription: any = null;
-    
-    try {
-      subscription = supabase
-        .channel("feedback-updates")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "feedback" },
-          (payload) => {
-            if (mounted) {
-              fetchFeedbackCount();
-              // Show toast notification for new feedback
-              if (payload.eventType === 'INSERT') {
-                // toast.success("New feedback received!");
-              }
-            }
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Real-time updates connected');
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('Real-time connection failed');
-            if (mounted) setError('Real-time updates unavailable');
-          }
-        });
-    } catch (err) {
-      console.error("Subscription error:", err);
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      setIsOnline(navigator.onLine);
     }
 
     return () => {
       mounted = false;
       if (stepTimer) clearTimeout(stepTimer);
-      
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
+
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
       }
-      
+
       if (subscription) {
-        try {
-          supabase.removeChannel(subscription);
-        } catch (err) {
-          console.error("Error removing subscription:", err);
-        }
+        import("@/lib/supabase/client").then(({ supabase }) => {
+          try {
+            supabase.removeChannel(subscription);
+          } catch (err) {
+            console.error("Error removing subscription:", err);
+          }
+        });
       }
     };
   }, [fetchFeedbackCount]);
 
-  // Memoized connection status
   const connectionStatus = useMemo(() => ({
     isConnected: isOnline && !error,
     statusText: error ? 'Connection Error' : isOnline ? 'Connected' : 'Offline',
@@ -213,7 +187,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               transition={{ duration: 0.5 }}
               className="text-center space-y-6 p-8"
             >
-              {/* Enhanced Logo Animation */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -222,7 +195,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Sparkles className="h-8 w-8 text-white" />
               </motion.div>
 
-              {/* Loading Progress */}
               <div className="space-y-4 max-w-sm mx-auto">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -241,13 +213,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     className="h-2 bg-gray-200"
                   />
                 </div>
-                
                 <p className="text-gray-500 text-sm">
                   Setting up your personalized experience...
                 </p>
               </div>
 
-              {/* Loading skeleton hints */}
               <div className="space-y-3 max-w-md mx-auto">
                 <Skeleton className="h-4 w-3/4 mx-auto" />
                 <Skeleton className="h-4 w-1/2 mx-auto" />
@@ -284,7 +254,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="flex flex-col min-h-screen"
               >
-                {/* Connection Status Banner */}
                 <AnimatePresence>
                   {(!connectionStatus.isConnected) && (
                     <motion.div
@@ -319,7 +288,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   )}
                 </AnimatePresence>
 
-                {/* Enhanced Header */}
                 <motion.div
                   initial={{ y: -100 }}
                   animate={{ y: 0 }}
@@ -333,7 +301,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   />
                 </motion.div>
 
-                {/* Skip to content for accessibility */}
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:fixed focus:top-20 focus:left-4 z-[100] bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-all focus:ring-4 focus:ring-purple-300"
@@ -341,7 +308,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   Skip to main content
                 </a>
 
-                {/* Enhanced Main Content */}
                 <main 
                   id="main-content"
                   className="flex-1 relative"
@@ -360,7 +326,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </ScrollArea>
                 </main>
 
-                {/* Enhanced Footer */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -369,7 +334,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Footer />
                 </motion.div>
 
-                {/* Enhanced Shadcn Sheet for Chatbot */}
                 <Sheet open={chatOpen} onOpenChange={setChatOpen}>
                   <SheetTrigger asChild>
                     <Tooltip>
@@ -390,20 +354,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             onClick={() => setChatOpen(true)}
                             className="relative p-4 h-14 w-14 rounded-full shadow-xl hover:shadow-2xl transition-all duration-500 bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 hover:from-purple-700 hover:via-purple-600 hover:to-blue-600 border-0 group overflow-hidden"
                           >
-                            {/* Animated background */}
                             <motion.div
                               className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 opacity-0 group-hover:opacity-100"
                               initial={false}
                               animate={{ rotate: 360 }}
                               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                             />
-                            
-                            {/* Icon with animation */}
                             <div className="relative z-10">
                               <MessageSquare className="h-6 w-6 text-white transition-transform duration-300 group-hover:scale-110" />
                             </div>
-                            
-                            {/* Pulse indicator */}
                             <motion.div
                               className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full shadow-sm"
                               animate={{ scale: [1, 1.2, 1] }}
@@ -415,8 +374,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                                 transition={{ duration: 2, repeat: Infinity }}
                               />
                             </motion.div>
-
-                            {/* Sparkle effects */}
                             <motion.div
                               className="absolute -top-1 -left-1 opacity-0 group-hover:opacity-100"
                               animate={{ rotate: [0, 360] }}
@@ -465,12 +422,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           </SheetDescription>
                         </div>
                       </div>
-                      
-                      {/* Connection status indicator */}
                       <div className="flex items-center gap-2 pt-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          connectionStatus.isConnected ? 'bg-green-400' : 'bg-red-400'
-                        }`} />
+                        <div className={`w-2 h-2 rounded-full ${connectionStatus.isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
                         <span className="text-xs text-purple-100">
                           {connectionStatus.statusText}
                         </span>
@@ -487,7 +440,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </SheetContent>
                 </Sheet>
 
-                {/* Enhanced Floating Widgets */}
                 <motion.div
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -511,110 +463,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           >
                             <Badge 
                               variant="destructive" 
-                              className="h-6 min-w-[24px] flex items-center justify-center text-xs font-bold shadow-md"
+                              className="h-6 min-w-[24px] flex items-center justify-center text-xs font-bold"
                             >
-                              {unreadCount > 99 ? '99+' : unreadCount}
+                              {unreadCount}
                             </Badge>
                           </motion.div>
                         )}
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="left">
+                    <TooltipContent side="left" sideOffset={10}>
                       <div className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" />
+                        <Heart className="h-4 w-4 text-red-500" />
                         <span>Send Feedback</span>
-                        {unreadCount > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {unreadCount} new
-                          </Badge>
-                        )}
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 </motion.div>
-
-                {/* Enhanced Toast Configuration */}
-                <Toaster
-                  position="top-right"
-                  reverseOrder={false}
-                  gutter={8}
-                  containerClassName="!top-20 !z-[100]"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      borderRadius: "12px",
-                      background: "rgba(255, 255, 255, 0.95)",
-                      backdropFilter: "blur(12px)",
-                      color: "#374151",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                      border: "1px solid rgba(229, 231, 235, 0.8)",
-                      maxWidth: "400px",
-                    },
-                    success: {
-                      iconTheme: { 
-                        primary: "#10b981", 
-                        secondary: "#ffffff" 
-                      },
-                      style: {
-                        background: "rgba(236, 253, 245, 0.95)",
-                        borderColor: "rgba(16, 185, 129, 0.3)",
-                      }
-                    },
-                    error: {
-                      iconTheme: { 
-                        primary: "#ef4444", 
-                        secondary: "#ffffff" 
-                      },
-                      duration: 6000,
-                      style: {
-                        background: "rgba(254, 242, 242, 0.95)",
-                        borderColor: "rgba(239, 68, 68, 0.3)",
-                      }
-                    },
-                    loading: {
-                      iconTheme: {
-                        primary: "#6366f1",
-                        secondary: "#ffffff"
-                      },
-                      style: {
-                        background: "rgba(238, 242, 255, 0.95)",
-                        borderColor: "rgba(99, 102, 241, 0.3)",
-                      }
-                    }
-                  }}
-                />
-
-                {/* Development Error Display */}
-                <AnimatePresence>
-                  {process.env.NODE_ENV === 'development' && error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 50 }}
-                      className="fixed bottom-20 left-4 right-4 md:left-4 md:right-auto md:max-w-md z-[60]"
-                    >
-                      <Alert className="bg-red-50 border-red-200 shadow-lg">
-                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                        <AlertDescription className="text-red-800">
-                          <strong>Development Warning:</strong> {error}
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="px-2 py-0 h-auto ml-2 text-red-600 hover:text-red-800"
-                            onClick={() => setError(null)}
-                          >
-                            Dismiss
-                          </Button>
-                        </AlertDescription>
-                      </Alert>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>
+          <Toaster 
+            position="top-center" 
+            toastOptions={{
+              className: "rounded-xl shadow-lg border",
+              style: {
+                background: "white",
+                color: "#333",
+              },
+            }} 
+          />
         </TooltipProvider>
       </body>
     </html>
