@@ -1,5 +1,3 @@
-// frontend/components/ClientLayout.tsx
-
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -59,6 +57,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // Enhanced feedback count fetcher with retry logic
   const fetchFeedbackCount = useCallback(async (retries = 3) => {
+    // Only run in browser
+    if (typeof window === 'undefined') return;
+    
     try {
       const { count, error: countError } = await supabase
         .from("feedback")
@@ -189,6 +190,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           transition={{ duration: 0.5 }}
           className="text-center space-y-6 p-8"
         >
+          {/* Enhanced Logo Animation */}
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -197,6 +199,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <Sparkles className="h-8 w-8 text-white" />
           </motion.div>
 
+          {/* Loading Progress */}
           <div className="space-y-4 max-w-sm mx-auto">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -221,6 +224,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </p>
           </div>
 
+          {/* Loading skeleton hints */}
           <div className="space-y-3 max-w-md mx-auto">
             <Skeleton className="h-4 w-3/4 mx-auto" />
             <Skeleton className="h-4 w-1/2 mx-auto" />
@@ -292,6 +296,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               />
             </motion.div>
 
+            {/* Skip to content for accessibility */}
             <a
               href="#main-content"
               className="sr-only focus:not-sr-only focus:fixed focus:top-20 focus:left-4 z-[100] bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-all focus:ring-4 focus:ring-purple-300"
@@ -299,6 +304,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               Skip to main content
             </a>
 
+            {/* Enhanced Main Content */}
             <main 
               id="main-content"
               className="flex-1 relative"
@@ -317,7 +323,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </ScrollArea>
             </main>
 
-            {/* Footer */}
+            {/* Enhanced Footer */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -326,7 +332,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <Footer />
             </motion.div>
 
-            {/* Chatbot Sheet */}
+            {/* Enhanced Shadcn Sheet for Chatbot */}
             <Sheet open={chatOpen} onOpenChange={setChatOpen}>
               <SheetTrigger asChild>
                 <Tooltip>
@@ -347,15 +353,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                         onClick={() => setChatOpen(true)}
                         className="relative p-4 h-14 w-14 rounded-full shadow-xl hover:shadow-2xl transition-all duration-500 bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500 hover:from-purple-700 hover:via-purple-600 hover:to-blue-600 border-0 group overflow-hidden"
                       >
+                        {/* Animated background */}
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 opacity-0 group-hover:opacity-100"
                           initial={false}
                           animate={{ rotate: 360 }}
                           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                         />
+                        
+                        {/* Icon with animation */}
                         <div className="relative z-10">
                           <MessageSquare className="h-6 w-6 text-white transition-transform duration-300 group-hover:scale-110" />
                         </div>
+                        
+                        {/* Pulse indicator */}
                         <motion.div
                           className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full shadow-sm"
                           animate={{ scale: [1, 1.2, 1] }}
@@ -367,6 +378,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                             transition={{ duration: 2, repeat: Infinity }}
                           />
                         </motion.div>
+
+                        {/* Sparkle effects */}
                         <motion.div
                           className="absolute -top-1 -left-1 opacity-0 group-hover:opacity-100"
                           animate={{ rotate: [0, 360] }}
@@ -389,7 +402,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   </TooltipContent>
                 </Tooltip>
               </SheetTrigger>
-
+              
               <SheetContent 
                 side="left" 
                 className="w-[400px] max-w-[90vw] p-0 bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 border-r border-purple-100/50 shadow-2xl"
@@ -415,7 +428,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                       </SheetDescription>
                     </div>
                   </div>
-
+                  
+                  {/* Connection status indicator */}
                   <div className="flex items-center gap-2 pt-2">
                     <div className={`w-2 h-2 rounded-full ${
                       connectionStatus.isConnected ? 'bg-green-400' : 'bg-red-400'
@@ -425,7 +439,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     </span>
                   </div>
                 </SheetHeader>
-
+                
                 <div className="flex-1 h-[calc(100vh-140px)]">
                   <ScrollArea className="h-full">
                     <div className="p-6">
@@ -436,7 +450,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </SheetContent>
             </Sheet>
 
-            {/* Floating Feedback Widget */}
+            {/* Enhanced Floating Widgets */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -482,7 +496,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               </Tooltip>
             </motion.div>
 
-            {/* Toaster */}
+            {/* Enhanced Toast Configuration */}
             <Toaster
               position="top-right"
               reverseOrder={false}
@@ -535,7 +549,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               }}
             />
 
-            {/* Dev Error Display */}
+            {/* Development Error Display */}
             <AnimatePresence>
               {process.env.NODE_ENV === 'development' && error && (
                 <motion.div
