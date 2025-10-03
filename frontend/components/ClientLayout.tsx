@@ -130,28 +130,31 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     // Real-time subscription with enhanced error handling
     let subscription: any = null;
     
-    try {
-      subscription = supabase
-        .channel("feedback-updates")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "feedback" },
-          (payload) => {
-            if (mounted) {
-              fetchFeedbackCount();
+    // Only subscribe in browser environment
+    if (typeof window !== 'undefined') {
+      try {
+        subscription = supabase
+          .channel("feedback-updates")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "feedback" },
+            (payload) => {
+              if (mounted) {
+                fetchFeedbackCount();
+              }
             }
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Real-time updates connected');
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('Real-time connection failed');
-            if (mounted) setError('Real-time updates unavailable');
-          }
-        });
-    } catch (err) {
-      console.error("Subscription error:", err);
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Real-time updates connected');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('Real-time connection failed');
+              if (mounted) setError('Real-time updates unavailable');
+            }
+          });
+      } catch (err) {
+        console.error("Subscription error:", err);
+      }
     }
 
     return () => {
