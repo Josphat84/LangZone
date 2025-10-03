@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { supabase } from "@/lib/supabase/client";
+
+import { getSupabaseClient } from "@/lib/supabase/client";
+const supabase = getSupabaseClient();
+
+
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";

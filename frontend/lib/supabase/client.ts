@@ -1,16 +1,39 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Get environment variables with fallbacks for build time
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+// CRITICAL: These must be NEXT_PUBLIC_ prefixed to work in the browser
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Only create the client if we're in the browser or have valid credentials
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
+// Validate environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  // During build time, this might not be available, so we provide a safe fallback
+  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+    console.warn('Supabase env vars not found during build - this is expected during static generation');
+  }
+}
 
-export const getSupabase = () => {
-  // During build, return a mock client
-  if (typeof window === 'undefined' && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-    console.warn('Supabase credentials not available during build - using mock client');
+// Create client with safe defaults
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key-will-be-replaced-at-runtime',
+  {
+    auth: {
+      persistSession: typeof window !== 'undefined',
+      autoRefreshToken: typeof window !== 'undefined',
+      detectSessionInUrl: typeof window !== 'undefined',
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'supabase-js-web',
+      },
+    },
+  }
+)
+
+// Export a safe getter function
+export const getSupabaseClient = () => {
+  if (typeof window === 'undefined') {
+    // During SSR/build, return a mock
     return {
       from: () => ({
         select: () => Promise.resolve({ data: [], error: null, count: 0 }),
@@ -19,23 +42,10 @@ export const getSupabase = () => {
         delete: () => Promise.resolve({ data: null, error: null }),
       }),
       channel: () => ({
-        on: () => ({ subscribe: () => {} }),
+        on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
       }),
       removeChannel: () => {},
     } as any;
   }
-
-  if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: typeof window !== 'undefined',
-        autoRefreshToken: typeof window !== 'undefined',
-      },
-    });
-  }
-
-  return supabaseInstance;
-};
-
-// Export the client (will be mock during build if credentials missing)
-export const supabase = getSupabase();
+  return supabase;
+}
