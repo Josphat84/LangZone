@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { getSupabaseClient } from "@/lib/supabase/client";
-const supabase = getSupabaseClient();
+
+let supabase: ReturnType<typeof getSupabaseClient> | null = null;
+if (typeof window !== "undefined") {
+  supabase = getSupabaseClient();
+}
+
 
 
 import { motion, AnimatePresence } from "framer-motion";
