@@ -13,6 +13,9 @@ export const metadata = {
   description: "Learn languages with expert tutors",
 };
 
+// Prevent prerendering issues
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth">
