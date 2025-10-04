@@ -1,11 +1,14 @@
 // frontend/lib/supabase/client.ts
+
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 let supabaseInstance: SupabaseClient | null = null;
 
 export function getSupabaseClient(): SupabaseClient | null {
-  if (typeof window === "undefined") return null; // SSR safe
+  // 1. SSR safe check: Return null if this runs on the server (during build/SSR)
+  if (typeof window === "undefined") return null;
 
+  // 2. Singleton pattern: Initialize only once
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -26,3 +29,8 @@ export function getSupabaseClient(): SupabaseClient | null {
 
   return supabaseInstance;
 }
+
+// **********************************
+// NEW: Named export for 'supabase' to satisfy the import statement
+// **********************************
+export const supabase = getSupabaseClient();
