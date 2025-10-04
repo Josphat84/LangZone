@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { getSupabaseClient } from "@/lib/supabase/client";
+// Import the constant 'supabase' which holds the client instance
+import { supabase } from "@/lib/supabase/client"; 
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -47,7 +48,8 @@ const LOADING_STEPS = [
 ];
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const supabase = getSupabaseClient();
+  // FIX: Remove the function call! The constant 'supabase' is already the client instance.
+  // const supabase = getSupabaseClient(); <--- REMOVED THIS LINE
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -57,8 +59,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
+  // The rest of the component uses the imported 'supabase' constant, which is now correct.
   const fetchFeedbackCount = useCallback(async (retries = 3) => {
-    if (!supabase) return;
+    // This check is good because 'supabase' might be null if the keys were missing or on SSR.
+    if (!supabase) return; 
 
     try {
       const { count, error: countError } = await supabase
@@ -79,7 +83,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         setUnreadCount(0);
       }
     }
-  }, [supabase]);
+  }, [supabase]); // Keep dependency array correct
 
   useEffect(() => {
     let mounted = true;
@@ -121,7 +125,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let subscription: any = null;
     
-    if (typeof window !== 'undefined' && supabase) {
+    // Uses the imported 'supabase' constant
+    if (typeof window !== 'undefined' && supabase) { 
       try {
         subscription = supabase
           .channel("feedback-updates")
@@ -153,7 +158,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       }
       if (subscription && supabase) {
         try {
-          supabase.removeChannel(subscription);
+          // Uses the imported 'supabase' constant
+          supabase.removeChannel(subscription); 
         } catch (err) {
           console.error("Error removing subscription:", err);
         }

@@ -1,36 +1,18 @@
 // frontend/lib/supabase/client.ts
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from '@supabase/ssr'
 
-let supabaseInstance: SupabaseClient | null = null;
+/**
+ * Creates and exports a singleton instance of the Supabase Client for the browser.
+ * * This uses the official createBrowserClient from @supabase/ssr, which 
+ * is designed to work reliably with Next.js environment variables.
+ * * It will automatically use NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
+ */
+export const supabase = createBrowserClient(
+  // The '!' tells TypeScript these variables exist (since you confirmed they are set).
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-export function getSupabaseClient(): SupabaseClient | null {
-  // 1. SSR safe check: Return null if this runs on the server (during build/SSR)
-  if (typeof window === "undefined") return null;
-
-  // 2. Singleton pattern: Initialize only once
-  if (!supabaseInstance) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("Supabase credentials missing");
-      return null;
-    }
-
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    });
-  }
-
-  return supabaseInstance;
-}
-
-// **********************************
-// NEW: Named export for 'supabase' to satisfy the import statement
-// **********************************
-export const supabase = getSupabaseClient();
+// You can now import it in your components like this:
+// import { supabase } from '@/lib/supabase/client';
