@@ -364,7 +364,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <TooltipContent side="left">
                   <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4" />
-                    <span>Send Feedback</span>
+                    <span>Send your Feedback</span>
                     {unreadCount > 0 && <Badge variant="secondary" className="text-xs">{unreadCount} new</Badge>}
                   </div>
                 </TooltipContent>
