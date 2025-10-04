@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   experimental: {
-    turbo: {}, // Enable Turbopack
+    turbo: {}, //  Turbopack Enable
   },
   productionBrowserSourceMaps: false,
   transpilePackages: [],
