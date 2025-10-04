@@ -1,20 +1,47 @@
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic';
+// _not-found/page.tsx
+"use client"; // ensures this page is rendered on the client side
 
-export default function NotFound() {
+import React, { useEffect, useState } from "react";
+
+// Optional: if you want to call your API, do it only on the client
+export default function NotFoundPage() {
+  const [message, setMessage] = useState("Page Not Found");
+
+  useEffect(() => {
+    async function fetchData() {
+      // Example: API call (only runs on client, not during build)
+      if (process.env.NEXT_PUBLIC_API_KEY) {
+        try {
+          // Replace this with your actual API logic
+          const res = await fetch("/api/example"); 
+          if (res.ok) {
+            const data = await res.json();
+            setMessage(data.message || "Page Not Found");
+          }
+        } catch (err) {
+          console.error("API fetch failed:", err);
+        }
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center space-y-4">
-        <h1 className="text-6xl font-bold text-gray-800">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-600">Page Not Found</h2>
-        <p className="text-gray-500">The page you're looking for doesn't exist.</p>
-        <a 
-          href="/" 
-          className="inline-block mt-4 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          Go Home
-        </a>
-      </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        flexDirection: "column",
+        textAlign: "center",
+      }}
+    >
+      <h1>404</h1>
+      <p>{message}</p>
     </div>
   );
 }
+
+// Prevent prerendering at build time
+export const dynamic = "force-dynamic";
