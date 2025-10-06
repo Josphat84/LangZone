@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-// Import the constant 'supabase' which holds the client instance
-import { supabase } from "@/lib/supabase/client"; 
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import FeedbackWidget from "@/components/FeedbackWidget";
+// NOTE: FeedbackWidget likely needs to be updated to receive 'supabase' client via prop or Context
+import FeedbackWidget from "@/components/FeedbackWidget"; 
 import Chatbot from "@/components/Chatbot";
 import { Toaster } from "react-hot-toast";
+
+// Import the function to get the Supabase client
+import { getSupabaseClient } from "@/lib/supabase/client"; 
 
 // Enhanced Shadcn components
 import { 
@@ -47,9 +49,13 @@ const LOADING_STEPS = [
   { step: 4, label: "Almost ready..." },
 ];
 
+// REMOVED THE FIRST REDUNDANT/INCORRECT EXPORT DEFAULT COMPONENT BLOCK
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  // FIX: Remove the function call! The constant 'supabase' is already the client instance.
-  // const supabase = getSupabaseClient(); <--- REMOVED THIS LINE
+  
+  // 🔑 THE PRIMARY FIX: Initialize the Supabase client instance here.
+  // This is how you correctly use the getSupabaseClient function you imported.
+  const supabase = useMemo(() => getSupabaseClient(), []); 
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -59,10 +65,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
-  // The rest of the component uses the imported 'supabase' constant, which is now correct.
+  // The rest of the component now correctly uses the 'supabase' constant defined above.
   const fetchFeedbackCount = useCallback(async (retries = 3) => {
     // This check is good because 'supabase' might be null if the keys were missing or on SSR.
-    if (!supabase) return; 
+    if (!supabase) {
+      console.warn("Supabase client is not initialized.");
+      return; 
+    }
 
     try {
       const { count, error: countError } = await supabase
@@ -125,7 +134,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let subscription: any = null;
     
-    // Uses the imported 'supabase' constant
+    // Uses the correctly initialized 'supabase' constant
     if (typeof window !== 'undefined' && supabase) { 
       try {
         subscription = supabase
@@ -158,7 +167,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       }
       if (subscription && supabase) {
         try {
-          // Uses the imported 'supabase' constant
+          // Uses the correctly initialized 'supabase' constant
           supabase.removeChannel(subscription); 
         } catch (err) {
           console.error("Error removing subscription:", err);

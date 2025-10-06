@@ -1,7 +1,11 @@
+//frontend/components/FeedbackWidget.tsx
+
+
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { useState, useEffect, useMemo } from "react";
+// Import the function to get the Supabase client
+import { getSupabaseClient } from "@/lib/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +19,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 export default function FeedbackWidget() {
+  // 🔑 FIX 1: Initialize the Supabase client instance using useMemo
+  // This ensures 'supabase' is defined and only created once.
+  const supabase = useMemo(() => getSupabaseClient(), []); 
+
   const [form, setForm] = useState({ name: "", email: "", type: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
@@ -34,6 +42,13 @@ export default function FeedbackWidget() {
     setLoading(true);
     setSuccess("");
     setErrorMsg("");
+
+    // 🔑 FIX 2: Check if supabase client is initialized before using it
+    if (!supabase) {
+      setErrorMsg("Client not initialized. Supabase configuration missing.");
+      setLoading(false);
+      return;
+    }
 
     if (!form.type || !form.message) {
       setErrorMsg("Please provide feedback type and message.");
@@ -73,6 +88,9 @@ export default function FeedbackWidget() {
 
   // Realtime feedback listener
   useEffect(() => {
+    // 🔑 FIX 3: Prevent running on server/if client is null, and add dependency array
+    if (!supabase || typeof window === "undefined") return;
+
     const channel = supabase
       .channel("feedback_notifications")
       .on(
@@ -100,9 +118,10 @@ export default function FeedbackWidget() {
       .subscribe();
 
     return () => {
+      // 🔑 FIX 4: Safely remove channel
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [supabase]); // Add supabase to the dependency array
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

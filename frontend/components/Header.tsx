@@ -1,9 +1,13 @@
+//app/components/Header.tsx
+
+
 "use client";
 
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/client';
+// ❌ FIX 1: Change the import from { supabase } to { getSupabaseClient }
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -126,6 +130,9 @@ const playNotificationSound = async (enabled: boolean): Promise<void> => {
 
 // --- Main Component ---
 export default function Header() {
+  // 🔑 FIX 2: Call getSupabaseClient() and memoize the instance.
+  const supabase = useMemo(() => getSupabaseClient(), []); 
+
   // --- State Management ---
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -157,6 +164,9 @@ export default function Header() {
 
   // --- Event Handlers ---
   const handleNotificationUpdate = useCallback((notification: Notification) => {
+    // Check if running on the client side
+    if (typeof window === 'undefined') return;
+
     if (!isWithinQuietHours(notificationPreferences.quietHours) && notificationPreferences.soundEnabled) {
       playNotificationSound(true);
     }
@@ -175,6 +185,9 @@ export default function Header() {
 
   // --- Effects ---
   useEffect(() => {
+    // Prevent running on server/if client is null
+    if (!supabase) return;
+
     // Fetch initial notifications
     const fetchInitialNotifications = async () => {
       try {
@@ -222,10 +235,11 @@ export default function Header() {
       )
       .subscribe();
 
+    // 🔑 FIX 3: Include supabase in the cleanup function
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [notificationPreferences.maxDisplayCount, handleNotificationUpdate]);
+  }, [notificationPreferences.maxDisplayCount, handleNotificationUpdate, supabase]); // 🔑 FIX 4: Add supabase to dependencies
 
   // Apply dark mode to document
   useEffect(() => {
