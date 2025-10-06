@@ -224,7 +224,7 @@ export default function SearchBar() {
                   <div className="p-2">
                     <div className="flex items-center justify-between px-3 py-2">
                       <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Search Results ({results.length})
+                        Your Search Results ({results.length})
                       </span>
                     </div>
                     
