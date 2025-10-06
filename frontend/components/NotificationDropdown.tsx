@@ -185,6 +185,9 @@ export default function NotificationDropdown({
     setNotifications,
     isDarkMode
 }: NotificationDropdownProps) {
+    // Initialize Supabase client (singleton pattern)
+    const supabase = useMemo(() => getSupabaseClient(), []);
+
     // --- State Management ---
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -202,7 +205,7 @@ export default function NotificationDropdown({
 
     // --- Refs ---
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const notificationsIconRef = useRef<HTMLButtonElement>(null); // New ref for the button
+    const notificationsIconRef = useRef<HTMLButtonElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // --- Debounced Search ---
@@ -313,7 +316,7 @@ export default function NotificationDropdown({
                 setIsLoading(false);
             }
         }
-    }, [filter, notificationPreferences.maxDisplayCount, setNotifications]);
+    }, [supabase, filter, notificationPreferences.maxDisplayCount, setNotifications]);
 
     const handleBulkAction = useCallback(async (action: 'resolve' | 'archive' | 'delete' | 'star') => {
         if (selectedNotifications.size === 0) return;
@@ -354,7 +357,7 @@ export default function NotificationDropdown({
         } finally {
             setIsLoading(false);
         }
-    }, [selectedNotifications, fetchNotifications]);
+    }, [supabase, selectedNotifications, fetchNotifications]);
 
     const handleNotificationAction = useCallback(async (
         id: number, 
@@ -396,7 +399,7 @@ export default function NotificationDropdown({
             console.error(`Failed to ${action} notification:`, error);
             toast.error(errorMessage);
         }
-    }, [setNotifications]);
+    }, [supabase, setNotifications]);
 
     const toggleNotificationSelection = useCallback((id: number) => {
         setSelectedNotifications(prev => {
@@ -638,9 +641,7 @@ export default function NotificationDropdown({
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         className={cn(
                             "absolute right-0 mt-3 max-h-[70vh] overflow-y-auto rounded-xl shadow-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-50 p-4 flex flex-col gap-4",
-                            // Desktop-specific styles (for screens wider than `md` breakpoint)
                             "md:w-96 md:max-w-sm",
-                            // Mobile-specific styles (for screens up to `md` breakpoint)
                             "fixed inset-0 h-screen w-screen rounded-none border-none",
                         )}
                         role="dialog"
