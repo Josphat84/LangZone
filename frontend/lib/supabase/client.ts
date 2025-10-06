@@ -3,23 +3,46 @@
 import { createBrowserClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Keep one client per browser session
 let supabase: SupabaseClient | null = null
+let isInitializing = false
 
 export function getSupabaseClient() {
+  // Prevent concurrent initializations
+  if (isInitializing) {
+    while (isInitializing) {
+      // Wait for initialization to complete
+    }
+    return supabase!
+  }
+
   if (!supabase) {
+    isInitializing = true
+    
     supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         auth: {
-          storageKey: 'home-platform-auth', // Add this unique key
+          storageKey: 'home-platform-auth',
           persistSession: true,
           detectSessionInUrl: true,
           flowType: 'pkce'
         }
       }
     )
+    
+    isInitializing = false
   }
+  
   return supabase
+}
+
+// Reset on HMR in development
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+  if ((module as any).hot) {
+    (module as any).hot.dispose(() => {
+      supabase = null
+      isInitializing = false
+    })
+  }
 }
