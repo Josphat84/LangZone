@@ -5,20 +5,21 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   output: 'standalone',
-  experimental: {
-    turbo: {}, //  Turbopack Enable
-  },
   productionBrowserSourceMaps: false,
   transpilePackages: [],
   reactStrictMode: true,
   trailingSlash: false,
+
   images: {
     unoptimized: false,
   },
+
   async headers() {
     return [
       {
@@ -28,7 +29,7 @@ const nextConfig: NextConfig = {
         ],
       },
     ]
-  },
+  }
 }
 
 export default nextConfig
