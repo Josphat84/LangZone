@@ -7,7 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import InteractiveBookingCalendar from './InteractiveBookingCalendar';
 import PaymentsZoomButtons from '../../../components/PaymentsZoomButtons';
 
-import { supabase } from '@/lib/supabase/client'; // <- singleton client
+import { getSupabaseClient } from '@/lib/supabase/client'; // <- singleton client
+
+const supabase = getSupabaseClient()
+
 
 // shadcn/ui imports
 import {

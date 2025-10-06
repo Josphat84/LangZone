@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 // Helper function to generate a URL-friendly slug
 const createSlug = (name: string): string => {
@@ -16,6 +16,7 @@ const createSlug = (name: string): string => {
 
 export default function CreateInstructorProfile() {
   const router = useRouter();
+  const supabase = getSupabaseClient(); // ✅ use once
 
   const [formData, setFormData] = useState({
     name: '',
@@ -80,7 +81,7 @@ export default function CreateInstructorProfile() {
 
         imagePath = filePath;
       }
-      
+
       const insertData = {
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -130,9 +131,7 @@ export default function CreateInstructorProfile() {
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             {/* Personal Information */}
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Personal Information
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
@@ -182,15 +181,11 @@ export default function CreateInstructorProfile() {
 
             {/* Profile URL */}
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Profile URL
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Profile URL</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Profile Slug *</label>
                 <div className="flex">
-                  <span className="inline-flex items-center px-4 py-3 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-lg">
-                    /tutors/
-                  </span>
+                  <span className="inline-flex items-center px-4 py-3 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-lg">/tutors/</span>
                   <input
                     name="slug"
                     placeholder="jane-smith"
@@ -206,9 +201,7 @@ export default function CreateInstructorProfile() {
 
             {/* Professional Information */}
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Professional Information
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Professional Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
@@ -269,9 +262,7 @@ export default function CreateInstructorProfile() {
 
             {/* Pricing */}
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Pricing
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Pricing</h2>
               <div className="max-w-md">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate (USD)</label>
                 <div className="relative">
@@ -292,9 +283,7 @@ export default function CreateInstructorProfile() {
 
             {/* Profile Content */}
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Profile Content
-              </h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Profile Content</h2>
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">About You</label>
