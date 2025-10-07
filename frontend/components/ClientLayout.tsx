@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+// NOTE: FeedbackWidget likely needs to be updated to receive 'supabase' client via prop or Context
 import FeedbackWidget from "@/components/FeedbackWidget"; 
 import Chatbot from "@/components/Chatbot";
 import { Toaster } from "react-hot-toast";
@@ -50,9 +51,12 @@ const LOADING_STEPS = [
   { step: 4, label: "Almost ready..." },
 ];
 
+// REMOVED THE FIRST REDUNDANT/INCORRECT EXPORT DEFAULT COMPONENT BLOCK
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   
-  // Initialize the Supabase client instance here.
+  // 🔑 THE PRIMARY FIX: Initialize the Supabase client instance here.
+  // This is how you correctly use the getSupabaseClient function you imported.
   const supabase = useMemo(() => getSupabaseClient(), []); 
 
   const [unreadCount, setUnreadCount] = useState<number>(0);
@@ -63,7 +67,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
+  // The rest of the component now correctly uses the 'supabase' constant defined above.
   const fetchFeedbackCount = useCallback(async (retries = 3) => {
+    // This check is good because 'supabase' might be null if the keys were missing or on SSR.
     if (!supabase) {
       console.warn("Supabase client is not initialized.");
       return; 
@@ -88,7 +94,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         setUnreadCount(0);
       }
     }
-  }, [supabase]);
+  }, [supabase]); // Keep dependency array correct
 
   useEffect(() => {
     let mounted = true;
@@ -130,6 +136,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let subscription: any = null;
     
+    // Uses the correctly initialized 'supabase' constant
     if (typeof window !== 'undefined' && supabase) { 
       try {
         subscription = supabase
@@ -162,6 +169,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       }
       if (subscription && supabase) {
         try {
+          // Uses the correctly initialized 'supabase' constant
           supabase.removeChannel(subscription); 
         } catch (err) {
           console.error("Error removing subscription:", err);
@@ -259,14 +267,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               )}
             </AnimatePresence>
 
-            {/* Header - Fixed: removed props */}
+            {/* Header */}
             <motion.div
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm"
             >
-              <Header />
+              <Header unreadCount={unreadCount} setUnreadCount={setUnreadCount} isLoading={false} />
             </motion.div>
 
             <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-20 focus:left-4 z-[100] bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-all focus:ring-4 focus:ring-purple-300">

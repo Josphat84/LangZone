@@ -1,25 +1,24 @@
-//app/layout.tsx
+// app/layout.tsx
 
-
+'use client'; // Ensure this is a client component
 import { Inter } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "@/components/ClientLayout";
+import ClientLayout from "@/components/ClientLayout"; // client component
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
 });
 
-export const metadata = {
-  title: "Home Platform",
-  description: "Learn languages with expert tutors",
-};
 
-// Prevent prerendering issues
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className="scroll-smooth">
       <head>
@@ -31,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${inter.className} ${inter.variable} min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-sans text-gray-800 antialiased selection:bg-purple-200/50`}
         suppressHydrationWarning
       >
+        {/* ClientLayout itself can handle client-side logic */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

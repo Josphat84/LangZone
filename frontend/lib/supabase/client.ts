@@ -26,8 +26,8 @@ export function getSupabaseClient() {
           storageKey: 'home-platform-auth',
           persistSession: true,
           detectSessionInUrl: true,
-          flowType: 'pkce'
-        }
+          flowType: 'pkce',
+        },
       }
     )
     
@@ -35,14 +35,4 @@ export function getSupabaseClient() {
   }
   
   return supabase
-}
-
-// Reset on HMR in development
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  if ((module as any).hot) {
-    (module as any).hot.dispose(() => {
-      supabase = null
-      isInitializing = false
-    })
-  }
 }
