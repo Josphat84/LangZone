@@ -236,19 +236,24 @@ export default function SearchBar() {
         query: searchQuery,
         result_count: resultCount,
         filter_type: filterUsed,
-        clicked_result: clickedResult || null,
+        clicked_result: clickedResult || '',
         timestamp: Math.floor(Date.now() / 1000),
         user_agent: navigator.userAgent,
         session_id: getSessionId(),
       };
 
-      // Use the same client for logging (you may need admin API key for this)
-      await typesense
-        .collections('search_logs')
-        .documents()
-        .create(searchLog);
+      // Log to API route instead of directly to Typesense
+      const response = await fetch('/api/log-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchLog),
+      });
 
-      console.log('Search logged successfully:', searchLog);
+      if (!response.ok) {
+        console.error('Failed to log search:', await response.text());
+      }
     } catch (error) {
       console.error('Error logging search:', error);
     }

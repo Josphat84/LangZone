@@ -15,11 +15,13 @@ import {
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { SiZoom } from 'react-icons/si';
+import { motion, AnimatePresence } from 'framer-motion'; // <-- added for animation
 
 export default function Footer() {
   const newsletterRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [glowVisible, setGlowVisible] = useState(false);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -120,7 +122,6 @@ export default function Footer() {
                     </span>
                   </a>
 
-                  {/* Parallax hover shadow */}
                   <span
                     className="absolute inset-0 rounded-full pointer-events-none opacity-0 group-hover:opacity-40 transition-all duration-500"
                     style={{
@@ -155,14 +156,49 @@ export default function Footer() {
               <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/sitemap" className="hover:text-white transition-colors">Sitemap</Link></li>
-              <li>
-                <Link
-                  href="/admin/feedback"
-                  className="flex items-center gap-1 text-orange-400 font-bold text-2xl hover:text-orange-300 transition-colors"
+
+              {/* Admin Dropdown */}
+              <li
+                className="relative"
+                onMouseEnter={() => setAdminDropdownOpen(true)}
+                onMouseLeave={() => setAdminDropdownOpen(false)}
+              >
+                <button
+                  onClick={() => setAdminDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-1 text-orange-400 font-bold text-2xl hover:text-orange-300 transition-colors focus:outline-none"
                 >
                   <FaUserShield className="h-5 w-5" />
                   Admin
-                </Link>
+                </button>
+
+                <AnimatePresence>
+                  {adminDropdownOpen && (
+                    <motion.ul
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 mt-2 w-48 bg-teal-900 border border-teal-700 rounded-md shadow-lg z-50"
+                    >
+                      <li>
+                        <Link
+                          href="/admin/search-analytics"
+                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
+                        >
+                          Search Analytics
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/admin/feedback"
+                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
+                        >
+                          Feedback
+                        </Link>
+                      </li>
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
               </li>
             </ul>
           </div>
