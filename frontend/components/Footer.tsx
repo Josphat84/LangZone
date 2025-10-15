@@ -196,6 +196,14 @@ export default function Footer() {
                           Feedback
                         </Link>
                       </li>
+                      <li>
+                        <Link
+                          href="/admin/calendar"
+                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
+                        >
+                          Calendar
+                        </Link>
+                      </li>
                     </motion.ul>
                   )}
                 </AnimatePresence>

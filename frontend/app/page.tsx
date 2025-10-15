@@ -211,7 +211,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button className="px-8 py-4 bg-black text-white rounded-lg hover:bg-gray-900 transition font-semibold flex items-center justify-center gap-2">
                   <span>Get Started</span>
-                  <ArrowRight size={20} />
+                 
                 </button>
                 <button
                   onClick={() => setIsVideoOpen(true)}
@@ -252,8 +252,7 @@ export default function HomePage() {
                 transition={{ duration: 3, repeat: Infinity }}
                 className="absolute -bottom-6 -left-6 bg-white px-6 py-4 rounded-xl shadow-lg border border-gray-100"
               >
-                <p className="font-semibold text-black">⭐ Rated 4.9/5</p>
-                <p className="text-sm text-gray-600">From 10K+ reviews</p>
+                
               </motion.div>
             </motion.div>
           </div>
@@ -265,7 +264,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">
-              Why Choose LangZone?
+              Why Choose Us?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Everything you need to master a language, all in one platform.
