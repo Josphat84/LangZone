@@ -1371,7 +1371,7 @@ export default function AvailabilityCalendar() {
                   </p>
                   <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                     <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                      💡 <strong>Demo Mode:</strong> We are in demo mode for now to see how it will work. We will be integrating real payment processing soon.
+                      💡 <strong>Testing Mode:</strong> We are in testing mode for now to see how it will work. We will be integrating real payment processing soon.
                     </p>
                   </div>
                 </div>

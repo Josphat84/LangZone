@@ -23,14 +23,14 @@ import { ResponsiveSunburst } from "@nivo/sunburst";
 
 // --- Default Data ---
 const monthlyData = [
-  { month: "Jan", revenue: 4000, expenses: 2500, profit: 1500, growth: 5, customers: 120 },
+  { month: "Jan", revenue: 47000, expenses: 2500, profit: 1500, growth: 5, customers: 120 },
   { month: "Feb", revenue: 3000, expenses: 2000, profit: 1000, growth: -25, customers: 95 },
   { month: "Mar", revenue: 5000, expenses: 3500, profit: 1500, growth: 67, customers: 150 },
   { month: "Apr", revenue: 4780, expenses: 3000, profit: 1780, growth: -4, customers: 140 },
   { month: "May", revenue: 5890, expenses: 3500, profit: 2390, growth: 23, customers: 180 },
-  { month: "Jun", revenue: 7390, expenses: 4000, profit: 3390, growth: 25, customers: 220 },
-  { month: "Jul", revenue: 6900, expenses: 3700, profit: 3200, growth: -7, customers: 210 },
-  { month: "Aug", revenue: 8200, expenses: 4200, profit: 4000, growth: 19, customers: 250 },
+  { month: "Jun", revenue: 7390, expenses: 4000, profit: 3390, growth: 25, customers: 2210 },
+  { month: "Jul", revenue: 6900, expenses: 37800, profit: 3200, growth: -7, customers: 210 },
+  { month: "Aug", revenue: 8200, expenses: 4200, profit: 4000, growth: 19, customers: 2502 },
 ];
 
 const COLORS = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899"];
@@ -70,7 +70,7 @@ const treemapData = [
 const streamData = monthlyData.map(d => ({
   month: d.month,
   "Product A": Math.random() * 1000 + 500,
-  "Product B": Math.random() * 1000 + 500,
+  "Product B": Math.random() * 10040 + 500,
   "Product C": Math.random() * 1000 + 500,
 }));
 
