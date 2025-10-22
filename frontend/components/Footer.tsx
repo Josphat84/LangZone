@@ -12,16 +12,18 @@ import {
   FaWhatsapp,
   FaLinkedinIn,
   FaUserShield,
+  FaTachometerAlt,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import { SiZoom } from 'react-icons/si';
-import { motion, AnimatePresence } from 'framer-motion'; // <-- added for animation
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Footer() {
   const newsletterRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [glowVisible, setGlowVisible] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+  const [dashboardDropdownOpen, setDashboardDropdownOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -59,6 +61,7 @@ export default function Footer() {
     <footer className="relative bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 text-white antialiased overflow-hidden">
       <div className="container mx-auto px-6 pt-20 pb-12 max-w-7xl relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 sm:gap-16">
+          
           {/* Brand & Socials */}
           <div className="lg:col-span-2 relative z-20">
             <h6 className="font-light text-3xl mb-4 tracking-tight leading-tight">LangZone</h6>
@@ -96,8 +99,7 @@ export default function Footer() {
                         }, 500);
                       }
                     }}
-                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full
-                               transform transition-all duration-500 hover:scale-110"
+                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full transform transition-all duration-500 hover:scale-110"
                     style={{
                       background: label === 'Instagram' ? color : undefined,
                       backgroundColor: label !== 'Instagram' ? color : undefined,
@@ -148,7 +150,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Company with Admin & Dashboard */}
           <div>
             <h6 className="font-normal text-lg mb-4 tracking-tight leading-snug">Company</h6>
             <ul className="space-y-2 text-teal-200 text-sm leading-relaxed">
@@ -165,7 +167,7 @@ export default function Footer() {
               >
                 <button
                   onClick={() => setAdminDropdownOpen((prev) => !prev)}
-                  className="flex items-center gap-1 text-orange-400 font-bold text-2xl hover:text-orange-300 transition-colors focus:outline-none"
+                  className="flex items-center gap-1 text-teal-200 font-bold hover:text-white transition-colors focus:outline-none"
                 >
                   <FaUserShield className="h-5 w-5" />
                   Admin
@@ -178,30 +180,69 @@ export default function Footer() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute left-0 mt-2 w-48 bg-teal-900 border border-teal-700 rounded-md shadow-lg z-50"
+                      className="absolute left-0 mt-2 w-52 bg-teal-900 border border-teal-700 rounded-md shadow-lg z-50"
                     >
                       <li>
-                        <Link
-                          href="/admin/search-analytics"
-                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
-                        >
+                        <Link href="/admin/search-analytics" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
                           Search Analytics
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          href="/admin/feedback"
-                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
-                        >
+                        <Link href="/admin/feedback" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
                           Feedback
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          href="/admin/calendar"
-                          className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors"
-                        >
+                        <Link href="/admin/calendar" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
                           Calendar
+                        </Link>
+                      </li>
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </li>
+
+              {/* Dashboard Dropdown */}
+              <li
+                className="relative"
+                onMouseEnter={() => setDashboardDropdownOpen(true)}
+                onMouseLeave={() => setDashboardDropdownOpen(false)}
+              >
+                <button
+                  onClick={() => setDashboardDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-1 text-teal-200 font-bold hover:text-white transition-colors focus:outline-none"
+                >
+                  <FaTachometerAlt className="h-5 w-5" />
+                  Dashboard
+                </button>
+
+                <AnimatePresence>
+                  {dashboardDropdownOpen && (
+                    <motion.ul
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 mt-2 w-52 bg-teal-900 border border-teal-700 rounded-md shadow-lg z-50"
+                    >
+                      <li>
+                        <Link href="/dashboard/student" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
+                          Students
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/dashboard/tutor" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
+                          Tutors
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/dashboard/admin" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
+                          Admin
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/dashboard/analytics" className="block px-4 py-2 text-teal-200 hover:bg-teal-800 hover:text-white transition-colors text-sm">
+                          Analytics
                         </Link>
                       </li>
                     </motion.ul>
@@ -265,4 +306,3 @@ export default function Footer() {
     </footer>
   );
 }
- 
